@@ -7,29 +7,11 @@ from pymarc import Field, Indicators, Subfield
 from mln_data_transform.components import (
     GradeReadingLevel,
     SetTypeFormat,
+    SubjectData,
     SubjectStudyProgram,
+    TeacherSetBook,
+    TeacherSetSpecialFormat,
 )
-
-
-@dataclass
-class SetPart:
-    """A title or other item included within a Teacher Set."""
-
-    author: str | None
-    copies: int
-    description: str
-    isbn: str | None
-    title: str
-
-
-@dataclass
-class SubjectData:
-    """Data used to create a 6xx field."""
-
-    tag: str
-    ind1: str
-    ind2: str
-    subfields: list[tuple[str, str]]
 
 
 @dataclass
@@ -86,7 +68,7 @@ class TeacherSetData:
         local_genre_term: list[str],
         local_set_type: str | SetTypeFormat,
         local_topic_term: list[str],
-        parts: list[SetPart],
+        parts: list[TeacherSetBook | TeacherSetSpecialFormat],
         physical_description: str,
         record_type: str,
         shelf_number: str,
@@ -152,6 +134,7 @@ class TeacherSetData:
         self.parts = parts
         self.physical_description = physical_description
         self.record_type = record_type
+        self.set_title = set_title
         self.shelf_number = shelf_number
         self.subjects = subjects
         self.study_program_info = (
@@ -159,7 +142,6 @@ class TeacherSetData:
             if isinstance(study_program_info, str)
             else study_program_info
         )
-        self.set_title = set_title
 
     @property
     def bib_code(self) -> str:
@@ -240,15 +222,18 @@ class TeacherSetBib:
         self.data = data
 
     @property
-    def control_number_field(self) -> Field:
+    def field_001(self) -> Field:
+        """Control number field"""
         return Field(tag="001", data=self.data.control_number)
 
     @property
-    def control_number_identifier_field(self) -> Field:
+    def field_003(self) -> Field:
+        """Control number identifier field"""
         return Field(tag="003", data=self.data.control_number_identifier)
 
     @property
     def field_008(self) -> Field:
+        """MARC 008 field"""
         today = datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
         date_str = f"{today}i{self.data.begin_pub_date}{self.data.end_pub_date}"
         if self.data.leader[6] == "o":
@@ -258,7 +243,8 @@ class TeacherSetBib:
         return Field(tag="008", data=f"{date_str}xxu{content}{self.data.language} d")
 
     @property
-    def call_number_field(self) -> Field:
+    def field_091(self) -> Field:
+        """Local MyLibraryNYC call number field"""
         return Field(
             tag="091",
             indicators=Indicators(" ", " "),
@@ -271,7 +257,8 @@ class TeacherSetBib:
         )
 
     @property
-    def title_field(self) -> Field:
+    def field_245(self) -> Field:
+        """Title Field"""
         return Field(
             tag="245",
             indicators=Indicators("0", "0"),
@@ -282,7 +269,8 @@ class TeacherSetBib:
         )
 
     @property
-    def physical_description_field(self) -> Field:
+    def field_300(self) -> Field:
+        """Physical description field"""
         return Field(
             tag="300",
             indicators=Indicators(" ", " "),
@@ -290,7 +278,8 @@ class TeacherSetBib:
         )
 
     @property
-    def note_500_field(self) -> Field:
+    def field_500(self) -> Field:
+        """General contents note field"""
         return Field(
             tag="500",
             indicators=Indicators(" ", " "),
@@ -298,20 +287,22 @@ class TeacherSetBib:
         )
 
     @property
-    def note_505_field(self) -> Field:
+    def field_505(self) -> Field:
+        """Detailed contents note field"""
         subfield_list = []
         for n, part in enumerate(self.data.parts):
             subfield_list.append(Subfield(code="t", value=f"{part.title} /"))
-            if n + 1 < len(self.data.parts):
+            if isinstance(part, TeacherSetBook) and n + 1 < len(self.data.parts):
                 subfield_list.append(Subfield(code="r", value=f"{part.author} --"))
-            else:
+            elif isinstance(part, TeacherSetBook) and n + 1 == len(self.data.parts):
                 subfield_list.append(Subfield(code="r", value=f"{part.author}."))
         return Field(
             tag="505", indicators=Indicators("0", "0"), subfields=subfield_list
         )
 
     @property
-    def note_520_field(self) -> list[Field]:
+    def field_520(self) -> list[Field]:
+        """Summary description note field (REPEATABLE)"""
         field_list = []
         for part in self.data.parts:
             field_list.append(
@@ -327,7 +318,8 @@ class TeacherSetBib:
         return field_list
 
     @property
-    def note_521_field(self) -> Field:
+    def field_521(self) -> Field:
+        """Reading level field"""
         return Field(
             tag="521",
             indicators=Indicators("2", " "),
@@ -335,7 +327,8 @@ class TeacherSetBib:
         )
 
     @property
-    def note_526_field(self) -> Field:
+    def field_526(self) -> Field:
+        """Study program information field"""
         return Field(
             tag="526",
             indicators=Indicators("8", " "),
@@ -343,7 +336,8 @@ class TeacherSetBib:
         )
 
     @property
-    def subjects(self) -> list[Field]:
+    def field_6xx(self) -> list[Field]:
+        """Subject fields (REPEATBLE)"""
         subject_list = []
         if not self.data.subjects:
             return []
@@ -360,7 +354,8 @@ class TeacherSetBib:
         return subject_list
 
     @property
-    def subject_690_field(self) -> Field:
+    def field_690(self) -> Field:
+        """Local set type field"""
         return Field(
             tag="690",
             indicators=Indicators(" ", "7"),
@@ -371,7 +366,8 @@ class TeacherSetBib:
         )
 
     @property
-    def subject_691_fields(self) -> list[Field]:
+    def field_691(self) -> list[Field]:
+        """Local topic term field (REPEATBLE)"""
         subject_list = []
         for term in self.data.local_topic_term:
             subject_list.append(
@@ -387,7 +383,8 @@ class TeacherSetBib:
         return subject_list
 
     @property
-    def subject_695_fields(self) -> list[Field]:
+    def field_695(self) -> list[Field]:
+        """Local genre term field (REPEATBLE)"""
         subject_list = []
         for term in self.data.local_genre_term:
             subject_list.append(
@@ -403,7 +400,34 @@ class TeacherSetBib:
         return subject_list
 
     @property
-    def catalogers_initials_field(self) -> Field:
+    def field_7xx(self) -> list[Field]:
+        """Author/title/date of publication/ISBN information field (REPEATBLE)"""
+        subject_list = []
+        for term in self.data.parts:
+            subfields = []
+            if isinstance(term, TeacherSetBook) and term.author:
+                tag = "700"
+                ind1 = "1"
+                subfields.append(Subfield(code="a", value=term.author))
+                if isinstance(term, TeacherSetBook) and term.author_dates:
+                    subfields.append(Subfield(code="d", value=term.author_dates))
+                subfields.append(Subfield(code="t", value=term.title))
+            else:
+                tag = "730"
+                ind1 = "0"
+                subfields.append(Subfield(code="a", value=term.title))
+            if term.pub_date:
+                subfields.append(Subfield(code="f", value=term.pub_date))
+            if isinstance(term, TeacherSetBook) and term.isbn:
+                subfields.append(Subfield(code="x", value=term.isbn))
+            subject_list.append(
+                Field(tag=tag, indicators=Indicators(ind1, "2"), subfields=subfields)
+            )
+        return subject_list
+
+    @property
+    def field_901(self) -> Field:
+        """Cataloger's initials field"""
         return Field(
             tag="901",
             indicators=Indicators(" ", " "),
@@ -414,7 +438,8 @@ class TeacherSetBib:
         )
 
     @property
-    def local_collection_code_field(self) -> Field:
+    def field_910(self) -> Field:
+        """Local collection code field"""
         return Field(
             tag="910",
             indicators=Indicators(" ", " "),
@@ -422,7 +447,8 @@ class TeacherSetBib:
         )
 
     @property
-    def oclc_exclusion_field(self) -> Field:
+    def field_909(self) -> Field:
+        """Local OCLC exclusion note field"""
         return Field(
             tag="909",
             indicators=Indicators(" ", " "),
@@ -433,27 +459,29 @@ class TeacherSetBib:
         bib = Bib()
         bib.library = self.data.library
         bib.leader = self.data.leader
-        bib.add_field(self.control_number_field)
-        bib.add_field(self.control_number_identifier_field)
+        bib.add_field(self.field_001)
+        bib.add_field(self.field_003)
         bib.add_field(self.field_008)
-        bib.add_field(self.call_number_field)
-        bib.add_field(self.title_field)
-        bib.add_field(self.physical_description_field)
-        bib.add_field(self.note_500_field)
-        bib.add_field(self.note_505_field)
-        for field in self.note_520_field:
+        bib.add_field(self.field_091)
+        bib.add_field(self.field_245)
+        bib.add_field(self.field_300)
+        bib.add_field(self.field_500)
+        bib.add_field(self.field_505)
+        for field in self.field_520:
             bib.add_field(field)
-        bib.add_field(self.note_521_field)
-        bib.add_field(self.note_526_field)
-        for field in self.subjects:
+        bib.add_field(self.field_521)
+        bib.add_field(self.field_526)
+        for field in self.field_6xx:
             bib.add_field(field)
-        bib.add_field(self.subject_690_field)
-        for field in self.subject_691_fields:
+        bib.add_field(self.field_690)
+        for field in self.field_691:
             bib.add_field(field)
-        for field in self.subject_695_fields:
+        for field in self.field_695:
             bib.add_field(field)
-        bib.add_field(self.catalogers_initials_field)
-        bib.add_field(self.local_collection_code_field)
-        bib.add_field(self.oclc_exclusion_field)
+        for field in self.field_7xx:
+            bib.add_field(field)
+        bib.add_field(self.field_901)
+        bib.add_field(self.field_910)
+        bib.add_field(self.field_909)
         # add items
         return bib

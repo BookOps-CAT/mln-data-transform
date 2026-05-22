@@ -57,7 +57,9 @@ class LegacyTeacherSetData:
         fields = [
             i
             for i in self.var_fields
-            if isinstance(i["marcTag"], str) and i["marcTag"].startswith("6")
+            if isinstance(i["marcTag"], str)
+            and i["marcTag"].startswith("6")
+            and not i["marcTag"].startswith("69")
         ]
         return [
             {k: v for k, v in i.items() if k not in ["content", "fieldTag"]}

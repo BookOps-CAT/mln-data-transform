@@ -1,14 +1,15 @@
 from mln_data_transform.models import (
-    SetPart,
     SubjectData,
     TeacherSetBib,
+    TeacherSetBook,
     TeacherSetData,
+    TeacherSetSpecialFormat,
 )
 
 
 class TestTeacherSetData:
     def test_teacher_set_data(self, set_test_data):
-        set_test_data["parts"] = [SetPart(**i) for i in set_test_data["parts"]]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["subjects"] = [
             SubjectData(
                 tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
@@ -55,29 +56,29 @@ class TestTeacherSetData:
         assert teacher_set.call_number.enhanced is None
 
     def test_teacher_set_data_short_title(self, set_test_data):
-        set_test_data["parts"] = [SetPart(**i) for i in set_test_data["parts"]]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["set_title"] = "Storytelling"
         teacher_set = TeacherSetData(**set_test_data)
         assert str(teacher_set.call_number) == "MLNYC ART-10 CLUB A STORYTELLING 1-1"
 
     def test_teacher_set_data_enhanced(self, set_test_data):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["parts"].append(
-            {
-                "author": None,
-                "title": "Sock puppet",
-                "copies": 1,
-                "description": "A puppet",
-                "isbn": None,
-            }
+            TeacherSetSpecialFormat(
+                title="Sock puppet", copies=1, description="A puppet."
+            )
         )
-        set_test_data["parts"] = [SetPart(**i) for i in set_test_data["parts"]]
         set_test_data["enhanced"] = "E"
         teacher_set = TeacherSetData(**set_test_data)
+        set_bib = TeacherSetBib(data=teacher_set)
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
         assert str(teacher_set.call_number) == "MLNYC ART-10 CLUB E A FOO BAR 1-1"
         assert teacher_set.call_number.sub_f == "CLUB E"
+        assert "=730  02$aSock puppet" in field_strings
 
     def test_teacher_set_bib(self, set_test_data):
-        set_test_data["parts"] = [SetPart(**i) for i in set_test_data["parts"]]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["subjects"] = [
             SubjectData(tag="650", ind1=" ", ind2="0", subfields=[("a", "Robots")])
         ]
@@ -103,13 +104,15 @@ class TestTeacherSetData:
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=910  \\\\$aBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
         ]
 
     def test_teacher_set_bib_kit(self, set_test_data):
-        set_test_data["parts"] = [SetPart(**i) for i in set_test_data["parts"]]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["record_type"] = "o"
         teacher_set = TeacherSetData(**set_test_data)
         set_bib = TeacherSetBib(data=teacher_set)

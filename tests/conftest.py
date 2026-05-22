@@ -38,6 +38,8 @@ def set_test_data() -> dict[str, Any]:
                 "copies": 1,
                 "isbn": "9781234567890",
                 "description": "A book.",
+                "author_dates": "2020-",
+                "pub_date": "2025",
             },
             {
                 "title": "Test Title",
@@ -45,6 +47,7 @@ def set_test_data() -> dict[str, Any]:
                 "copies": 2,
                 "isbn": "9780987654321",
                 "description": "Another book.",
+                "pub_date": "2025",
             },
         ],
     }
