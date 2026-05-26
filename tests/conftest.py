@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture
 def platform_test_data() -> dict[str, Any]:
-    with open("tests/platform_bib.json", "r") as fh:
+    with open("tests/data/platform_bib.json", "r") as fh:
         json_data = json.load(fh)
         return json_data
 
