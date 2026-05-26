@@ -118,3 +118,33 @@ class TestTeacherSetData:
         set_bib = TeacherSetBib(data=teacher_set)
         bib = set_bib.to_bib()
         assert bib.leader == "00000noc  2200000 a 4500"
+
+    def test_teacher_set_bib_no_local_subjects(self, set_test_data, today_str):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+        set_test_data["local_topic_term"] = None
+        set_test_data["local_genre_term"] = None
+        teacher_set = TeacherSetData(**set_test_data)
+        set_bib = TeacherSetBib(data=teacher_set)
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000nac  2200000 a 4500"
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}i200101200102xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC ART-10$fCLUB$pA$cFOO BAR 1-1",
+            "=245  00$aFoo Bar Teacher Set$cCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title".',
+            "=505  00$tFoo Bar /$rBaz --$tTest Title /$rFoo.",
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=690  \\7$aBook Club$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=910  \\\\$aBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+        ]

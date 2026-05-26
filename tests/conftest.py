@@ -20,6 +20,13 @@ def test_data() -> dict[str, Any]:
 
 
 @pytest.fixture
+def platform_test_item() -> dict[str, Any]:
+    with open("tests/data/platform_item.json", "r") as fh:
+        json_data = json.load(fh)
+        return json_data
+
+
+@pytest.fixture
 def set_test_data() -> dict[str, Any]:
     return {
         "record_type": "a",

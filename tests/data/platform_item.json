@@ -1,0 +1,132 @@
+{
+  "id": "31187496",
+  "nyplType": "item",
+  "updatedDate": "2026-04-15T09:55:14-04:00",
+  "createdDate": "2013-12-30T15:52:00-05:00",
+  "deletedDate": null,
+  "deleted": false,
+  "location": { "code": "eduls", "name": "LSC Educator Collection" },
+  "status": {
+    "code": "-",
+    "display": "AVAILABLE",
+    "duedate": "2026-06-17T08:00:00+00:00"
+  },
+  "barcode": "33333402207449",
+  "callNumber": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1   ",
+  "itemType": null,
+  "fixedFields": {
+    "57": { "label": "", "value": "false", "display": null },
+    "58": { "label": "Copy No.", "value": "1", "display": null },
+    "59": { "label": "Item Code 1", "value": "30010", "display": null },
+    "60": { "label": "Item Code 2", "value": "-", "display": null },
+    "61": {
+      "label": "Item Type",
+      "value": "252",
+      "display": "Teacher Set (DOE EDUCATOR ONLY)"
+    },
+    "62": { "label": "Price", "value": "0.000000", "display": null },
+    "63": {
+      "label": "Checkout Date",
+      "value": "2025-10-27T21:20:21Z",
+      "display": null
+    },
+    "64": { "label": "Checkout Location", "value": "1510", "display": null },
+    "65": {
+      "label": "Due Date",
+      "value": "2026-06-17T08:00:00Z",
+      "display": null
+    },
+    "66": { "label": "Patron No.", "value": "10222329", "display": null },
+    "68": {
+      "label": "Last Checkin",
+      "value": "2025-07-02T18:01:43Z",
+      "display": null
+    },
+    "69": {
+      "label": "Inventory Date",
+      "value": "2025-08-12T08:00:00Z",
+      "display": null
+    },
+    "70": { "label": "Checkin Location", "value": "372", "display": null },
+    "71": { "label": "No. of Renewals", "value": "3", "display": null },
+    "72": { "label": "No. of Overdues", "value": "0", "display": null },
+    "74": { "label": "Item Use 3", "value": "0", "display": null },
+    "76": { "label": "Total Checkouts", "value": "13", "display": null },
+    "77": { "label": "Total Renewals", "value": "45", "display": null },
+    "78": {
+      "label": "Last Checkout Date",
+      "value": "2025-02-04T15:15:36Z",
+      "display": null
+    },
+    "79": {
+      "label": "Location",
+      "value": "eduls",
+      "display": "LSC Educator Collection"
+    },
+    "80": { "label": "Record Type", "value": "i", "display": null },
+    "81": { "label": "Record Number", "value": "31187496", "display": null },
+    "83": {
+      "label": "Created Date",
+      "value": "2013-12-30T15:52:00Z",
+      "display": null
+    },
+    "84": {
+      "label": "Updated Date",
+      "value": "2026-04-15T09:55:14Z",
+      "display": null
+    },
+    "85": { "label": "No. of Revisions", "value": "145", "display": null },
+    "86": { "label": "Agency", "value": "1", "display": "53rd Street" },
+    "87": { "label": "Loanrule", "value": "107", "display": null },
+    "88": { "label": "Status", "value": "-", "display": "AVAILABLE" },
+    "93": { "label": "Inhouse Use", "value": "0", "display": null },
+    "94": { "label": "Copy Use", "value": "0", "display": null },
+    "97": { "label": "Item Message", "value": "-", "display": null },
+    "98": { "label": "", "value": "2026-02-14T08:46:21Z", "display": null },
+    "108": { "label": "OPAC Message", "value": "m", "display": "MyLibraryNYC" },
+    "109": { "label": "Year-to-Date Circ", "value": "1", "display": null },
+    "110": { "label": "Last Year Circ", "value": "1", "display": null },
+    "127": { "label": "Item Agency", "value": "44", "display": "NYPL/Other" },
+    "161": { "label": "VI Central", "value": "0", "display": null },
+    "162": { "label": "IR Dist Learn Same Site", "value": "0", "display": null },
+    "264": { "label": "Holdings Item Tag", "value": "6", "display": null },
+    "265": { "label": "Inherit Location", "value": "false", "display": null },
+    "306": { "label": "Sticky Status", "value": "", "display": null }
+  },
+  "varFields": [
+    {
+      "fieldTag": "b",
+      "marcTag": null,
+      "ind1": null,
+      "ind2": null,
+      "content": "33333402207449",
+      "subfields": null
+    },
+    {
+      "fieldTag": "c",
+      "marcTag": null,
+      "ind1": null,
+      "ind2": null,
+      "content": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1   ",
+      "subfields": null
+    },
+    {
+      "fieldTag": "t",
+      "marcTag": null,
+      "ind1": null,
+      "ind2": null,
+      "content": "CPRC/XC",
+      "subfields": null
+    },
+    {
+      "fieldTag": "x",
+      "marcTag": null,
+      "ind1": null,
+      "ind2": null,
+      "content": "Below 75%. Missing 9/10 vol, 1 vol in PENDING",
+      "subfields": null
+    }
+  ],
+  "nyplSource": "sierra-nypl",
+  "bibIds": ["19538471"]
+}

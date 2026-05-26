@@ -2,47 +2,77 @@ import re
 from typing import Any
 
 
-class LegacyTeacherSetData:
+class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
-
-    CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher Set (?P<study_program_info>[A-Z]{3,4}) (?P<grade_level>[A-Z]{1}) (?P<local_set_type>.+?)\s(?P<enumeration>[\d-]+)$"  # noqa: E501
-    )
 
     def __init__(
         self,
         bib_id: str,
         item_ids: list[str],
-        set_title: str,
         language: str,
         fixed_fields: list[dict[str, Any]],
+        set_title: str,
         var_fields: list[dict[str, Any]],
     ) -> None:
         self.bib_id = bib_id
         self.item_ids = item_ids
-        self.set_title = set_title
         self.fixed_fields = fixed_fields
-        self.var_fields = var_fields
         self.language = language
+        self.set_title = set_title
+        self.var_fields = var_fields
+
+    @property
+    def isbns(self) -> list[str]:
+        isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
+        if isbns:
+            subfields_944 = isbns[0]["subfields"]
+            isbn_string = " ".join([i["content"] for i in subfields_944])
+            return isbn_string.split()
+        return []
+
+    @property
+    def leader(self) -> str | None:
+        leader = [i["content"] for i in self.var_fields if not i["marcTag"]]
+        if leader:
+            return leader[0]
+        return None
+
+    @property
+    def physical_description(self) -> str | None:
+        field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
+        if field_300:
+            subfields_300 = field_300[0]["subfields"]
+            return " ".join([i["content"] for i in subfields_300])
+        return None
+
+
+class LegacyItemData:
+    """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
+
+    CALL_NUMBER_PATTERN = re.compile(
+        r"Teacher Set (?P<study_program_info>[A-Z]{3,4}) (?P<grade_level>[A-Z]{1}) (?P<local_set_type>.+?)\s(?P<shelf_number>\d+)-(?P<enumeration>\d+)$"  # noqa: E501
+    )
+    AUDIO_PATTERN = re.compile(r"Audio & Digital Devices.+")
+    BOOK_CLUB_PATTERN = re.compile(r"Book Club.+")
+    GAME_PATTERN = re.compile(r"Game")
+    LPRINT_PATTERN = re.compile(r"Large Print")
+    PHONIC_PATTERN = re.compile(r"Phonics & Decodeables")
+    STORY_PATTERN = re.compile(r"Storytelling")
+    TOPIC_PATTERN = re.compile(r"Topic")
+
+    def __init__(self, call_number: str, item_count: int, item_id: str) -> None:
+        self.call_number = call_number.strip()
+        self.item_count = item_count
+        self.item_id = item_id
 
     @property
     def call_number_components(self) -> re.Match | None:
-        if self.legacy_call_number:
-            return self.CALL_NUMBER_PATTERN.match(self.legacy_call_number)
-        else:
-            return None
+        return self.CALL_NUMBER_PATTERN.match(self.call_number)
 
     @property
     def enumeration(self) -> str | None:
         if self.call_number_components:
             return self.call_number_components["enumeration"]
-        else:
-            return None
-
-    @property
-    def study_program_info(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["study_program_info"]
         else:
             return None
 
@@ -61,47 +91,15 @@ class LegacyTeacherSetData:
             return None
 
     @property
-    def leader(self) -> str | None:
-        leader = [i["content"] for i in self.var_fields if not i["marcTag"]]
-        if leader:
-            return leader[0]
-        return None
+    def shelf_number(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["shelf_number"]
+        else:
+            return None
 
     @property
-    def legacy_call_number(self) -> str | None:
-        field_091 = [i for i in self.var_fields if i["marcTag"] == "091"]
-        if field_091:
-            subfields_091 = field_091[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_091])
-        return None
-
-    @property
-    def isbns(self) -> list[str]:
-        isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
-        if isbns:
-            subfields_944 = isbns[0]["subfields"]
-            isbn_string = " ".join([i["content"] for i in subfields_944])
-            return isbn_string.split()
-        return []
-
-    @property
-    def physical_description(self) -> str | None:
-        field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
-        if field_300:
-            subfields_300 = field_300[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_300])
-        return None
-
-    @property
-    def subjects(self) -> list[dict[str, Any]]:
-        fields = [
-            i
-            for i in self.var_fields
-            if isinstance(i["marcTag"], str)
-            and i["marcTag"].startswith("6")
-            and not i["marcTag"].startswith("69")
-        ]
-        return [
-            {k: v for k, v in i.items() if k not in ["content", "fieldTag"]}
-            for i in fields
-        ]
+    def study_program_info(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["study_program_info"]
+        else:
+            return None
