@@ -71,8 +71,8 @@ class LegacyTeacherSetData:
     def legacy_call_number(self) -> str | None:
         field_091 = [i for i in self.var_fields if i["marcTag"] == "091"]
         if field_091:
-            subfields_300 = field_091[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_300])
+            subfields_091 = field_091[0]["subfields"]
+            return " ".join([i["content"] for i in subfields_091])
         return None
 
     @property
