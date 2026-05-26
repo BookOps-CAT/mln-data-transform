@@ -13,6 +13,12 @@ class TestTeacherSetBib:
         )
         assert legacy_bib.isbns == ["9780789308849"]
         assert legacy_bib.physical_description == "10 v."
+        assert legacy_bib.study_program_info == "SOC"
+        assert legacy_bib.grade_level == "A"
+        assert (
+            legacy_bib.local_set_type == "Book Club Set NYC History - This Is New York"
+        )
+        assert legacy_bib.enumeration == "1"
         assert (
             legacy_bib.legacy_call_number
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
@@ -41,3 +47,7 @@ class TestTeacherSetBib:
         assert legacy_bib.physical_description is None
         assert legacy_bib.legacy_call_number is None
         assert legacy_bib.leader is None
+        assert legacy_bib.study_program_info is None
+        assert legacy_bib.grade_level is None
+        assert legacy_bib.local_set_type is None
+        assert legacy_bib.enumeration is None

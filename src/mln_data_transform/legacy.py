@@ -26,6 +26,41 @@ class LegacyTeacherSetData:
         self.language = language
 
     @property
+    def call_number_components(self) -> re.Match | None:
+        if self.legacy_call_number:
+            return self.CALL_NUMBER_PATTERN.match(self.legacy_call_number)
+        else:
+            return None
+
+    @property
+    def enumeration(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["enumeration"]
+        else:
+            return None
+
+    @property
+    def study_program_info(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["study_program_info"]
+        else:
+            return None
+
+    @property
+    def grade_level(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["grade_level"]
+        else:
+            return None
+
+    @property
+    def local_set_type(self) -> str | None:
+        if self.call_number_components:
+            return self.call_number_components["local_set_type"]
+        else:
+            return None
+
+    @property
     def leader(self) -> str | None:
         leader = [i["content"] for i in self.var_fields if not i["marcTag"]]
         if leader:
