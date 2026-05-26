@@ -77,7 +77,7 @@ class TestTeacherSetData:
         assert teacher_set.call_number.sub_f == "CLUB E"
         assert "=730  02$aSock puppet" in field_strings
 
-    def test_teacher_set_bib(self, set_test_data):
+    def test_teacher_set_bib(self, set_test_data, today_str):
         set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
         set_test_data["subjects"] = [
             SubjectData(tag="650", ind1=" ", ind2="0", subfields=[("a", "Robots")])
@@ -90,7 +90,7 @@ class TestTeacherSetData:
         assert field_strings == [
             "=001  nn-mlnyc-0000001",
             "=003  BookOps",
-            "=008  260522i200101200102xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            f"=008  {today_str}i200101200102xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC ART-10$fCLUB$pA$cFOO BAR 1-1",
             "=245  00$aFoo Bar Teacher Set$cCopy 1 of 1",
             "=300  \\\\$a1 item",

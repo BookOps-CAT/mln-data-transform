@@ -14,7 +14,7 @@ class TestTeacherSetBib:
         assert legacy_bib.isbns == ["9780789308849"]
         assert legacy_bib.physical_description == "10 v."
         assert (
-            legacy_bib.call_number
+            legacy_bib.legacy_call_number
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
         )
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
@@ -39,5 +39,5 @@ class TestTeacherSetBib:
         )
         assert legacy_bib.isbns is None
         assert legacy_bib.physical_description is None
-        assert legacy_bib.call_number is None
+        assert legacy_bib.legacy_call_number is None
         assert legacy_bib.leader is None
