@@ -1,0 +1,2585 @@
+{
+  "20895133": {
+    "id": "20895133",
+    "nyplSource": "sierra-nypl",
+    "title": "Ancient Civilizations.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-03-31T15:00:10",
+    "createdDate": "2016-02-18T17:17:53",
+    "deletedDate": null,
+    "catalogDate": "2016-02-18T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "ancient civilizations",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2016-02-18", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "20895133", "display": null },
+      "83": { "label": "Created Date", "value": "2016-02-18T17:17:53Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-03-31T15:00:10Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "46", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-16T15:31:18Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set SOC C Ancient Civilizations 2" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Civilization, Ancient." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Social Studies." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "1 copy of 8 titles." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Ancient Rome -- Ancient Mesopotamia -- Ancient Maya -- Ancient India -- Ancient Greece -- Ancient Egypt -- Ancient China -- Ancient Aztecs."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (8 books) - Ancient Civilizations studies can be bolstered by this assorted set that takes a look at different civilization's histories, developments, daily life, culture, art, technology, warfare, social organization, and more. Civilizations include Rome , Mesopotamia, Mayans, India, Greece, Egypt, China and the Aztecs."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "6-12." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "8 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Ancient Civilizations." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Ancient Civilizations. Gr. 6-12 (Teacher Set)." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Social Studies: Ancient Civilizations. Gr. 6-12 (Teacher Set)." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "SEL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "9781624035425  9781624035418  9781624035401  9781624035395  9781624035388  9781624035371  9781624035364  9781624035357"
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i338287899,i338288193,i338288387,i338288399,i338288429,i338288442,i338288454,i338288466"
+  },
+
+  "19538471": {
+    "id": "19538471",
+    "nyplSource": "sierra-nypl",
+    "title": "This is New York by M. Sasek.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-01-09T20:56:56",
+    "createdDate": "2012-02-15T20:48:00",
+    "deletedDate": null,
+    "catalogDate": "2012-02-06T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "this is new york by m sasek",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2012-02-06", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "19538471", "display": null },
+      "83": { "label": "Created Date", "value": "2012-02-15T20:48:00Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-01-09T20:56:56Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "113", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:53:28Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": "1",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "700",
+        "fieldTag": "b",
+        "subfields": [
+          { "tag": "a", "content": "Sasek, M." },
+          { "tag": "q", "content": "(Miroslav)," },
+          { "tag": "d", "content": "1916-1980." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "New York (N.Y.)" },
+          { "tag": "x", "content": "Description and travel." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "New York (N.Y.)" },
+          { "tag": "v", "content": "Pictorial works." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Grades K-1 (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Social Studies." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Ten copies of one title." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Book Club Set (10 books) - A pictorial tour of Manhattan Island presenting drawings of its neighborhoods, transportation and traffic, buildings, and the city's activities, from the local shoeshine stall to Wall Street."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Originally published: New York : Macmillan, c1960." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "K-1." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Book Club Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "260",
+        "fieldTag": "p",
+        "subfields": [
+          { "tag": "a", "content": "New York :" },
+          { "tag": "b", "content": "Universe," },
+          { "tag": "c", "content": "2003." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "10 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "This is New York by M. Sasek." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "This is New York by M. Sasek. Gr. K-1 (Teacher Set)." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Social Studies: This is New York by M. Sasek. Gr. K-1 (Teacher Set)." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "120508nuuuuuuuu       j      000 1 eng dnam a ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "nsn" },
+          { "tag": "b", "content": "CMA" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 7/28/14" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "xc" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed for book club set, 7/23/15" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "9780789308849 " }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i311874964,i331764027,i331764039,i331764040,i332361093,i332361391,i332361627"
+  },
+
+  "20941563": {
+    "id": "20941563",
+    "nyplSource": "sierra-nypl",
+    "title": "Horror for Teens.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-01-09T20:57:31",
+    "createdDate": "2016-04-18T14:26:03",
+    "deletedDate": null,
+    "catalogDate": "2016-04-18T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "horror for teens",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2016-04-18", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "20941563", "display": null },
+      "83": { "label": "Created Date", "value": "2016-04-18T14:26:03Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-01-09T20:57:31Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "59", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:54:14Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set ELA D Genre - Horror 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Horror fiction." },
+          { "tag": "2", "content": "lcgft" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Paranormal fiction." },
+          { "tag": "2", "content": "lcgft" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Ghost stories." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "English Language Arts." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "1 copy of 11 titles." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          { "tag": "a", "content": "Bleeding Earth -- " },
+          { "tag": "t", "content": "Burning -- " },
+          { "tag": "t", "content": "Harmony House -- " },
+          { "tag": "t", "content": "Monstrous Affections: An Anthology of Beastly Tales -- " },
+          { "tag": "t", "content": "Shutter -- " },
+          { "tag": "t", "content": "Slasher Girls & Monster Boys -- " },
+          { "tag": "t", "content": "The Cemetery Boys --  " },
+          { "tag": "t", "content": "The House -- " },
+          { "tag": "t", "content": "The Nest -- " },
+          { "tag": "t", "content": "The Suffering -- " },
+          { "tag": "t", "content": "Through the Woods." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (11 books) - Have teens hungry for some horror stories? This set has a mix of new scary, spooky and haunting tales that will keep them up at night!"
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "9-12. " }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "11 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Horror for Teens." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Horror for Teens. Gr. 9-12 (Teacher Set)." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "English Language Arts: Horror for Teens. Gr. 9-12 (Teacher Set)." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "SEL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "9780986448485   9781619637382   9780062337092   9780763664732   9781250044679   9780803741737   9780062307880  9781481413718   9781481432320   9781492629832   9781442465954"
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i34014841x,i340148433,i340148445,i340148457,i340148469,i340148470,i340148482,i340148500,i340148524,i340148536,i340148573,i340148603"
+  },
+
+  "20830701": {
+    "id": "20830701",
+    "nyplSource": "sierra-nypl",
+    "title": "Elephant & Piggie Series (Set II).",
+    "author": "",
+    "publishYear": 9999,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-01-09T20:57:18",
+    "createdDate": "2015-11-04T17:56:52",
+    "deletedDate": null,
+    "catalogDate": "2015-11-04T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "elephant and piggie series set ii",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "1", "display": null },
+      "28": { "label": "Cat. Date", "value": "2015-11-04", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "20830701", "display": null },
+      "83": { "label": "Created Date", "value": "2015-11-04T17:56:52Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-01-09T20:57:18Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "48", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:54:00Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set ELA A Elephant Piggie 2" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Friendship" },
+          { "tag": "v", "content": "Juvenile fiction." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Emotions" },
+          { "tag": "v", "content": "Juvenile fiction." }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "English Language Arts." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "2 copies of 11 titles." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "For instructional materials please copy and paste this link from TeachingBooks.net: http://www.teachingbooks.net/qloxkwk"
+          }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          { "tag": "t", "content": "Can I Play Too? -- " },
+          { "tag": "t", "content": "We Are in a Book! -- " },
+          { "tag": "t", "content": "I Broke My Trunk! -- " },
+          { "tag": "t", "content": "Should I Share My Ice Cream? -- " },
+          { "tag": "t", "content": "Happy Pig Day! -- " },
+          { "tag": "t", "content": "Listen to My Trumpet! -- " },
+          { "tag": "t", "content": "Let's Go for a Drive! -- " },
+          { "tag": "t", "content": "A Big Guy Took My Ball! -- " },
+          { "tag": "t", "content": "I'm a Frog! -- " },
+          { "tag": "t", "content": "Waiting Is Not Easy! -- " },
+          { "tag": "t", "content": "The Thank You Book" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (22 books) - The Elephant & Piggie books by Mo Willems is a fantastic and fun easy-to-read series guaranteed to be a hit for read alouds or for beginning readers. For instructional materials please copy and paste this link from TeachingBooks.net: http://www.teachingbooks.net/qloxkwk"
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "K-2." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "22 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Elephant & Piggie Series (Set II)." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [
+          { "tag": "a", "content": "English Language Arts: Elephant & Piggie Series (Set II). Gr. K-2 (Teacher Set)" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "151104s9999    xx            000 0 eng dnamIa ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": "4",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "856",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "u", "content": "http://www.teachingbooks.net/qloxkwk" },
+          { "tag": "z", "content": "TeachingBooks.net Instructional Materials" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "9781423119913  9781423133087  9781423133094  9781423143437  9781423143420  9781423154044  9781423164821  9781423174912  9781423183051  9781423199571  9781423178286"
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "cyc" },
+          { "tag": "b", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "SEL" },
+          { "tag": "n", "content": "Added The Thank You Book 10/25/16" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200265Ia 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i334669984,i334670263,i334670536,i33467055x,i334670573,i334670597,i334670603,i334670676,i334670688"
+  },
+  "19963295": {
+    "id": "19963295",
+    "nyplSource": "sierra-nypl",
+    "title": "Different lands, similar stories - Fairy Tales.",
+    "author": "",
+    "publishYear": 2013,
+    "nyplType": "bib",
+    "controlNumber": "fol14477821",
+    "standardNumbers": ["9780329972776"],
+    "updatedDate": "2025-01-09T20:57:02",
+    "createdDate": "2013-10-08T19:43:00",
+    "deletedDate": null,
+    "catalogDate": "2013-10-08T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "different lands similar stories fairy tales",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "35", "display": null },
+      "28": { "label": "Cat. Date", "value": "2013-10-08", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "19963295", "display": null },
+      "83": { "label": "Created Date", "value": "2013-10-08T19:43:00Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-01-09T20:57:02Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "210", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:53:36Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set ELA A Fairy Tales/Folktales - Global Fairy Tales 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Fairy tales" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Language arts (Elementary)" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "1",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Fairy tales." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "1",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Folklore." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "1",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Language arts." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Grades K-1 (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Lexile 640L-840L (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Folklore." },
+          { "tag": "2", "content": "gsafd" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "English Language Arts." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Grades 2-3 (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "020",
+        "fieldTag": "i",
+        "subfields": [{ "tag": "a", "content": "9780329972776" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "035",
+        "fieldTag": "l",
+        "subfields": [{ "tag": "a", "content": "(ICrlF)5638NY" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Six copies of five titles." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Little Red Riding Hood -- Lon Po Po : a Red Riding Hood story from China -- Mufaro's beautiful daughters : an African tale -- Pretty Salma : a Little Red Riding Hood story from Africa -- Tom Thumb."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (30 books) - Five titles featuring fairy tales and folklore from different countries for use in teaching literacy skills in the classroom."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "K-3." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      { "ind1": " ", "ind2": " ", "content": "fol14477821 ", "marcTag": "001", "fieldTag": "o", "subfields": null },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "260",
+        "fieldTag": "p",
+        "subfields": [
+          { "tag": "a", "content": "McHenry, Ill. :" },
+          { "tag": "b", "content": "Follett Library Resources," },
+          { "tag": "c", "content": "2013." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "30 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Different lands, similar stories - Fairy Tales." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "English Language Arts: Different Lands, Similar Stories - Fairy Tales. Gr. K-3 (Teacher Set)."
+          }
+        ]
+      },
+      { "ind1": " ", "ind2": " ", "content": "ICrlF", "marcTag": "003", "fieldTag": "y", "subfields": null },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "20130530140629.6",
+        "marcTag": "005",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "130409s2013    ilua   b      000 0 eng dpam a ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "040",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ICrlF" },
+          { "tag": "c", "content": "ICrlF" },
+          { "tag": "d", "content": "ICrlF" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "4",
+        "content": null,
+        "marcTag": "082",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "398.2" },
+          { "tag": "2", "content": "23" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "FOLLETT20131008" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 8/1/14" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "9780316013550 9780698113824 9780688040451 9780618723454 9781846431166 " }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000pam  2200817 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i30940468x,i309404721,i309404733,i309404745,i309404757,i309404769,i309404770,i309404782,i309404794,i309404800,i309404812,i309404836,i309404848,i30940485x,i309404861,i309404873,i309404885,i309404897,i309404903,i309404915,i309404927,i309404940,i309404952,i309404964,i309404976,i309405002,i309405014,i309405026"
+  },
+
+  "18930685": {
+    "id": "18930685",
+    "nyplSource": "sierra-nypl",
+    "title": "Picture Books and Easy Readers.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": null,
+    "standardNumbers": [],
+    "updatedDate": "2025-11-19T00:47:46",
+    "createdDate": "2011-04-26T15:52:00",
+    "deletedDate": null,
+    "catalogDate": "2011-03-10T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "spa", "name": "Spanish" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "picture books and easy readers",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "spa", "display": "Spanish" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2011-03-10", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "18930685", "display": null },
+      "83": { "label": "Created Date", "value": "2011-04-26T15:52:00Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-11-19T00:47:46Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "122", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": "53rd Street" },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-08-04T13:49:14Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set SPLA A Picture Books/Easy Readers 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Grades K-1 (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Spanish Language Arts." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "One copy of 35 titles." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "K-1." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "A tu ritmo! -- Algo de nada -- Clic, clac, plif, plaf : una aventura de contar -- Corduroy -- Corre, perro, corre! -- Crisantemo -- Danielito y el dinosaurio -- David se mete en l\u00edos -- David va al colegio -- El diente de Franklin -- El flamboy\u00e1n amarillo -- El mejor nido -- El viaje en tren -- Franklin tiene un mal dia -- Franklin y Harriet -- Gilberto y el viento -- Huevos verdes con jam\u00f3n -- If I had a Dragon = Si yo tuviera un Drag\u00f3n -- La peque\u00f1a canguro -- La vaca que dec\u00eda Oink -- Leo, el reto\u00f1o tard\u00edo -- \u00d1am!, \u00a1\u00d1am!, \u00a1\u00d1am! -- No sin mi mantita -- Olivia -- Olivia va a Venecia -- Paula en Nueva York. -- Pum, cuac, muu : una loca aventura -- Qu\u00e9 es el sol? -- Su propio color -- Todos somos especiales -- Todos son mis favoritos -- Un bolsillo para corduroy -- Un d\u00eda de nieve -- Un perro muy diferente -- Yoko."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (en espa\u00f1ol 35 books) - Picture Books and Easy Readers for Grades K-1."
+          }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "35 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Picture Books and Easy Readers." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [
+          { "tag": "a", "content": "Libros en espa\u00f1ol: Picture Books and Easy Readers. Gr. K-1 (Teacher Set)." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "120508nuuuuuuuu       j      000 1 spa dnam a ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "EOM" },
+          { "tag": "b", "content": "CWE" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "cyc" },
+          { "tag": "b", "content": "CAD" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 7/31/14" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "9781933032153 9781933032009 9781933032283 9788424181154 9781930332027 9781933032351 9781933032054 9788424165291 9788488342676 9781933032689 9781930332089 9781933032290 9781930332720 9781933032047 9781930332768 9781930332775 9781933032030 9781880507667 9781880507209 9788444142876 9788444142357 51488006992 140542523 6583224 9781880507193 9781933032542 9788424187361 9781933032177 9781933032382 9781880507896 9781880507865 9781880507971 9781933032146 9781930332843 9781880507018"
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BIB suppress (cat/mfg - 11/13/2024)" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i263839758"
+  },
+
+  "18892614": {
+    "id": "18892614",
+    "nyplSource": "sierra-nypl",
+    "title": "Charlie and the Chocolate Factory by Roald Dahl with DVD.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": null,
+    "standardNumbers": [],
+    "updatedDate": "2025-12-11T16:02:57",
+    "createdDate": "2011-04-12T15:35:00",
+    "deletedDate": null,
+    "catalogDate": "2011-03-10T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "charlie and the chocolate factory by roald dahl with dvd",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2011-03-10", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "18892614", "display": null },
+      "83": { "label": "Created Date", "value": "2011-04-12T15:35:00Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-12-11T16:02:57Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "156", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": "53rd Street" },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:56:52Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set ELA B Book Club Set Charlie and the Chocolate Factory 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Conduct of life" },
+          { "tag": "v", "content": "Juvenile fiction." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Eccentrics and eccentricities" },
+          { "tag": "v", "content": "Juvenile fiction." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Humorous fiction." },
+          { "tag": "2", "content": "lcgft" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "English Language Arts." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's card. "
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Book Club Set (10 books + 1 DVD.) - Each of five children lucky enough to discover an entry ticket into Mr. Willy Wonka's mysterious chocolate factory takes advantage of the situation in their own way. Also included is the DVD Willy Wonka and the Chocolate Factory starring Gene Wilder. For instructional material, copy and paste the following link from teachingbooks.net: https://www.teachingbooks.net/qli7o7y"
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "4-5." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Book Club Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [
+          { "tag": "a", "content": "10 v. + 1" },
+          { "tag": "e", "content": "DVD." }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Charlie and the Chocolate Factory by Roald Dahl with DVD." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "English Language Arts: Charlie and the Chocolate Factory by Roald Dahl with DVD. Gr. 4-5 (Teacher Set)."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "120508nuuuuuuuu       j      000 1 eng dnam a ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": "4",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "856",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "u", "content": "https://www.teachingbooks.net/qli7o7y" },
+          { "tag": "z", "content": "TEACHINGBOOKS.NET INSTRUCTIONAL MATERIALS." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "EOM" },
+          { "tag": "b", "content": "CWE" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "cyc" },
+          { "tag": "b", "content": "CAD" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 8/4/14" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "mc" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 7/20/15" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "9780142410318 " }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i312734694,i312734700,i312734748,i331016989,i331016990,i331017003,i331017015,i332862057,i332862069"
+  },
+
+  "20790767": {
+    "id": "20790767",
+    "nyplSource": "sierra-nypl",
+    "title": "Outer Space.",
+    "author": "",
+    "publishYear": 9999,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-05-01T17:16:42",
+    "createdDate": "2015-09-08T20:22:35",
+    "deletedDate": null,
+    "catalogDate": "2015-09-08T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "outer space",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2015-09-08", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "20790767", "display": null },
+      "83": { "label": "Created Date", "value": "2015-09-08T20:22:35Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-05-01T17:16:42Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "46", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": "53rd Street" },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:57:14Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set SCI A Outer Space 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [{ "tag": "a", "content": "Solar system." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Solar system" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Science." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "3 copies of 9 titles" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          { "tag": "t", "content": "Archie Takes Flight -- " },
+          { "tag": "t", "content": "Fly Guy Presents: Space -- " },
+          { "tag": "t", "content": "Gravity -- " },
+          {
+            "tag": "t",
+            "content": "How Many Planets Circle the Sun?: And Other Questions about Our Solar System -- "
+          },
+          { "tag": "t", "content": "National Geographic Little Kids First Big Book of Space -- " },
+          { "tag": "t", "content": "Outer Space -- " },
+          { "tag": "t", "content": "The Planets -- " },
+          { "tag": "t", "content": "Star Stuff: Carl Sagan and the Mysteries of the Cosmos -- " },
+          { "tag": "t", "content": "There's No Place Like Space: All about Our Solar System." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (27 books) - Get ready to learn about outer space! This science set will get kids thinking about the world around them - and other worlds outside of that one! Young readers are starting to learn about their place in the world and about earth materials. Building foundational knowledge of tough concepts like gravity and space exploration will help make steps up in progressional learning."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "K-3" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "27 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Outer Space." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Outer Space. Gr. K-3 (Teacher Set)." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Science: Outer Space. Gr. K-3 (Teacher Set)." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": "150825s9999    xx            000 0 eng dnamIa ",
+        "marcTag": "008",
+        "fieldTag": "y",
+        "subfields": null
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "9780316243193  9780545564922  9781596437173  9781454906681  9781426310140  9781481401715  9780823421572  9781596439603  9780679891154"
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "cyc" },
+          { "tag": "b", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200217Ia 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i332691755,i332691767,i332691779,i332691780,i332691809,i332691810,i332691822,i332691834"
+  },
+
+  "19622416": {
+    "id": "19622416",
+    "nyplSource": "sierra-nypl",
+    "title": "Exploring the Life, Myth and Art of India and China.",
+    "author": "",
+    "publishYear": null,
+    "nyplType": "bib",
+    "controlNumber": "",
+    "standardNumbers": [],
+    "updatedDate": "2025-02-11T21:02:43",
+    "createdDate": "2012-05-22T16:58:00",
+    "deletedDate": null,
+    "catalogDate": "2012-05-22T00:00:00",
+    "deleted": false,
+    "suppressed": false,
+    "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
+    "lang": { "code": "eng", "name": "English" },
+    "materialType": { "code": "8  ", "value": "TEACHER SET" },
+    "bibLevel": { "code": "m", "value": "MONOGRAPH" },
+    "country": { "code": "xx ", "name": "Unknown or undetermined" },
+    "normTitle": "exploring the life myth and art of india and china",
+    "normAuthor": "",
+    "fixedFields": {
+      "24": { "label": "Language", "value": "eng", "display": "English" },
+      "25": { "label": "Skip", "value": "0", "display": null },
+      "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
+      "27": { "label": "", "value": "0", "display": null },
+      "28": { "label": "Cat. Date", "value": "2012-05-22", "display": null },
+      "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
+      "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
+      "31": { "label": "Bib Code 3", "value": "-", "display": null },
+      "80": { "label": "Record Type", "value": "b", "display": null },
+      "81": { "label": "Record Number", "value": "19622416", "display": null },
+      "83": { "label": "Created Date", "value": "2012-05-22T16:58:00Z", "display": null },
+      "84": { "label": "Updated Date", "value": "2025-02-11T21:02:43Z", "display": null },
+      "85": { "label": "No. of Revisions", "value": "80", "display": null },
+      "86": { "label": "Agency", "value": "1", "display": null },
+      "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
+      "98": { "label": "", "value": "2025-01-09T20:56:58Z", "display": null },
+      "107": { "label": "MARC Type", "value": " ", "display": null }
+    },
+    "varFields": [
+      {
+        "ind1": "1",
+        "ind2": "2",
+        "content": null,
+        "marcTag": "700",
+        "fieldTag": "b",
+        "subfields": [
+          { "tag": "a", "content": "Shaughnessy, Edward L.," },
+          { "tag": "d", "content": "1952-" },
+          { "tag": "t", "content": "Exploring the life, myth, and art of ancient China." }
+        ]
+      },
+      {
+        "ind1": "1",
+        "ind2": "2",
+        "content": null,
+        "marcTag": "700",
+        "fieldTag": "b",
+        "subfields": [
+          { "tag": "a", "content": "Ram-Prasad, Chakravarthi." },
+          { "tag": "t", "content": "Exploring the life, myth, and art of India." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "091",
+        "fieldTag": "c",
+        "subfields": [{ "tag": "a", "content": "Teacher Set SOC D Ancient Civilizations - Asia 1" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "India" },
+          { "tag": "x", "content": "Social life and customs" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Mythology, Indic" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "India" },
+          { "tag": "x", "content": "Religion" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Art" },
+          { "tag": "z", "content": "India" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "India" },
+          { "tag": "x", "content": "Civilization" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "China" },
+          { "tag": "x", "content": "Social life and customs" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Mythology, Chinese" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "China" },
+          { "tag": "x", "content": "Religion" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "650",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Arts" },
+          { "tag": "z", "content": "China" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "China" },
+          { "tag": "x", "content": "Intellectual life" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "651",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "China" },
+          { "tag": "x", "content": "Civilization" },
+          { "tag": "v", "content": "Juvenile literature." }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "655",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Grades 9-10 (Teacher Set)" },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": "7",
+        "content": null,
+        "marcTag": "690",
+        "fieldTag": "d",
+        "subfields": [
+          { "tag": "a", "content": "Social Studies." },
+          { "tag": "2", "content": "local" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "500",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Content of this set will include some or all of the following listed titles. To expedite delivery, sets may be delivered when 75% complete. You may always place additional requests for individual items using your Educator Borrower's Card."
+          }
+        ]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "505",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Exploring the life, myth, and art of India / Chakravarthi Ram-Prasad -- Exploring the life, myth, and art of ancient China / Edward L. Shaughnessy."
+          }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "520",
+        "fieldTag": "n",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Topic Set (16 books)- Describes the art, religion, history, daily life, and rituals of ancient India and China."
+          }
+        ]
+      },
+      {
+        "ind1": "2",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "521",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "9-10." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "526",
+        "fieldTag": "n",
+        "subfields": [{ "tag": "a", "content": "Topic Set." }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "300",
+        "fieldTag": "r",
+        "subfields": [{ "tag": "a", "content": "16 v." }]
+      },
+      {
+        "ind1": "0",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "490",
+        "fieldTag": "s",
+        "subfields": [{ "tag": "a", "content": "Teacher Sets: MyLibraryNYC Program" }]
+      },
+      {
+        "ind1": "0",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "245",
+        "fieldTag": "t",
+        "subfields": [{ "tag": "a", "content": "Exploring the Life, Myth and Art of India and China." }]
+      },
+      {
+        "ind1": "3",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [
+          {
+            "tag": "a",
+            "content": "Social Studies: Civilizations of the World (Asia) - Exploring the Life, Myth and Art of India and China. Gr. 9-10 (Teacher Set)."
+          }
+        ]
+      },
+      {
+        "ind1": "3",
+        "ind2": "0",
+        "content": null,
+        "marcTag": "246",
+        "fieldTag": "u",
+        "subfields": [{ "tag": "a", "content": "Exploring the Life, Myth and Art of India and China" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "nsn" },
+          { "tag": "b", "content": "CMA" },
+          { "tag": "c", "content": "CATBL" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "901",
+        "fieldTag": "y",
+        "subfields": [
+          { "tag": "a", "content": "ed" },
+          { "tag": "b", "content": "LOG DOE" },
+          { "tag": "n", "content": "Changed call no., 7/30/14" }
+        ]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "944",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "9781435856172 9781435856158" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "910",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "BL" }]
+      },
+      {
+        "ind1": " ",
+        "ind2": " ",
+        "content": null,
+        "marcTag": "909",
+        "fieldTag": "y",
+        "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      },
+      {
+        "ind1": null,
+        "ind2": null,
+        "content": "00000nam  2200000 a 4500",
+        "marcTag": null,
+        "fieldTag": "_",
+        "subfields": null
+      }
+    ],
+    "items": "i287031202"
+  }
+}
