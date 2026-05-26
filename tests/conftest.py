@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import Any
 
@@ -7,6 +8,13 @@ import pytest
 @pytest.fixture
 def platform_test_data() -> dict[str, Any]:
     with open("tests/platform_bib.json", "r") as fh:
+        json_data = json.load(fh)
+        return json_data
+
+
+@pytest.fixture
+def test_data() -> dict[str, Any]:
+    with open("tests/data/test_data.json", "r") as fh:
         json_data = json.load(fh)
         return json_data
 
@@ -51,3 +59,8 @@ def set_test_data() -> dict[str, Any]:
             },
         ],
     }
+
+
+@pytest.fixture
+def today_str() -> str:
+    return datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
