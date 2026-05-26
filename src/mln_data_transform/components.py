@@ -28,6 +28,7 @@ class SubjectStudyProgram(StrEnum):
     PDE = "Professional Development"
     SCI = "Science"
     SEL = "Social Emotional Learning"
+    SOC = "Social Studies"
     TEC = "Technology"
 
 

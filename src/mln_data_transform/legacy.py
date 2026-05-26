@@ -76,13 +76,13 @@ class LegacyTeacherSetData:
         return None
 
     @property
-    def isbns(self) -> list[str] | None:
+    def isbns(self) -> list[str]:
         isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
         if isbns:
             subfields_944 = isbns[0]["subfields"]
             isbn_string = " ".join([i["content"] for i in subfields_944])
             return isbn_string.split()
-        return None
+        return []
 
     @property
     def physical_description(self) -> str | None:

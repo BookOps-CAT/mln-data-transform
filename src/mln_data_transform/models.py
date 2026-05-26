@@ -60,14 +60,11 @@ class TeacherSetData:
     def __init__(
         self,
         bib_id: str,
-        control_number: str,
         enumeration: str,
         grade_level: str | GradeReadingLevel,
         items: list,
         language: str,
-        local_genre_term: list[str],
         local_set_type: str | SetTypeFormat,
-        local_topic_term: list[str],
         parts: list[TeacherSetBook | TeacherSetSpecialFormat],
         physical_description: str,
         record_type: str,
@@ -75,8 +72,11 @@ class TeacherSetData:
         study_program_info: str | SubjectStudyProgram,
         set_title: str,
         begin_pub_date: str | None = "uuuu",
+        control_number: str | None = None,
         end_pub_date: str | None = "uuuu",
         enhanced: str | None = None,
+        local_genre_term: list[str] | None = None,
+        local_topic_term: list[str] | None = None,
         subjects: list[SubjectData] | None = None,
     ) -> None:
         """
@@ -369,34 +369,36 @@ class TeacherSetBib:
     def field_691(self) -> list[Field]:
         """Local topic term field (REPEATBLE)"""
         subject_list = []
-        for term in self.data.local_topic_term:
-            subject_list.append(
-                Field(
-                    tag="691",
-                    indicators=Indicators(" ", "7"),
-                    subfields=[
-                        Subfield(code="a", value=term),
-                        Subfield(code="2", value="bookops"),
-                    ],
+        if self.data.local_topic_term:
+            for term in self.data.local_topic_term:
+                subject_list.append(
+                    Field(
+                        tag="691",
+                        indicators=Indicators(" ", "7"),
+                        subfields=[
+                            Subfield(code="a", value=term),
+                            Subfield(code="2", value="bookops"),
+                        ],
+                    )
                 )
-            )
         return subject_list
 
     @property
     def field_695(self) -> list[Field]:
         """Local genre term field (REPEATBLE)"""
         subject_list = []
-        for term in self.data.local_genre_term:
-            subject_list.append(
-                Field(
-                    tag="695",
-                    indicators=Indicators(" ", "7"),
-                    subfields=[
-                        Subfield(code="a", value=term),
-                        Subfield(code="2", value="bookops"),
-                    ],
+        if self.data.local_genre_term:
+            for term in self.data.local_genre_term:
+                subject_list.append(
+                    Field(
+                        tag="695",
+                        indicators=Indicators(" ", "7"),
+                        subfields=[
+                            Subfield(code="a", value=term),
+                            Subfield(code="2", value="bookops"),
+                        ],
+                    )
                 )
-            )
         return subject_list
 
     @property

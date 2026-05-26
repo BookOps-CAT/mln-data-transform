@@ -43,7 +43,7 @@ class TestTeacherSetBib:
             var_fields={},
             language=platform_test_data["lang"],
         )
-        assert legacy_bib.isbns is None
+        assert legacy_bib.isbns == []
         assert legacy_bib.physical_description is None
         assert legacy_bib.legacy_call_number is None
         assert legacy_bib.leader is None
