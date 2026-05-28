@@ -5,6 +5,13 @@ from typing import Any
 class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
+    COPY_INFO_PATTERN = re.compile(
+        r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|((?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))(?:\s+(-\s+)?)\(((?:en [a-z]+\s+)?))([^-]+\){1}))"  # noqa: E501
+    )
+    SECONDARY_COPY_INFO_PATTERN = re.compile(
+        r"((([Vv]ideo\s+)|([Tt]abletop\s+)|([Bb]oard\s+))?[Gg]ame\s+(\([Bb]oard [Gg]ame\)\s+)?- )|([Dd][Vv][Dd] - )"  # noqa: E501
+    )
+
     def __init__(
         self,
         bib_id: str,
@@ -20,6 +27,29 @@ class LegacyBibData:
         self.language = language
         self.set_title = set_title
         self.var_fields = var_fields
+
+    @property
+    def copy_info(self) -> str:
+        fields_5xx = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
+        matched_notes = []
+        for note in fields_5xx:
+            for subfield in note["subfields"]:
+                content = subfield["content"]
+                matched = self.COPY_INFO_PATTERN.match(content)
+                if matched:
+                    matched_notes.append(matched[0])
+                    return matched[0]
+        for note in fields_5xx:
+            for subfield in note["subfields"]:
+                content = subfield["content"]
+                matched = self.SECONDARY_COPY_INFO_PATTERN.match(content)
+                if matched:
+                    matched_notes.append(matched[0])
+                    return matched[0]
+        raise ValueError(
+            f"500 and 520 fields do not match pattern. Cannot extract copy info. "
+            f"500 fields: {fields_5xx}. 520 fields: {fields_5xx}"
+        )
 
     @property
     def isbns(self) -> list[str]:
@@ -44,6 +74,12 @@ class LegacyBibData:
             subfields_300 = field_300[0]["subfields"]
             return " ".join([i["content"] for i in subfields_300])
         return None
+
+    @property
+    def record_type(self) -> str | None:
+        if self.leader:
+            return self.leader[6]
+        return "a"
 
 
 class LegacyItemData:

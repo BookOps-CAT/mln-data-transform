@@ -17,6 +17,8 @@ class TestLegacyData:
         assert legacy_bib.isbns == ["9780789308849"]
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.physical_description == "10 v."
+        assert legacy_bib.record_type == "a"
+        assert legacy_bib.copy_info == "Ten copies of one title"
 
     def test_legacy_bib_data_missing_fields(self, platform_test_data):
         legacy_bib = LegacyBibData(
@@ -30,6 +32,67 @@ class TestLegacyData:
         assert legacy_bib.isbns == []
         assert legacy_bib.leader is None
         assert legacy_bib.physical_description is None
+        assert legacy_bib.record_type == "a"
+
+    def test_legacy_bib_data_secondary_match(self, platform_test_data):
+        var_fields = [
+            i
+            for i in platform_test_data["varFields"]
+            if i["marcTag"] not in ["500", "520"]
+        ]
+        var_fields.append(
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "500",
+                "fieldTag": "n",
+                "subfields": [
+                    {"tag": "a", "content": "Duration of play: 45-60 minutes."}
+                ],
+            }
+        )
+        var_fields.append(
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "520",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "Board Game - Foo bar baz."}],
+            }
+        )
+        legacy_bib = LegacyBibData(
+            bib_id=platform_test_data["id"],
+            item_ids=platform_test_data["items"],
+            set_title=platform_test_data["title"],
+            fixed_fields=platform_test_data["fixedFields"],
+            var_fields=var_fields,
+            language=platform_test_data["lang"],
+        )
+        assert legacy_bib.leader == "00000nam  2200000 a 4500"
+        assert legacy_bib.isbns == ["9780789308849"]
+        assert legacy_bib.leader == "00000nam  2200000 a 4500"
+        assert legacy_bib.physical_description == "10 v."
+        assert legacy_bib.record_type == "a"
+        assert legacy_bib.copy_info == "Board Game - "
+
+    def test_legacy_bib_data_no_copy_info(self, platform_test_data):
+        legacy_bib = LegacyBibData(
+            bib_id=platform_test_data["id"],
+            item_ids=platform_test_data["items"],
+            set_title=platform_test_data["title"],
+            fixed_fields={},
+            var_fields={},
+            language=platform_test_data["lang"],
+        )
+        with pytest.raises(ValueError) as exc:
+            legacy_bib.copy_info
+        assert (
+            str(exc.value)
+            == "500 and 520 fields do not match pattern. Cannot extract copy info. "
+            "500 fields: []. 520 fields: []"
+        )
 
     def test_legacy_item_data(self, platform_test_data, platform_test_item):
         legacy_item = LegacyItemData(
