@@ -229,8 +229,8 @@ class TeacherSetBib:
             tag="245",
             indicators=Indicators("0", "0"),
             subfields=[
-                Subfield(code="a", value=self.data.set_title),
-                Subfield(code="c", value=self.data.copy_data),
+                Subfield(code="a", value=f"{self.data.set_title.strip('.')}."),
+                Subfield(code="n", value=self.data.copy_data),
             ],
         )
 
