@@ -62,7 +62,6 @@ class TeacherSetData:
         bib_id: str,
         enumeration: str,
         grade_level: str | GradeReadingLevel,
-        items: list,
         language: str,
         local_set_type: str | SetTypeFormat,
         parts: list[TeacherSetBook | TeacherSetSpecialFormat],
@@ -79,38 +78,6 @@ class TeacherSetData:
         local_topic_term: list[str] | None = None,
         subjects: list[SubjectData] | None = None,
     ) -> None:
-        """
-        Required components of TeacherSet bib records include:
-
-        bib_code
-        bib_id
-        begin_pub_date
-        call_number
-        catalogers_initials
-        contents_note
-        control_number
-        control_number_identifier
-        detailed_contents_note
-        end_pub_date
-        enumeration
-        items
-        language
-        library
-        local_collection_code
-        local_genre_term
-        local_set_type
-        local_topic_term
-        location
-        material_type
-        oclc_exclusion_note
-        physical_description
-        pub_place
-        record_type
-        set_title
-        subjects
-        summary
-        study_program_info
-        """
         self.bib_id = bib_id
         self.begin_pub_date = begin_pub_date if begin_pub_date else "uuuu"
         self.control_number = control_number
@@ -122,7 +89,6 @@ class TeacherSetData:
             if isinstance(grade_level, str)
             else grade_level
         )
-        self.items = items
         self.language = language
         self.local_genre_term = local_genre_term
         self.local_set_type = (

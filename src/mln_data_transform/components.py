@@ -56,9 +56,11 @@ class TeacherSetBook(SetPart):
     """A book included within a Teacher Set."""
 
     isbn: str
+    full_title: str
     author: str | None = None
     author_dates: str | None = None
     pub_date: str | None = None
+    statement_of_responsibility: str | None = None
 
 
 @dataclass(frozen=True)

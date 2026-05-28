@@ -44,10 +44,10 @@ def set_test_data() -> dict[str, Any]:
         "local_set_type": "Book Club",
         "local_topic_term": ["New York City"],
         "local_genre_term": ["Fiction"],
-        "items": [],
         "subjects": [],
         "parts": [
             {
+                "full_title": "Foo Bar : Baz",
                 "title": "Foo Bar",
                 "author": "Baz",
                 "copies": 1,
@@ -57,6 +57,7 @@ def set_test_data() -> dict[str, Any]:
                 "pub_date": "2025",
             },
             {
+                "full_title": "Test Title : Subtitle",
                 "title": "Test Title",
                 "author": "Foo",
                 "copies": 2,

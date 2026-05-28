@@ -36,7 +36,6 @@ class TestTeacherSetData:
         assert teacher_set.local_set_type == "Book Club"
         assert teacher_set.local_topic_term == ["New York City"]
         assert teacher_set.local_genre_term == ["Fiction"]
-        assert teacher_set.items == []
         assert teacher_set.subjects == []
         assert teacher_set.library == "nypl"
         assert teacher_set.control_number_identifier == "BookOps"
