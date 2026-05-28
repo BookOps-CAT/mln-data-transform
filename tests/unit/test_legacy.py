@@ -4,14 +4,14 @@ from mln_data_transform.legacy import LegacyBibData, LegacyItemData
 
 
 class TestLegacyData:
-    def test_legacy_bib_data(self, platform_test_data):
+    def test_legacy_bib_data(self, test_bib_data):
         legacy_bib = LegacyBibData(
-            bib_id=platform_test_data["id"],
-            item_ids=platform_test_data["items"],
-            set_title=platform_test_data["title"],
-            fixed_fields=platform_test_data["fixedFields"],
-            var_fields=platform_test_data["varFields"],
-            language=platform_test_data["lang"],
+            bib_id=test_bib_data["id"],
+            item_ids=test_bib_data["items"],
+            set_title=test_bib_data["title"],
+            fixed_fields=test_bib_data["fixedFields"],
+            var_fields=test_bib_data["varFields"],
+            language=test_bib_data["lang"],
         )
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.isbns == ["9780789308849"]
@@ -20,25 +20,23 @@ class TestLegacyData:
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_info == "Ten copies of one title"
 
-    def test_legacy_bib_data_missing_fields(self, platform_test_data):
+    def test_legacy_bib_data_missing_fields(self, test_bib_data):
         legacy_bib = LegacyBibData(
-            bib_id=platform_test_data["id"],
-            item_ids=platform_test_data["items"],
-            set_title=platform_test_data["title"],
+            bib_id=test_bib_data["id"],
+            item_ids=test_bib_data["items"],
+            set_title=test_bib_data["title"],
             fixed_fields={},
             var_fields={},
-            language=platform_test_data["lang"],
+            language=test_bib_data["lang"],
         )
         assert legacy_bib.isbns == []
         assert legacy_bib.leader is None
         assert legacy_bib.physical_description is None
         assert legacy_bib.record_type == "a"
 
-    def test_legacy_bib_data_secondary_match(self, platform_test_data):
+    def test_legacy_bib_data_secondary_match(self, test_bib_data):
         var_fields = [
-            i
-            for i in platform_test_data["varFields"]
-            if i["marcTag"] not in ["500", "520"]
+            i for i in test_bib_data["varFields"] if i["marcTag"] not in ["500", "520"]
         ]
         var_fields.append(
             {
@@ -63,12 +61,12 @@ class TestLegacyData:
             }
         )
         legacy_bib = LegacyBibData(
-            bib_id=platform_test_data["id"],
-            item_ids=platform_test_data["items"],
-            set_title=platform_test_data["title"],
-            fixed_fields=platform_test_data["fixedFields"],
+            bib_id=test_bib_data["id"],
+            item_ids=test_bib_data["items"],
+            set_title=test_bib_data["title"],
+            fixed_fields=test_bib_data["fixedFields"],
             var_fields=var_fields,
-            language=platform_test_data["lang"],
+            language=test_bib_data["lang"],
         )
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.isbns == ["9780789308849"]
@@ -77,14 +75,14 @@ class TestLegacyData:
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_info == "Board Game - "
 
-    def test_legacy_bib_data_no_copy_info(self, platform_test_data):
+    def test_legacy_bib_data_no_copy_info(self, test_bib_data):
         legacy_bib = LegacyBibData(
-            bib_id=platform_test_data["id"],
-            item_ids=platform_test_data["items"],
-            set_title=platform_test_data["title"],
+            bib_id=test_bib_data["id"],
+            item_ids=test_bib_data["items"],
+            set_title=test_bib_data["title"],
             fixed_fields={},
             var_fields={},
-            language=platform_test_data["lang"],
+            language=test_bib_data["lang"],
         )
         with pytest.raises(ValueError) as exc:
             legacy_bib.copy_info
@@ -94,11 +92,11 @@ class TestLegacyData:
             "500 fields: []. 520 fields: []"
         )
 
-    def test_legacy_item_data(self, platform_test_data, platform_test_item):
+    def test_legacy_item_data(self, test_bib_data, test_item_data):
         legacy_item = LegacyItemData(
-            item_count=len(platform_test_data["items"].split(",")),
-            item_id=platform_test_item["id"],
-            call_number=platform_test_item["callNumber"],
+            item_count=len(test_bib_data["items"].split(",")),
+            item_id=test_item_data["id"],
+            call_number=test_item_data["callNumber"],
         )
         assert (
             legacy_item.call_number
