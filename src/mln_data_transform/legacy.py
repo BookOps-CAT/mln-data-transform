@@ -50,7 +50,7 @@ class LegacyItemData:
     """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
 
     CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher Set (?P<study_program_info>[A-Z]{3,4}) (?P<grade_level>[A-Z]{1}) (?P<local_set_type>.+?)\s(?P<shelf_number>\d+)-(?P<enumeration>\d+)$"  # noqa: E501
+        r"Teacher\s*Set\s*(?P<study_program_info>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))(\s*([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s+(?P<local_set_type>([^\d].+?)?)\s*(?P<shelf_number>\d+)(?:-)?(?P<enumeration>\d+)?$"  # noqa: E501
     )
     AUDIO_PATTERN = re.compile(r"Audio & Digital Devices.+")
     BOOK_CLUB_PATTERN = re.compile(r"Book Club.+")
@@ -66,40 +66,31 @@ class LegacyItemData:
         self.item_id = item_id
 
     @property
-    def call_number_components(self) -> re.Match | None:
-        return self.CALL_NUMBER_PATTERN.match(self.call_number)
+    def call_number_components(self) -> re.Match:
+        components = self.CALL_NUMBER_PATTERN.match(self.call_number)
+        if not components:
+            raise ValueError(
+                f"Call number '{self.call_number}' does not match pattern. "
+                f"Cannot extract components."
+            )
+        return components
 
     @property
-    def enumeration(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["enumeration"]
-        else:
-            return None
+    def enumeration(self) -> str:
+        return self.call_number_components["enumeration"]
 
     @property
-    def grade_level(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["grade_level"]
-        else:
-            return None
+    def grade_level(self) -> str:
+        return self.call_number_components["grade_level"]
 
     @property
-    def local_set_type(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["local_set_type"]
-        else:
-            return None
+    def local_set_type(self) -> str:
+        return self.call_number_components["local_set_type"]
 
     @property
-    def shelf_number(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["shelf_number"]
-        else:
-            return None
+    def shelf_number(self) -> str:
+        return self.call_number_components["shelf_number"]
 
     @property
-    def study_program_info(self) -> str | None:
-        if self.call_number_components:
-            return self.call_number_components["study_program_info"]
-        else:
-            return None
+    def study_program_info(self) -> str:
+        return self.call_number_components["study_program_info"]
