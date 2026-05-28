@@ -48,7 +48,10 @@ disallow_untyped_defs = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "--cov=mln_data_transform"
+markers = [
+	"livetest: mark a test hitting live web services",
+]
+addopts = '-m "not livetest" --cov=mln_data_transform'
 
 [tool.coverage.run]
 branch = true
