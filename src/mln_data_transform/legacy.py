@@ -33,19 +33,17 @@ class LegacyBibData:
         fields_5xx = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
         matched_notes = []
         for note in fields_5xx:
-            for subfield in note["subfields"]:
-                content = subfield["content"]
-                matched = self.COPY_INFO_PATTERN.match(content)
-                if matched:
-                    matched_notes.append(matched[0])
-                    return matched[0]
+            content = " ".join([i["content"] for i in note["subfields"]])
+            matched = self.COPY_INFO_PATTERN.match(content)
+            if matched:
+                matched_notes.append(matched[0])
+                return matched[0]
         for note in fields_5xx:
-            for subfield in note["subfields"]:
-                content = subfield["content"]
-                matched = self.SECONDARY_COPY_INFO_PATTERN.match(content)
-                if matched:
-                    matched_notes.append(matched[0])
-                    return matched[0]
+            content = " ".join([i["content"] for i in note["subfields"]])
+            matched = self.SECONDARY_COPY_INFO_PATTERN.match(content)
+            if matched:
+                matched_notes.append(matched[0])
+                return matched[0]
         raise ValueError(
             f"500 and 520 fields do not match pattern. Cannot extract copy info. "
             f"500 fields: {fields_5xx}. 520 fields: {fields_5xx}"
@@ -86,16 +84,26 @@ class LegacyItemData:
     """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
 
     CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<study_program_info>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))(\s*([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s+(?P<local_set_type>([^\d].+?)?)\s*(?P<shelf_number>\d+)(?:-)?(?P<enumeration>\d+)?$"  # noqa: E501
+        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(?P<shelf_number>\d+)(?:-)?(?P<set_copy_number>\d+)?$"  # noqa: E501
     )
+    GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
+    SUBJECT_MAPPING = {
+        "Language Arts ENG": "ELA",
+        "Language Arts": "LA",
+        "Arts": "ART",
+        "Games": "GAME",
+        "Social Studies": "SOC",
+        "Science": "SCI",
+    }
 
-    def __init__(self, call_number: str, item_count: int, item_id: str) -> None:
+    def __init__(self, call_number: str, legacy_item_count: int, item_id: str) -> None:
         self.call_number = call_number.strip()
-        self.item_count = item_count
+        self.legacy_item_count = legacy_item_count
         self.item_id = item_id
 
     @property
     def call_number_components(self) -> re.Match:
+        """Matches legacy call number str from item record to extract parts."""
         components = self.CALL_NUMBER_PATTERN.match(self.call_number)
         if not components:
             raise ValueError(
@@ -105,21 +113,67 @@ class LegacyItemData:
         return components
 
     @property
-    def enumeration(self) -> str:
-        return self.call_number_components["enumeration"]
+    def enhanced(self) -> str | None:
+        """Extracts 'enhanced' from legacy call number for sets with special formats."""
+        if self.call_number_components["enhanced"]:
+            return "E"
+        return None
 
     @property
     def grade_level(self) -> str:
-        return self.call_number_components["grade_level"]
+        """
+        Parses grade level from call number.
+
+        If language is present in call number converts legacy grade level (eg. 'YA')
+        to current grade level formatting formatting.
+        """
+        grade_level = self.call_number_components["grade_level"]
+        if self.lang:
+            return self.GRADE_LEVEL_MAPPING[grade_level]
+        else:
+            return grade_level
 
     @property
-    def local_set_type(self) -> str:
-        return self.call_number_components["local_set_type"]
+    def lang(self) -> str:
+        """Parses language from call number if present."""
+        return self.call_number_components["lang"]
+
+    @property
+    def set_copy_number(self) -> str:
+        """Parses copy number for set from legacy item record."""
+        return self.call_number_components["set_copy_number"]
+
+    @property
+    def set_type(self) -> str:
+        """Parses majority of call number string to identify set type."""
+        set_type = self.call_number_components["set_type"].casefold()
+        if "book club".casefold() in set_type or "BC".casefold() in set_type:
+            return "CLUB"
+        elif "game" in set_type or "game" in self.subject.casefold():
+            return "GAME"
+        elif "storytelling" in set_type:
+            return "STORY"
+        elif "audio" in set_type or ("digital" in set_type and "devices" in set_type):
+            return "AUDIO"
+        elif "large print".casefold() in set_type:
+            return "LPRINT"
+        else:
+            return "TOPIC"
 
     @property
     def shelf_number(self) -> str:
+        """Extracts shelf number from end of legacy call number"""
         return self.call_number_components["shelf_number"]
 
     @property
-    def study_program_info(self) -> str:
-        return self.call_number_components["study_program_info"]
+    def subject(self) -> str:
+        """Extracts subject from call number to map to study program info."""
+        subject = self.call_number_components["subject"]
+        if not self.lang and subject not in self.SUBJECT_MAPPING.keys():
+            return subject.upper()
+        elif subject in self.SUBJECT_MAPPING.keys():
+            return self.SUBJECT_MAPPING[subject]
+        subject_no_lang = self.SUBJECT_MAPPING[subject.removesuffix(self.lang).strip()]
+        if len(subject_no_lang) == 2:
+            return f"{self.lang[:2]}{subject_no_lang}"
+        return subject_no_lang

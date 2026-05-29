@@ -94,7 +94,7 @@ class TestLegacyData:
 
     def test_legacy_item_data(self, test_bib_data, test_item_data):
         legacy_item = LegacyItemData(
-            item_count=len(test_bib_data["items"].split(",")),
+            legacy_item_count=len(test_bib_data["items"].split(",")),
             item_id=test_item_data["id"],
             call_number=test_item_data["callNumber"],
         )
@@ -106,75 +106,73 @@ class TestLegacyData:
             legacy_item.call_number_components[0]
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
         )
-        assert legacy_item.enumeration == "1"
+        assert legacy_item.set_copy_number == "1"
         assert legacy_item.grade_level == "A"
-        assert (
-            legacy_item.local_set_type == "Book Club Set NYC History - This Is New York"
-        )
+        assert legacy_item.set_type == "CLUB"
         assert legacy_item.shelf_number == "1"
-        assert legacy_item.study_program_info == "SOC"
+        assert legacy_item.subject == "SOC"
 
     @pytest.mark.parametrize(
-        "arg,subj,grade,type,shelf,enum",
+        "arg,subj,grade,enhanced,type,shelf,enum",
         [
-            ("Math B Assorted 1-10", "Math", "B", "Assorted", "1", "10"),
-            ("ELA D Genre - Horror 1-1", "ELA", "D", "Genre - Horror", "1", "1"),
+            ("Math B Assorted 1-10", "MATH", "B", None, "TOPIC", "1", "10"),
+            ("ELA D Genre - Horror 1-1", "ELA", "D", None, "TOPIC", "1", "1"),
             (
                 "Language Arts ENG YA Book Club 185-5",
-                "Language Arts ENG",
-                "YA",
-                "Book Club",
+                "ELA",
+                "E",
+                None,
+                "CLUB",
                 "185",
                 "5",
             ),
-            ("SPLA C Animals 1-1", "SPLA", "C", "Animals", "1", "1"),
+            ("SPLA C Animals 1-1", "SPLA", "C", None, "TOPIC", "1", "1"),
             (
                 "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1-1",
                 "SOC",
                 "C",
-                "Enhanced Book Club Set Narrative of the Life of Frederick Douglass",
+                "E",
+                "CLUB",
                 "1",
                 "1",
             ),
-            (
-                "Arts A BIOG - Musicians (Jazz) 1-2",
-                "Arts",
-                "A",
-                "BIOG - Musicians (Jazz)",
-                "1",
-                "2",
-            ),
-            ("Arts D BC Hamilton 1-3", "Arts", "D", "BC Hamilton", "1", "3"),
-            ("Game B Mole 1-1", "Game", "B", "Mole", "1", "1"),
-            ("Games ENG MG 1-2", "Games ENG", "MG", "", "1", "2"),
-            ("Language Arts RUM J 105-2", "Language Arts RUM", "J", "", "105", "2"),
+            ("Arts A BIOG - Musicians (Jazz) 1-2", "ART", "A", None, "TOPIC", "1", "2"),
+            ("Arts D BC Hamilton 1-3", "ART", "D", None, "CLUB", "1", "3"),
+            ("Game B Mole 1-1", "GAME", "B", None, "GAME", "1", "1"),
+            ("Games ENG MG 1-2", "GAME", "D", None, "GAME", "1", "2"),
+            ("ELA D Storytelling 1-1", "ELA", "D", None, "STORY", "1", "1"),
+            ("ELA D Audiobooks 1-1", "ELA", "D", None, "AUDIO", "1", "1"),
+            ("ELA D Horror Large Print 1-1", "ELA", "D", None, "LPRINT", "1", "1"),
+            ("Language Arts RUM J 105-2", "RULA", "C", None, "TOPIC", "105", "2"),
             (
                 "Language Arts ENG MG Book Club Graphic Novel 29-1",
-                "Language Arts ENG",
-                "MG",
-                "Book Club Graphic Novel",
+                "ELA",
+                "D",
+                None,
+                "CLUB",
                 "29",
                 "1",
             ),
         ],
     )
     def test_legacy_item_data_call_number_patterns(
-        self, arg, subj, grade, type, shelf, enum
+        self, arg, subj, grade, enhanced, type, shelf, enum
     ):
         legacy_item = LegacyItemData(
-            item_count=2, item_id="i123456789", call_number=f"Teacher Set {arg}"
+            legacy_item_count=2, item_id="i123456789", call_number=f"Teacher Set {arg}"
         )
         assert legacy_item.call_number == f"Teacher Set {arg}"
         assert legacy_item.call_number_components[0] == f"Teacher Set {arg}"
-        assert legacy_item.study_program_info == subj
+        assert legacy_item.subject == subj
         assert legacy_item.grade_level == grade
-        assert legacy_item.local_set_type == type
+        assert legacy_item.enhanced == enhanced
+        assert legacy_item.set_type == type
         assert legacy_item.shelf_number == shelf
-        assert legacy_item.enumeration == enum
+        assert legacy_item.set_copy_number == enum
 
     def test_legacy_item_data_call_number_pattern_error(self):
         legacy_item = LegacyItemData(
-            item_count=2, item_id="i123456789", call_number="call number"
+            legacy_item_count=2, item_id="i123456789", call_number="call number"
         )
         with pytest.raises(ValueError) as exc:
             legacy_item.call_number_components

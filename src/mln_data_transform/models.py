@@ -1,57 +1,19 @@
 import datetime
-from dataclasses import dataclass
 
 from bookops_marc import Bib
 from pymarc import Field, Indicators, Subfield
 
 from mln_data_transform.components import (
-    GradeReadingLevel,
-    SetTypeFormat,
+    CallNumber,
     SubjectData,
-    SubjectStudyProgram,
     TeacherSetBook,
     TeacherSetSpecialFormat,
 )
-
-
-@dataclass
-class CallNumber:
-    """The components that make up a call number for a Teacher Set bib."""
-
-    enumeration: str
-    format: str
-    grade_level: str
-    shelf_number: str
-    subject_code: str
-    set_title: str
-    enhanced: str | None = None
-
-    @property
-    def sub_a(self) -> str:
-        return f"MLNYC {self.subject_code}-{self.shelf_number}"
-
-    @property
-    def sub_c(self) -> str:
-        split_title = [i for i in self.set_title.split(" ") if not i.isdigit()]
-        if len(split_title) >= 2:
-            cutter_title = " ".join(split_title[:2])
-        else:
-            cutter_title = " ".join(split_title)
-        return f"{cutter_title} {self.enumeration}"
-
-    @property
-    def sub_f(self) -> str:
-        if self.enhanced:
-            return f"{self.format} {self.enhanced}"
-        else:
-            return self.format
-
-    @property
-    def sub_p(self) -> str:
-        return self.grade_level
-
-    def __str__(self) -> str:
-        return f"{self.sub_a} {self.sub_f} {self.sub_p} {self.sub_c}"
+from mln_data_transform.taxonomy import (
+    GradeReadingLevel,
+    SetTypeFormat,
+    SubjectStudyProgram,
+)
 
 
 class TeacherSetData:
@@ -63,7 +25,7 @@ class TeacherSetData:
         enumeration: str,
         grade_level: str | GradeReadingLevel,
         language: str,
-        local_set_type: str | SetTypeFormat,
+        set_type: str | SetTypeFormat,
         parts: list[TeacherSetBook | TeacherSetSpecialFormat],
         physical_description: str,
         record_type: str,
@@ -91,10 +53,8 @@ class TeacherSetData:
         )
         self.language = language
         self.local_genre_term = local_genre_term
-        self.local_set_type = (
-            SetTypeFormat(local_set_type)
-            if isinstance(local_set_type, str)
-            else local_set_type
+        self.set_type = (
+            SetTypeFormat(set_type) if isinstance(set_type, str) else set_type
         )
         self.local_topic_term = local_topic_term
         self.parts = parts
@@ -117,7 +77,7 @@ class TeacherSetData:
     def call_number(self) -> CallNumber:
         return CallNumber(
             enumeration=self.enumeration,
-            format=self.local_set_type.name,
+            format=self.set_type.name,
             grade_level=self.grade_level.name,
             shelf_number=self.shelf_number,
             subject_code=self.study_program_info.name,
@@ -326,7 +286,7 @@ class TeacherSetBib:
             tag="690",
             indicators=Indicators(" ", "7"),
             subfields=[
-                Subfield(code="a", value=self.data.local_set_type.value),
+                Subfield(code="a", value=self.data.set_type.value),
                 Subfield(code="2", value="bookops"),
             ],
         )

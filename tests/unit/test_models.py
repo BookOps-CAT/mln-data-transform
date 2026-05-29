@@ -26,42 +26,63 @@ def set_test_data() -> dict[str, Any]:
         "physical_description": "1 item",
         "study_program_info": "Arts & Music",
         "bib_id": "b123456789",
-        "local_set_type": "Book Club",
+        "set_type": "Book Club",
         "local_topic_term": ["New York City"],
         "local_genre_term": ["Fiction"],
-        "subjects": [],
-        "parts": [
-            {
-                "full_title": "Foo Bar : Baz",
-                "title": "Foo Bar",
-                "author": "Baz",
-                "copies": 1,
-                "isbn": "9781234567890",
-                "description": "A book.",
-                "author_dates": "2020-",
-                "pub_date": "2025",
-            },
-            {
-                "full_title": "Test Title : Subtitle",
-                "title": "Test Title",
-                "author": "Foo",
-                "copies": 2,
-                "isbn": "9780987654321",
-                "description": "Another book.",
-                "pub_date": "2025",
-            },
-        ],
     }
 
 
+@pytest.fixture
+def subject_test_data() -> list[dict[str, Any]]:
+    return [
+        {
+            "tag": "690",
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [("a", "Topic"), ("2", "bookops")],
+        },
+        {
+            "tag": "691",
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [("a", "Language Arts"), ("2", "bookops")],
+        },
+    ]
+
+
+@pytest.fixture
+def parts_test_data() -> list[dict[str, Any]]:
+    return [
+        {
+            "full_title": "Foo Bar : Baz",
+            "title": "Foo Bar",
+            "author": "Baz",
+            "copies": 1,
+            "isbn": "9781234567890",
+            "description": "A book.",
+            "author_dates": "2020-",
+            "pub_date": "2025",
+        },
+        {
+            "full_title": "Test Title : Subtitle",
+            "title": "Test Title",
+            "author": "Foo",
+            "copies": 2,
+            "isbn": "9780987654321",
+            "description": "Another book.",
+            "pub_date": "2025",
+        },
+    ]
+
+
 class TestTeacherSetData:
-    def test_teacher_set_data(self, set_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_data(self, set_test_data, parts_test_data, subject_test_data):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["subjects"] = [
             SubjectData(
                 tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
             )
-            for i in set_test_data["subjects"]
+            for i in subject_test_data
         ]
         teacher_set = TeacherSetData(**set_test_data)
         assert teacher_set.leader == "00000nac  2200000 a 4500"
@@ -80,10 +101,10 @@ class TestTeacherSetData:
         assert teacher_set.grade_level == "Pre-K"
         assert teacher_set.study_program_info == "Arts & Music"
         assert teacher_set.bib_id == "b123456789"
-        assert teacher_set.local_set_type == "Book Club"
+        assert teacher_set.set_type == "Book Club"
         assert teacher_set.local_topic_term == ["New York City"]
         assert teacher_set.local_genre_term == ["Fiction"]
-        assert teacher_set.subjects == []
+        assert len(teacher_set.subjects) == 2
         assert teacher_set.library == "nypl"
         assert teacher_set.control_number_identifier == "BookOps"
         assert teacher_set.pub_place == "xxu"
@@ -101,14 +122,14 @@ class TestTeacherSetData:
         assert teacher_set.call_number.set_title == teacher_set.set_title.upper()
         assert teacher_set.call_number.enhanced is None
 
-    def test_teacher_set_data_short_title(self, set_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_data_short_title(self, set_test_data, parts_test_data):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["set_title"] = "Storytelling"
         teacher_set = TeacherSetData(**set_test_data)
         assert str(teacher_set.call_number) == "MLNYC ART-10 CLUB A STORYTELLING 1-1"
 
-    def test_teacher_set_data_enhanced(self, set_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_data_enhanced(self, set_test_data, parts_test_data):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["parts"].append(
             TeacherSetSpecialFormat(
                 title="Sock puppet", copies=1, description="A puppet."
@@ -123,8 +144,8 @@ class TestTeacherSetData:
         assert teacher_set.call_number.sub_f == "CLUB E"
         assert "=730  02$aSock puppet" in field_strings
 
-    def test_teacher_set_bib(self, set_test_data, today_str):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_bib(self, set_test_data, parts_test_data, today_str):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["subjects"] = [
             SubjectData(tag="650", ind1=" ", ind2="0", subfields=[("a", "Robots")])
         ]
@@ -157,16 +178,18 @@ class TestTeacherSetData:
             "=909  \\\\$aOCLC Holdings Exclusion",
         ]
 
-    def test_teacher_set_bib_kit(self, set_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_bib_kit(self, set_test_data, parts_test_data):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["record_type"] = "o"
         teacher_set = TeacherSetData(**set_test_data)
         set_bib = TeacherSetBib(data=teacher_set)
         bib = set_bib.to_bib()
         assert bib.leader == "00000noc  2200000 a 4500"
 
-    def test_teacher_set_bib_no_local_subjects(self, set_test_data, today_str):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in set_test_data["parts"]]
+    def test_teacher_set_bib_no_local_subjects(
+        self, set_test_data, parts_test_data, today_str
+    ):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["local_topic_term"] = None
         set_test_data["local_genre_term"] = None
         teacher_set = TeacherSetData(**set_test_data)
