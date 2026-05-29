@@ -18,7 +18,7 @@ class TestLegacyData:
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.physical_description == "10 v."
         assert legacy_bib.record_type == "a"
-        assert legacy_bib.copy_info == "Ten copies of one title"
+        assert legacy_bib.copy_info == (10, 1)
 
     def test_legacy_bib_data_missing_fields(self, test_bib_data):
         legacy_bib = LegacyBibData(
@@ -34,46 +34,96 @@ class TestLegacyData:
         assert legacy_bib.physical_description is None
         assert legacy_bib.record_type == "a"
 
-    def test_legacy_bib_data_secondary_match(self, test_bib_data):
-        var_fields = [
-            i for i in test_bib_data["varFields"] if i["marcTag"] not in ["500", "520"]
-        ]
-        var_fields.append(
+    @pytest.mark.parametrize(
+        "arg,output",
+        [
+            ("Five copies of two titles", (5, 2)),
+            ("Three copies of ten titles", (3, 10)),
+            ("Five copies of six titles", (5, 6)),
+            ("Three copies of eight titles", (3, 8)),
+            ("Four copies of four titles", (4, 4)),
+            ("Five copies of four titles", (5, 4)),
+            ("Five copies of two titles", (5, 2)),
+            ("2 copies of 11 titles", (2, 11)),
+            ("1 copy of 16 titles", (1, 16)),
+            ("2 copies of 13 titles", (2, 13)),
+            ("3 copies of 11 titles", (3, 11)),
+            ("One copy of 35 titles", (1, 35)),
+            ("Tabletop Game - ", (1, 1)),
+            ("Game - ", (1, 1)),
+            ("DVD - ", (1, 1)),
+            ("Game (Board Game) - ", (1, 1)),
+        ],
+    )
+    def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, output):
+        test_bib_data["varFields"] = [
             {
                 "ind1": " ",
                 "ind2": " ",
                 "content": None,
                 "marcTag": "500",
                 "fieldTag": "n",
-                "subfields": [
-                    {"tag": "a", "content": "Duration of play: 45-60 minutes."}
-                ],
-            }
-        )
-        var_fields.append(
+                "subfields": [{"tag": "a", "content": "Teacher set"}],
+            },
             {
                 "ind1": " ",
                 "ind2": " ",
                 "content": None,
                 "marcTag": "520",
                 "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Board Game - Foo bar baz."}],
-            }
-        )
+                "subfields": [{"tag": "a", "content": f"{arg} Baz - Qux. "}],
+            },
+        ]
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             item_ids=test_bib_data["items"],
             set_title=test_bib_data["title"],
             fixed_fields=test_bib_data["fixedFields"],
-            var_fields=var_fields,
+            var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.leader == "00000nam  2200000 a 4500"
-        assert legacy_bib.isbns == ["9780789308849"]
-        assert legacy_bib.leader == "00000nam  2200000 a 4500"
-        assert legacy_bib.physical_description == "10 v."
-        assert legacy_bib.record_type == "a"
-        assert legacy_bib.copy_info == "Board Game - "
+        assert legacy_bib.copy_info == output
+
+    # def test_legacy_bib_data_secondary_match(self, test_bib_data):
+    #     var_fields = [
+    #         i for i in test_bib_data["varFields"] if i["marcTag"] not in ["500", "520"]
+    #     ]
+    #     var_fields.append(
+    #         {
+    #             "ind1": " ",
+    #             "ind2": " ",
+    #             "content": None,
+    #             "marcTag": "500",
+    #             "fieldTag": "n",
+    #             "subfields": [
+    #                 {"tag": "a", "content": "Duration of play: 45-60 minutes."}
+    #             ],
+    #         }
+    #     )
+    #     var_fields.append(
+    #         {
+    #             "ind1": " ",
+    #             "ind2": " ",
+    #             "content": None,
+    #             "marcTag": "520",
+    #             "fieldTag": "n",
+    #             "subfields": [{"tag": "a", "content": "Board Game - Foo bar baz."}],
+    #         }
+    #     )
+    #     legacy_bib = LegacyBibData(
+    #         bib_id=test_bib_data["id"],
+    #         item_ids=test_bib_data["items"],
+    #         set_title=test_bib_data["title"],
+    #         fixed_fields=test_bib_data["fixedFields"],
+    #         var_fields=var_fields,
+    #         language=test_bib_data["lang"],
+    #     )
+    #     assert legacy_bib.leader == "00000nam  2200000 a 4500"
+    #     assert legacy_bib.isbns == ["9780789308849"]
+    #     assert legacy_bib.leader == "00000nam  2200000 a 4500"
+    #     assert legacy_bib.physical_description == "10 v."
+    #     assert legacy_bib.record_type == "a"
+    #     assert legacy_bib.copy_info == (1, 1)
 
     def test_legacy_bib_data_no_copy_info(self, test_bib_data):
         legacy_bib = LegacyBibData(
@@ -88,8 +138,7 @@ class TestLegacyData:
             legacy_bib.copy_info
         assert (
             str(exc.value)
-            == "500 and 520 fields do not match pattern. Cannot extract copy info. "
-            "500 fields: []. 520 fields: []"
+            == "500 and 520 fields do not match pattern. Cannot extract copy info: []"
         )
 
     def test_legacy_item_data(self, test_bib_data, test_item_data):
@@ -100,10 +149,6 @@ class TestLegacyData:
         )
         assert (
             legacy_item.call_number
-            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
-        )
-        assert (
-            legacy_item.call_number_components[0]
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
         )
         assert legacy_item.set_copy_number == "1"

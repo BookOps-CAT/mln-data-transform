@@ -6,11 +6,29 @@ class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
     COPY_INFO_PATTERN = re.compile(
-        r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|(?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
-    )
+        r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
+    )  # noqa: E501
+
+    # COPY_INFO_PATTERN = re.compile(
+    #     r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|(?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
+    # )
     SECONDARY_COPY_INFO_PATTERN = re.compile(
-        r"((([Vv]ideo\s+)|([Tt]abletop\s+)|([Bb]oard\s+))?[Gg]ame\s+(\([Bb]oard [Gg]ame\)\s+)?- )|([Dd][Vv][Dd] - )"  # noqa: E501
+        r"(((([Bb]oard)|([Vv]ideo)|([Tt]abletop))(\s[Gg]ame))|([Gg]ame)|([Dd][Vv][Dd]))(?:\s*\([A-z\s]+\))?(\s*-\s*)"  # noqa: E501
     )
+
+    digits = {
+        "zero": 0,
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+    }
 
     def __init__(
         self,
@@ -29,24 +47,26 @@ class LegacyBibData:
         self.var_fields = var_fields
 
     @property
-    def copy_info(self) -> str:
-        fields_5xx = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
-        matched_notes = []
-        for note in fields_5xx:
-            content = " ".join([i["content"] for i in note["subfields"]])
+    def copy_info(self) -> tuple[int, int]:
+        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
+        fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
+        for content in fields_5xx:
             matched = self.COPY_INFO_PATTERN.match(content)
             if matched:
-                matched_notes.append(matched[0])
-                return matched[0]
-        for note in fields_5xx:
-            content = " ".join([i["content"] for i in note["subfields"]])
+                copy_count = matched["copy_count"].casefold()
+                title_count = matched["title_count"].casefold()
+                if copy_count.isalpha():
+                    copy_count = self.digits[copy_count]
+                if title_count.isalpha():
+                    title_count = self.digits[title_count]
+                return (int(copy_count), int(title_count))
+        for content in fields_5xx:
             matched = self.SECONDARY_COPY_INFO_PATTERN.match(content)
             if matched:
-                matched_notes.append(matched[0])
-                return matched[0]
+                return (1, 1)
         raise ValueError(
-            f"500 and 520 fields do not match pattern. Cannot extract copy info. "
-            f"500 fields: {fields_5xx}. 520 fields: {fields_5xx}"
+            f"500 and 520 fields do not match pattern. Cannot extract "
+            f"copy info: {fields}"
         )
 
     @property

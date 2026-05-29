@@ -213,20 +213,6 @@ class TeacherSetBib:
         )
 
     @property
-    def field_505(self) -> Field:
-        """Detailed contents note field"""
-        subfield_list = []
-        for n, part in enumerate(self.data.parts):
-            subfield_list.append(Subfield(code="t", value=f"{part.title} /"))
-            if isinstance(part, TeacherSetBook) and n + 1 < len(self.data.parts):
-                subfield_list.append(Subfield(code="r", value=f"{part.author} --"))
-            elif isinstance(part, TeacherSetBook) and n + 1 == len(self.data.parts):
-                subfield_list.append(Subfield(code="r", value=f"{part.author}."))
-        return Field(
-            tag="505", indicators=Indicators("0", "0"), subfields=subfield_list
-        )
-
-    @property
     def field_520(self) -> list[Field]:
         """Summary description note field (REPEATABLE)"""
         field_list = []
@@ -394,7 +380,6 @@ class TeacherSetBib:
         bib.add_field(self.field_245)
         bib.add_field(self.field_300)
         bib.add_field(self.field_500)
-        bib.add_field(self.field_505)
         for field in self.field_520:
             bib.add_field(field)
         bib.add_field(self.field_521)
