@@ -13,6 +13,13 @@ def test_bib_data() -> dict[str, Any]:
 
 
 @pytest.fixture
+def test_bib_multi_isbn() -> dict[str, Any]:
+    with open("tests/data/platform_bib_multi_isbn.json", "r") as fh:
+        json_data = json.load(fh)
+        return json_data
+
+
+@pytest.fixture
 def test_item_data() -> dict[str, Any]:
     with open("tests/data/platform_item.json", "r") as fh:
         json_data = json.load(fh)

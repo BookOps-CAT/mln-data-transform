@@ -6,7 +6,7 @@ class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
     COPY_INFO_PATTERN = re.compile(
-        r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|((?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))(?:\s+(-\s+)?)\(((?:en [a-z]+\s+)?))([^-]+\){1}))"  # noqa: E501
+        r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|(?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
     )
     SECONDARY_COPY_INFO_PATTERN = re.compile(
         r"((([Vv]ideo\s+)|([Tt]abletop\s+)|([Bb]oard\s+))?[Gg]ame\s+(\([Bb]oard [Gg]ame\)\s+)?- )|([Dd][Vv][Dd] - )"  # noqa: E501
@@ -88,13 +88,6 @@ class LegacyItemData:
     CALL_NUMBER_PATTERN = re.compile(
         r"Teacher\s*Set\s*(?P<study_program_info>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))(\s*([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s+(?P<local_set_type>([^\d].+?)?)\s*(?P<shelf_number>\d+)(?:-)?(?P<enumeration>\d+)?$"  # noqa: E501
     )
-    AUDIO_PATTERN = re.compile(r"Audio & Digital Devices.+")
-    BOOK_CLUB_PATTERN = re.compile(r"Book Club.+")
-    GAME_PATTERN = re.compile(r"Game")
-    LPRINT_PATTERN = re.compile(r"Large Print")
-    PHONIC_PATTERN = re.compile(r"Phonics & Decodeables")
-    STORY_PATTERN = re.compile(r"Storytelling")
-    TOPIC_PATTERN = re.compile(r"Topic")
 
     def __init__(self, call_number: str, item_count: int, item_id: str) -> None:
         self.call_number = call_number.strip()
