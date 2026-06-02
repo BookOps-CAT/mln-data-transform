@@ -7,7 +7,6 @@ class TestLegacyData:
     def test_legacy_bib_data(self, test_bib_data):
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
-            item_ids=test_bib_data["items"],
             set_title=test_bib_data["title"],
             fixed_fields=test_bib_data["fixedFields"],
             var_fields=test_bib_data["varFields"],
@@ -23,7 +22,6 @@ class TestLegacyData:
     def test_legacy_bib_data_missing_fields(self, test_bib_data):
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
-            item_ids=test_bib_data["items"],
             set_title=test_bib_data["title"],
             fixed_fields={},
             var_fields={},
@@ -76,7 +74,6 @@ class TestLegacyData:
         ]
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
-            item_ids=test_bib_data["items"],
             set_title=test_bib_data["title"],
             fixed_fields=test_bib_data["fixedFields"],
             var_fields=test_bib_data["varFields"],
@@ -84,51 +81,9 @@ class TestLegacyData:
         )
         assert legacy_bib.copy_info == output
 
-    # def test_legacy_bib_data_secondary_match(self, test_bib_data):
-    #     var_fields = [
-    #         i for i in test_bib_data["varFields"] if i["marcTag"] not in ["500", "520"]
-    #     ]
-    #     var_fields.append(
-    #         {
-    #             "ind1": " ",
-    #             "ind2": " ",
-    #             "content": None,
-    #             "marcTag": "500",
-    #             "fieldTag": "n",
-    #             "subfields": [
-    #                 {"tag": "a", "content": "Duration of play: 45-60 minutes."}
-    #             ],
-    #         }
-    #     )
-    #     var_fields.append(
-    #         {
-    #             "ind1": " ",
-    #             "ind2": " ",
-    #             "content": None,
-    #             "marcTag": "520",
-    #             "fieldTag": "n",
-    #             "subfields": [{"tag": "a", "content": "Board Game - Foo bar baz."}],
-    #         }
-    #     )
-    #     legacy_bib = LegacyBibData(
-    #         bib_id=test_bib_data["id"],
-    #         item_ids=test_bib_data["items"],
-    #         set_title=test_bib_data["title"],
-    #         fixed_fields=test_bib_data["fixedFields"],
-    #         var_fields=var_fields,
-    #         language=test_bib_data["lang"],
-    #     )
-    #     assert legacy_bib.leader == "00000nam  2200000 a 4500"
-    #     assert legacy_bib.isbns == ["9780789308849"]
-    #     assert legacy_bib.leader == "00000nam  2200000 a 4500"
-    #     assert legacy_bib.physical_description == "10 v."
-    #     assert legacy_bib.record_type == "a"
-    #     assert legacy_bib.copy_info == (1, 1)
-
     def test_legacy_bib_data_no_copy_info(self, test_bib_data):
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
-            item_ids=test_bib_data["items"],
             set_title=test_bib_data["title"],
             fixed_fields={},
             var_fields={},

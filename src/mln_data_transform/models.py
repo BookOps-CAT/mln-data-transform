@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from bookops_marc import Bib
 from pymarc import Field, Indicators, Subfield
@@ -14,6 +15,8 @@ from mln_data_transform.taxonomy import (
     SetTypeFormat,
     SubjectStudyProgram,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TeacherSetData:

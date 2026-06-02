@@ -1,4 +1,8 @@
+import logging
 from dataclasses import dataclass
+from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -70,6 +74,7 @@ class TeacherSetBook(SetPart):
     author_dates: str | None = None
     pub_date: str | None = None
     statement_of_responsibility: str | None = None
+    subjects: list[dict[str, Any]] | None = None
 
 
 @dataclass(frozen=True)

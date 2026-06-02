@@ -1,5 +1,8 @@
+import logging
 import re
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class LegacyBibData:
@@ -8,7 +11,6 @@ class LegacyBibData:
     COPY_INFO_PATTERN = re.compile(
         r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
     )  # noqa: E501
-
     # COPY_INFO_PATTERN = re.compile(
     #     r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|(?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
     # )
@@ -33,14 +35,12 @@ class LegacyBibData:
     def __init__(
         self,
         bib_id: str,
-        item_ids: list[str],
         language: str,
         fixed_fields: list[dict[str, Any]],
         set_title: str,
         var_fields: list[dict[str, Any]],
     ) -> None:
         self.bib_id = bib_id
-        self.item_ids = item_ids
         self.fixed_fields = fixed_fields
         self.language = language
         self.set_title = set_title
@@ -94,7 +94,7 @@ class LegacyBibData:
         return None
 
     @property
-    def record_type(self) -> str | None:
+    def record_type(self) -> str:
         if self.leader:
             return self.leader[6]
         return "a"
