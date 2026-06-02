@@ -3,7 +3,6 @@ from typing import Any
 import pytest
 
 from mln_data_transform.models import (
-    SubjectData,
     TeacherSetBib,
     TeacherSetBook,
     TeacherSetData,
@@ -23,7 +22,6 @@ def set_test_data() -> dict[str, Any]:
         "enumeration": "1-1",
         "physical_description": "1 item",
         "study_program_info": "Arts & Music",
-        "bib_id": "b123456789",
         "set_type": "Book Club",
         "local_topic_term": ["New York City"],
         "local_genre_term": ["Fiction"],
@@ -75,13 +73,8 @@ def parts_test_data() -> list[dict[str, Any]]:
 
 class TestTeacherSetData:
     def test_teacher_set_data(self, set_test_data, parts_test_data, subject_test_data):
+        parts_test_data[0]["subjects"] = subject_test_data
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
-        set_test_data["subjects"] = [
-            SubjectData(
-                tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
-            )
-            for i in subject_test_data
-        ]
         teacher_set = TeacherSetData(**set_test_data)
         assert teacher_set.leader == "00000nac  2200000 a 4500"
         assert teacher_set.control_number == "nn-mlnyc-0000001"
@@ -97,7 +90,6 @@ class TestTeacherSetData:
         )
         assert teacher_set.grade_level == "Pre-K"
         assert teacher_set.study_program_info == "Arts & Music"
-        assert teacher_set.bib_id == "b123456789"
         assert teacher_set.set_type == "Book Club"
         assert teacher_set.local_topic_term == ["New York City"]
         assert teacher_set.local_genre_term == ["Fiction"]
@@ -146,10 +138,10 @@ class TestTeacherSetData:
         assert teacher_set.pub_dates == output
 
     def test_teacher_set_bib(self, set_test_data, parts_test_data, today_str):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
-        set_test_data["subjects"] = [
-            SubjectData(tag="650", ind1=" ", ind2="0", subfields=[("a", "Robots")])
+        parts_test_data[0]["subjects"] = [
+            {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]}
         ]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
         set_bib = TeacherSetBib(data=teacher_set)
         bib = set_bib.to_bib()

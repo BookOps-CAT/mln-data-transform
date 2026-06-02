@@ -24,7 +24,6 @@ class TeacherSetData:
 
     def __init__(
         self,
-        bib_id: str,
         enumeration: str,
         grade_level: str | GradeReadingLevel,
         language: str,
@@ -39,9 +38,7 @@ class TeacherSetData:
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
-        subjects: list[SubjectData] | None = None,
     ) -> None:
-        self.bib_id = bib_id
         self.control_number = control_number
         self.enhanced = enhanced
         self.enumeration = enumeration
@@ -61,7 +58,6 @@ class TeacherSetData:
         self.record_type = record_type
         self.set_title = set_title
         self.shelf_number = shelf_number
-        self.subjects = subjects
         self.study_program_info = (
             SubjectStudyProgram(study_program_info)
             if isinstance(study_program_info, str)
@@ -151,6 +147,24 @@ class TeacherSetData:
     @property
     def pub_place(self) -> str:
         return "xxu"
+
+    @property
+    def subjects(self) -> list[SubjectData]:
+        subjects = []
+        for part in self.parts:
+            if isinstance(part, TeacherSetBook) and part.subjects:
+                subjects.extend(
+                    [
+                        SubjectData(
+                            tag=i["tag"],
+                            ind1=i["ind1"],
+                            ind2=i["ind2"],
+                            subfields=i["subfields"],
+                        )
+                        for i in part.subjects
+                    ]
+                )
+        return subjects
 
 
 class TeacherSetBib:
