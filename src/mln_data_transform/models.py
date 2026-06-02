@@ -35,18 +35,14 @@ class TeacherSetData:
         shelf_number: str,
         study_program_info: str | SubjectStudyProgram,
         set_title: str,
-        begin_pub_date: str | None = "uuuu",
         control_number: str | None = None,
-        end_pub_date: str | None = "uuuu",
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
         subjects: list[SubjectData] | None = None,
     ) -> None:
         self.bib_id = bib_id
-        self.begin_pub_date = begin_pub_date if begin_pub_date else "uuuu"
         self.control_number = control_number
-        self.end_pub_date = end_pub_date if end_pub_date else "uuuu"
         self.enhanced = enhanced
         self.enumeration = enumeration
         self.grade_level = (
@@ -79,12 +75,10 @@ class TeacherSetData:
     @property
     def call_number(self) -> CallNumber:
         return CallNumber(
-            enumeration=self.enumeration,
             format=self.set_type.name,
             grade_level=self.grade_level.name,
             shelf_number=self.shelf_number,
             subject_code=self.study_program_info.name,
-            set_title=self.set_title.upper(),
             enhanced=self.enhanced,
         )
 
@@ -111,8 +105,8 @@ class TeacherSetData:
 
     @property
     def copy_data(self) -> str:
-        parts = self.enumeration.split("-")
-        return f"Copy {parts[0]} of {parts[1]}"
+        set_copy_info = self.enumeration.split("-")
+        return f"Copy {set_copy_info[0]} of {set_copy_info[1]}"
 
     @property
     def leader(self) -> str:
@@ -137,6 +131,22 @@ class TeacherSetData:
     @property
     def oclc_exclusion_note(self) -> str:
         return "OCLC Holdings Exclusion"
+
+    @property
+    def pub_dates(self) -> list[str]:
+        all_pub_dates = []
+        fuzzy_dates = []
+        for part in self.parts:
+            date = part.pub_date
+            if isinstance(date, str) and date.isdigit():
+                all_pub_dates.append(date)
+            elif isinstance(date, str) and date.isalnum():
+                fuzzy_dates.append(date)
+        if all_pub_dates:
+            return sorted([str(i) for i in all_pub_dates])
+        elif fuzzy_dates:
+            return sorted(fuzzy_dates)
+        return all_pub_dates
 
     @property
     def pub_place(self) -> str:
@@ -164,7 +174,11 @@ class TeacherSetBib:
     def field_008(self) -> Field:
         """MARC 008 field"""
         today = datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
-        date_str = f"{today}i{self.data.begin_pub_date}{self.data.end_pub_date}"
+        if not self.data.pub_dates:
+            pub_date_str = "nuuuuuuuu"
+        else:
+            pub_date_str = f"i{self.data.pub_dates[0]}{self.data.pub_dates[-1]}"
+        date_str = f"{today}{pub_date_str}"
         if self.data.leader[6] == "o":
             content = "             | ||"
         else:

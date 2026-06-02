@@ -9,26 +9,19 @@ logger = logging.getLogger(__name__)
 class CallNumber:
     """The components that make up a call number for a Teacher Set bib."""
 
-    enumeration: str
     format: str
     grade_level: str
     shelf_number: str
     subject_code: str
-    set_title: str
     enhanced: str | None = None
 
     @property
     def sub_a(self) -> str:
-        return f"MLNYC {self.subject_code}-{self.shelf_number}"
+        return f"MLNYC {self.subject_code}"
 
     @property
     def sub_c(self) -> str:
-        split_title = [i for i in self.set_title.split(" ") if not i.isdigit()]
-        if len(split_title) >= 2:
-            cutter_title = " ".join(split_title[:2])
-        else:
-            cutter_title = " ".join(split_title)
-        return f"{cutter_title} {self.enumeration}"
+        return self.shelf_number
 
     @property
     def sub_f(self) -> str:
@@ -62,6 +55,13 @@ class SetPart:
     copies: int
     description: str
     title: str
+
+
+@dataclass(frozen=True)
+class MinimalPart:
+    title: str
+    description: str
+    isbn: str | None = None
 
 
 @dataclass(frozen=True)
