@@ -1,8 +1,9 @@
 import datetime
 import logging
-from typing import Sequence
+from typing import Any, Sequence
 
 from bookops_marc import Bib
+from pydantic import BaseModel, field_validator
 from pymarc import Field, Indicators, Subfield
 
 from mln_data_transform.components import (
@@ -15,9 +16,121 @@ from mln_data_transform.taxonomy import (
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
+    TaxonomyGenre,
+    TaxonomyTopic,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class TeacherSetModel(BaseModel):
+    copy_number: int
+    grade_level: GradeReadingLevel
+    language: str
+    parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat]
+    physical_description: str
+    record_type: str
+    set_title: str
+    set_type: SetTypeFormat
+    shelf_number: str
+    study_program_info: SubjectStudyProgram
+    total_copies: int
+    control_number: str | None = None
+    enhanced: str | None = None
+    local_genre_term: list[TaxonomyGenre] | None = None
+    local_topic_term: list[TaxonomyTopic] | None = None
+
+    @field_validator("grade_level", mode="before")
+    @classmethod
+    def validate_reading_level(cls, value: Any) -> GradeReadingLevel:
+        if not isinstance(value, str):
+            return value
+        try:
+            grade = GradeReadingLevel[value]
+        except KeyError:
+            grade = GradeReadingLevel(value)
+        return grade
+
+    @field_validator("set_type", mode="before")
+    @classmethod
+    def validate_sset_type(cls, value: Any) -> SetTypeFormat:
+        if not isinstance(value, str):
+            return value
+        try:
+            grade = SetTypeFormat[value]
+        except KeyError:
+            grade = SetTypeFormat(value)
+        return grade
+
+    @field_validator("study_program_info", mode="before")
+    @classmethod
+    def validate_subject(cls, value: Any) -> SubjectStudyProgram:
+        if not isinstance(value, str):
+            return value
+        try:
+            grade = SubjectStudyProgram[value]
+        except KeyError:
+            grade = SubjectStudyProgram(value)
+        return grade
+
+    @property
+    def contents_note(self) -> str:
+        part_list = []
+        for part in self.parts:
+            if part.copies > 1:
+                copy_part = " copies of "
+            else:
+                copy_part = " copy of "
+            part_list.append(
+                "".join([str(part.copies), copy_part, '"', part.title, '", '])
+            )
+        return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
+    @property
+    def copy_data(self) -> str:
+        return f"Copy {self.copy_number} of {self.total_copies}"
+
+    @property
+    def location(self) -> str:
+        return "ed"
+
+    @property
+    def material_type(self) -> str:
+        return "8"
+
+    @property
+    def pub_dates(self) -> list[str]:
+        all_pub_dates = []
+        fuzzy_dates = []
+        for part in self.parts:
+            date = part.pub_date
+            if isinstance(date, str) and date.isdigit():
+                all_pub_dates.append(date)
+            elif isinstance(date, str) and date.isalnum():
+                fuzzy_dates.append(date)
+        if all_pub_dates:
+            return sorted([str(i) for i in all_pub_dates])
+        elif fuzzy_dates:
+            return sorted(fuzzy_dates)
+        return all_pub_dates
+
+    @property
+    def subjects(self) -> list[SubjectData]:
+        subjects = []
+        for part in self.parts:
+            if isinstance(part, TeacherSetBook) and part.subjects:
+                subjects.extend(
+                    [
+                        SubjectData(
+                            tag=i["tag"],
+                            ind1=i["ind1"],
+                            ind2=i["ind2"],
+                            subfields=i["subfields"],
+                        )
+                        for i in part.subjects
+                    ]
+                )
+        return subjects
 
 
 class TeacherSetData:
@@ -82,10 +195,6 @@ class TeacherSetData:
         )
 
     @property
-    def catalogers_initials(self) -> str:
-        return "mlnyc-bot"
-
-    @property
     def contents_note(self) -> str:
         part_list = []
         for part in self.parts:
@@ -99,24 +208,8 @@ class TeacherSetData:
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
     @property
-    def control_number_identifier(self) -> str:
-        return "BookOps"
-
-    @property
     def copy_data(self) -> str:
         return f"Copy {self.copy_number} of {self.total_copies}"
-
-    @property
-    def leader(self) -> str:
-        return f"00000n{self.record_type}c  2200000 a 4500"
-
-    @property
-    def library(self) -> str:
-        return "nypl"
-
-    @property
-    def local_collection_code(self) -> str:
-        return "BL"
 
     @property
     def location(self) -> str:
@@ -125,10 +218,6 @@ class TeacherSetData:
     @property
     def material_type(self) -> str:
         return "8"
-
-    @property
-    def oclc_exclusion_note(self) -> str:
-        return "OCLC Holdings Exclusion"
 
     @property
     def pub_dates(self) -> list[str]:
@@ -145,10 +234,6 @@ class TeacherSetData:
         elif fuzzy_dates:
             return sorted(fuzzy_dates)
         return all_pub_dates
-
-    @property
-    def pub_place(self) -> str:
-        return "xxu"
 
     @property
     def subjects(self) -> list[SubjectData]:
@@ -184,7 +269,7 @@ class TeacherSetBib:
     @property
     def field_003(self) -> Field:
         """Control number identifier field"""
-        return Field(tag="003", data=self.data.control_number_identifier)
+        return Field(tag="003", data="BookOps")
 
     @property
     def field_008(self) -> Field:
@@ -195,7 +280,7 @@ class TeacherSetBib:
         else:
             pub_date_str = f"i{self.data.pub_dates[0]}{self.data.pub_dates[-1]}"
         date_str = f"{today}{pub_date_str}"
-        if self.data.leader[6] == "o":
+        if self.data.record_type == "o":
             content = "             | ||"
         else:
             content = "           000 0 "
@@ -204,16 +289,35 @@ class TeacherSetBib:
     @property
     def field_091(self) -> Field:
         """Local MyLibraryNYC call number field"""
-        return Field(
-            tag="091",
-            indicators=Indicators(" ", " "),
-            subfields=[
-                Subfield(code="a", value=self.data.call_number.sub_a),
-                Subfield(code="f", value=self.data.call_number.sub_f),
-                Subfield(code="p", value=self.data.call_number.sub_p),
-                Subfield(code="c", value=self.data.call_number.sub_c),
-            ],
-        )
+        if self.data.enhanced:
+            return Field(
+                tag="091",
+                indicators=Indicators(" ", " "),
+                subfields=[
+                    Subfield(
+                        code="a", value=f"MLNYC {self.data.study_program_info.name}"
+                    ),
+                    Subfield(
+                        code="f",
+                        value=f"{self.data.set_type.name} {self.data.enhanced}",
+                    ),
+                    Subfield(code="p", value=self.data.grade_level.name),
+                    Subfield(code="c", value=self.data.shelf_number),
+                ],
+            )
+        else:
+            return Field(
+                tag="091",
+                indicators=Indicators(" ", " "),
+                subfields=[
+                    Subfield(
+                        code="a", value=f"MLNYC {self.data.study_program_info.name}"
+                    ),
+                    Subfield(code="f", value=self.data.set_type.name),
+                    Subfield(code="p", value=self.data.grade_level.name),
+                    Subfield(code="c", value=self.data.shelf_number),
+                ],
+            )
 
     @property
     def field_245(self) -> Field:
@@ -223,7 +327,10 @@ class TeacherSetBib:
             indicators=Indicators("0", "0"),
             subfields=[
                 Subfield(code="a", value=f"{self.data.set_title.strip('.')}."),
-                Subfield(code="n", value=self.data.copy_data),
+                Subfield(
+                    code="n",
+                    value=f"Copy {self.data.copy_number} of {self.data.total_copies}",
+                ),
             ],
         )
 
@@ -239,10 +346,24 @@ class TeacherSetBib:
     @property
     def field_500(self) -> Field:
         """General contents note field"""
+        part_list = []
+        for part in self.data.parts:
+            if part.copies > 1:
+                copy_part = " copies of "
+            else:
+                copy_part = " copy of "
+            part_list.append(
+                "".join([str(part.copies), copy_part, '"', part.title, '", '])
+            )
         return Field(
             tag="500",
             indicators=Indicators(" ", " "),
-            subfields=[Subfield(code="a", value=self.data.contents_note)],
+            subfields=[
+                Subfield(
+                    code="a",
+                    value=f"Set consists of {''.join(part_list).rstrip(', ')}.",
+                )
+            ],
         )
 
     @property
@@ -380,7 +501,7 @@ class TeacherSetBib:
             tag="901",
             indicators=Indicators(" ", " "),
             subfields=[
-                Subfield(code="a", value=self.data.catalogers_initials),
+                Subfield(code="a", value="mlnyc-bot"),
                 Subfield(code="b", value="CATBL"),
             ],
         )
@@ -391,7 +512,7 @@ class TeacherSetBib:
         return Field(
             tag="910",
             indicators=Indicators(" ", " "),
-            subfields=[Subfield(code="a", value=self.data.local_collection_code)],
+            subfields=[Subfield(code="a", value="BL")],
         )
 
     @property
@@ -400,13 +521,13 @@ class TeacherSetBib:
         return Field(
             tag="909",
             indicators=Indicators(" ", " "),
-            subfields=[Subfield(code="a", value=self.data.oclc_exclusion_note)],
+            subfields=[Subfield(code="a", value="OCLC Holdings Exclusion")],
         )
 
     def to_bib(self) -> Bib:
         bib = Bib()
-        bib.library = self.data.library
-        bib.leader = self.data.leader
+        bib.library = "nypl"
+        bib.leader = f"00000n{self.data.record_type}c  2200000 a 4500"
         bib.add_ordered_field(self.field_001)
         bib.add_ordered_field(self.field_003)
         bib.add_ordered_field(self.field_008)

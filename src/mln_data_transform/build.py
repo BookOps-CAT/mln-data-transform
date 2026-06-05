@@ -1,38 +1,45 @@
+import logging
+
 import pandas as pd
+from pydantic import ValidationError
 
 from mln_data_transform.legacy import LegacyTeacherSetBatch
-from mln_data_transform.models import TeacherSetBib, TeacherSetData
-from mln_data_transform.taxonomy import (
-    GradeReadingLevel,
-    SetTypeFormat,
-    SubjectStudyProgram,
-)
+from mln_data_transform.models import TeacherSetBib, TeacherSetModel
+
+logger = logging.getLogger(__name__)
 
 
 def create_sets_from_data(
-    bib_id: str, item_mapping: dict[str, dict[str, str]]
+    bib_id: str, item_mapping: dict[str, str]
 ) -> list[TeacherSetBib]:
     batch = LegacyTeacherSetBatch(bib_id=bib_id, item_mapping=item_mapping)
     set_list = batch.create_teacher_sets()
     bibs = []
+    errors = []
     for set in set_list:
-        bib = TeacherSetData(
-            copy_number=set.copy_number,
-            grade_level=GradeReadingLevel[set.grade_level],
-            language=set.language,
-            parts=set.parts,
-            physical_description=set.physical_description,
-            record_type=set.record_type,
-            shelf_number=set.shelf_number,
-            study_program_info=SubjectStudyProgram[set.study_program_info],
-            set_title=set.set_title,
-            total_copies=set.total_copies,
-            enhanced=set.enhanced,
-            local_genre_term=set.local_genre_term,
-            local_topic_term=set.local_topic_term,
-            set_type=SetTypeFormat[set.set_type],
-        )
-        bibs.append(TeacherSetBib(bib))
+        try:
+            set_model = TeacherSetModel.model_validate(set, from_attributes=True)
+            bibs.append(TeacherSetBib(data=set_model))
+        except ValidationError as e:
+            logger.info(e.json())
+            errors.append(e.json())
+        # bib = TeacherSetData(
+        #     copy_number=set.copy_number,
+        #     grade_level=GradeReadingLevel[set.grade_level],
+        #     language=set.language,
+        #     parts=set.parts,
+        #     physical_description=set.physical_description,
+        #     record_type=set.record_type,
+        #     shelf_number=set.shelf_number,
+        #     study_program_info=SubjectStudyProgram[set.study_program_info],
+        #     set_title=set.set_title,
+        #     total_copies=set.total_copies,
+        #     enhanced=set.enhanced,
+        #     local_genre_term=set.local_genre_term,
+        #     local_topic_term=set.local_topic_term,
+        #     set_type=SetTypeFormat[set.set_type],
+        # )
+
     return bibs
 
 

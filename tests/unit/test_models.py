@@ -77,7 +77,6 @@ class TestTeacherSetData:
         parts_test_data[0]["subjects"] = subject_test_data
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
-        assert teacher_set.leader == "00000nac  2200000 a 4500"
         assert teacher_set.control_number == "nn-mlnyc-0000001"
         assert teacher_set.pub_dates == ["2025", "2025"]
         assert teacher_set.language == "eng"
@@ -95,12 +94,6 @@ class TestTeacherSetData:
         assert teacher_set.local_topic_term == ["New York City"]
         assert teacher_set.local_genre_term == ["Fiction"]
         assert len(teacher_set.subjects) == 2
-        assert teacher_set.library == "nypl"
-        assert teacher_set.control_number_identifier == "BookOps"
-        assert teacher_set.pub_place == "xxu"
-        assert teacher_set.catalogers_initials == "mlnyc-bot"
-        assert teacher_set.local_collection_code == "BL"
-        assert teacher_set.oclc_exclusion_note == "OCLC Holdings Exclusion"
         assert teacher_set.location == "ed"
         assert teacher_set.material_type == "8"
         assert teacher_set.bib_code == "e"

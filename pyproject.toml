@@ -18,6 +18,7 @@ dependencies = [
     "google-api-python-client (>=2.196)",
     "google-auth-oauthlib (>=1.4)",
     "bookops-worldcat>=1.2.0",
+    "pydantic>=2.13.4",
 ]
 
 [project.scripts]
