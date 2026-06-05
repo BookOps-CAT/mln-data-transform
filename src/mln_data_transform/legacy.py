@@ -1,8 +1,131 @@
+from __future__ import annotations
+
 import logging
 import re
 from typing import Any
 
+from mln_data_transform.components import TeacherSetBook
+from mln_data_transform.transform import Tranformer
+
 logger = logging.getLogger(__name__)
+
+
+class LegacyTeacherSetBatch:
+    def __init__(self, bib_id: str, item_mapping: dict[str, str]) -> None:
+        self._bib_id = bib_id
+        self.item_mapping = item_mapping
+        self.transformer = Tranformer()
+        self.platform_bib = self.transformer.get_platform_bib(self.bib_id)
+        self.platform_items = self.transformer.get_platform_bib_items(self.bib_id)
+
+    @property
+    def bib_id(self) -> str:
+        return self._bib_id
+
+    @property
+    def bib_data(self) -> LegacyBibData:
+        return LegacyBibData(
+            bib_id=self.bib_id,
+            language=self.platform_bib["lang"]["code"],
+            fixed_fields=self.platform_bib["fixedFields"],
+            set_title=self.platform_bib["title"],
+            var_fields=self.platform_bib["varFields"],
+        )
+
+    @property
+    def item_data(self) -> list[LegacyItemData]:
+        count = len(self.platform_items)
+        item_list = []
+        for item in self.platform_items:
+            print(self.item_mapping)
+            barcode = item["barcode"]
+            legacy_item = LegacyItemData(
+                call_number=item["callNumber"],
+                legacy_item_count=count,
+                item_id=item["id"],
+                barcode=barcode,
+                shelf_number=self.item_mapping[barcode],
+            )
+            item_list.append(legacy_item)
+        return item_list
+
+    def create_teacher_sets(self) -> list[LegacyTeacherSet]:
+        sets = []
+        phys_desc = self.bib_data.physical_description
+        wc_data_list = self.transformer.get_worldcat_data_for_parts(
+            isbns=self.bib_data.isbns
+        )
+        worldcat_parts = [
+            TeacherSetBook(
+                isbn=i.isbn,
+                title=i.title,
+                full_title=i.full_title,
+                author=i.author_name,
+                author_dates=i.author_dates,
+                pub_date=i.pub_date,
+                statement_of_responsibility=i.statement_of_responsibility,
+                description=i.description,
+                copies=self.bib_data.copy_info[0],
+                subjects=i.subjects,
+            )
+            for i in wc_data_list
+        ]
+        for n, item in enumerate(self.item_data):
+            copy_number = n + 1
+            if not phys_desc:
+                phys_desc = str(sum([i.copies for i in worldcat_parts]))
+            set = LegacyTeacherSet(
+                copy_number=copy_number,
+                total_copies=item.legacy_item_count,
+                grade_level=item.grade_level,
+                language=self.bib_data.language,
+                set_type=item.set_type,
+                physical_description=phys_desc,
+                record_type=self.bib_data.record_type,
+                shelf_number=item.shelf_number,
+                study_program_info=item.subject,
+                set_title=self.bib_data.set_title,
+                parts=worldcat_parts,
+                legacy_call_number=item.call_number,
+            )
+            sets.append(set)
+        return sets
+
+
+class LegacyTeacherSet:
+    def __init__(
+        self,
+        copy_number: int,
+        grade_level: str,
+        language: str,
+        legacy_call_number: str,
+        parts: list[TeacherSetBook],
+        physical_description: str,
+        record_type: str,
+        shelf_number: str,
+        study_program_info: str,
+        set_title: str,
+        set_type: str,
+        total_copies: int,
+        enhanced: str | None = None,
+        local_genre_term: list[str] | None = None,
+        local_topic_term: list[str] | None = None,
+    ) -> None:
+        self.copy_number = copy_number
+        self.grade_level = grade_level
+        self.language = language
+        self.legacy_call_number = legacy_call_number
+        self.parts = parts
+        self.physical_description = physical_description
+        self.record_type = record_type
+        self.shelf_number = shelf_number
+        self.study_program_info = study_program_info
+        self.set_title = set_title
+        self.set_type = set_type
+        self.total_copies = total_copies
+        self.enhanced = enhanced
+        self.local_genre_term = local_genre_term
+        self.local_topic_term = local_topic_term
 
 
 class LegacyBibData:
@@ -116,10 +239,19 @@ class LegacyItemData:
         "Science": "SCI",
     }
 
-    def __init__(self, call_number: str, legacy_item_count: int, item_id: str) -> None:
+    def __init__(
+        self,
+        barcode: str,
+        call_number: str,
+        item_id: str,
+        legacy_item_count: int,
+        shelf_number: str,
+    ) -> None:
+        self.barcode = barcode
         self.call_number = call_number.strip()
-        self.legacy_item_count = legacy_item_count
         self.item_id = item_id
+        self.legacy_item_count = legacy_item_count
+        self.shelf_number = shelf_number
 
     @property
     def call_number_components(self) -> re.Match:
@@ -159,9 +291,9 @@ class LegacyItemData:
         return self.call_number_components["lang"]
 
     @property
-    def set_copy_number(self) -> str:
+    def set_copy_number(self) -> int:
         """Parses copy number for set from legacy item record."""
-        return self.call_number_components["set_copy_number"]
+        return int(self.call_number_components["set_copy_number"])
 
     @property
     def set_type(self) -> str:
@@ -179,11 +311,6 @@ class LegacyItemData:
             return "LPRINT"
         else:
             return "TOPIC"
-
-    @property
-    def shelf_number(self) -> str:
-        """Extracts shelf number from end of legacy call number"""
-        return self.call_number_components["shelf_number"]
 
     @property
     def subject(self) -> str:

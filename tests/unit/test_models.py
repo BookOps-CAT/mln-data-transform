@@ -19,7 +19,8 @@ def set_test_data() -> dict[str, Any]:
         "grade_level": "Pre-K",
         "shelf_number": "10",
         "set_title": "Foo Bar Teacher Set",
-        "enumeration": "1-1",
+        "copy_number": 1,
+        "total_copies": 1,
         "physical_description": "1 item",
         "study_program_info": "Arts & Music",
         "set_type": "Book Club",
@@ -141,6 +142,9 @@ class TestTeacherSetData:
         parts_test_data[0]["subjects"] = [
             {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]}
         ]
+        parts_test_data[1]["subjects"] = [
+            {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]}
+        ]
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
         set_bib = TeacherSetBib(data=teacher_set)
@@ -166,8 +170,8 @@ class TestTeacherSetData:
             "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
             "=700  12$aFoo$tTest Title$f2025$x9780987654321",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=910  \\\\$aBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
         ]
 
     def test_teacher_set_bib_kit(self, set_test_data, parts_test_data):
@@ -207,8 +211,8 @@ class TestTeacherSetData:
             "=700  12$aBaz$d2020-$tFoo Bar$x9781234567890",
             "=700  12$aFoo$tTest Title$x9780987654321",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=910  \\\\$aBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
         ]
 
     def test_teacher_set_bib_no_local_subjects(
@@ -238,6 +242,6 @@ class TestTeacherSetData:
             "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
             "=700  12$aFoo$tTest Title$f2025$x9780987654321",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=910  \\\\$aBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
         ]

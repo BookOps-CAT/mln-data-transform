@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Sequence
 
 from bookops_marc import Bib
 from pymarc import Field, Indicators, Subfield
@@ -24,24 +25,25 @@ class TeacherSetData:
 
     def __init__(
         self,
-        enumeration: str,
-        grade_level: str | GradeReadingLevel,
+        copy_number: int,
+        grade_level: GradeReadingLevel,
         language: str,
-        set_type: str | SetTypeFormat,
-        parts: list[TeacherSetBook | TeacherSetSpecialFormat],
+        parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat],
         physical_description: str,
         record_type: str,
         shelf_number: str,
-        study_program_info: str | SubjectStudyProgram,
+        study_program_info: SubjectStudyProgram,
         set_title: str,
+        set_type: SetTypeFormat,
+        total_copies: int,
         control_number: str | None = None,
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
     ) -> None:
+        self.copy_number = copy_number
         self.control_number = control_number
         self.enhanced = enhanced
-        self.enumeration = enumeration
         self.grade_level = (
             GradeReadingLevel(grade_level)
             if isinstance(grade_level, str)
@@ -63,6 +65,7 @@ class TeacherSetData:
             if isinstance(study_program_info, str)
             else study_program_info
         )
+        self.total_copies = total_copies
 
     @property
     def bib_code(self) -> str:
@@ -101,8 +104,7 @@ class TeacherSetData:
 
     @property
     def copy_data(self) -> str:
-        set_copy_info = self.enumeration.split("-")
-        return f"Copy {set_copy_info[0]} of {set_copy_info[1]}"
+        return f"Copy {self.copy_number} of {self.total_copies}"
 
     @property
     def leader(self) -> str:
@@ -254,7 +256,7 @@ class TeacherSetBib:
                     indicators=Indicators(" ", " "),
                     subfields=[
                         Subfield(code="3", value=part.title),
-                        Subfield(code="a", value=part.description),
+                        Subfield(code="a", value=f"{part.description.strip('.')}."),
                     ],
                 )
             )
@@ -282,18 +284,19 @@ class TeacherSetBib:
     def field_6xx(self) -> list[Field]:
         """Subject fields (REPEATBLE)"""
         subject_list = []
+        subject_set = set()
         if not self.data.subjects:
             return []
         for subject in self.data.subjects:
-            subject_list.append(
-                Field(
-                    tag=subject.tag,
-                    indicators=Indicators(subject.ind1, subject.ind2),
-                    subfields=[
-                        Subfield(code=i[0], value=i[1]) for i in subject.subfields
-                    ],
-                )
+            subject_field = Field(
+                tag=subject.tag,
+                indicators=Indicators(subject.ind1, subject.ind2),
+                subfields=[Subfield(code=i[0], value=i[1]) for i in subject.subfields],
             )
+            subject_str = subject_field.format_field()
+            if subject_str not in subject_set:
+                subject_set.add(subject_str)
+                subject_list.append(subject_field)
         return subject_list
 
     @property
@@ -404,28 +407,28 @@ class TeacherSetBib:
         bib = Bib()
         bib.library = self.data.library
         bib.leader = self.data.leader
-        bib.add_field(self.field_001)
-        bib.add_field(self.field_003)
-        bib.add_field(self.field_008)
-        bib.add_field(self.field_091)
-        bib.add_field(self.field_245)
-        bib.add_field(self.field_300)
-        bib.add_field(self.field_500)
+        bib.add_ordered_field(self.field_001)
+        bib.add_ordered_field(self.field_003)
+        bib.add_ordered_field(self.field_008)
+        bib.add_ordered_field(self.field_091)
+        bib.add_ordered_field(self.field_245)
+        bib.add_ordered_field(self.field_300)
+        bib.add_ordered_field(self.field_500)
         for field in self.field_520:
-            bib.add_field(field)
-        bib.add_field(self.field_521)
-        bib.add_field(self.field_526)
+            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_521)
+        bib.add_ordered_field(self.field_526)
         for field in self.field_6xx:
-            bib.add_field(field)
-        bib.add_field(self.field_690)
+            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_690)
         for field in self.field_691:
-            bib.add_field(field)
+            bib.add_ordered_field(field)
         for field in self.field_695:
-            bib.add_field(field)
+            bib.add_ordered_field(field)
         for field in self.field_7xx:
-            bib.add_field(field)
-        bib.add_field(self.field_901)
-        bib.add_field(self.field_910)
-        bib.add_field(self.field_909)
+            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_901)
+        bib.add_ordered_field(self.field_910)
+        bib.add_ordered_field(self.field_909)
         # add items
         return bib
