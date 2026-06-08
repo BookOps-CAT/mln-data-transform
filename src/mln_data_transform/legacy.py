@@ -4,7 +4,7 @@ import logging
 import re
 from typing import Any
 
-from mln_data_transform.components import TeacherSetBook
+from mln_data_transform.components import TeacherSetBook, VarFieldData
 from mln_data_transform.transform import Tranformer
 
 logger = logging.getLogger(__name__)
@@ -58,11 +58,9 @@ class LegacyTeacherSetBatch:
             TeacherSetBook(
                 isbn=i.isbn,
                 title=i.title,
-                full_title=i.full_title,
                 author=i.author_name,
                 author_dates=i.author_dates,
                 pub_date=i.pub_date,
-                statement_of_responsibility=i.statement_of_responsibility,
                 description=i.description,
                 copies=self.bib_data.copy_info[0],
                 subjects=i.subjects,
@@ -72,6 +70,9 @@ class LegacyTeacherSetBatch:
         for n, item in enumerate(self.item_data):
             copy_number = n + 1
             set = LegacyTeacherSet(
+                bib_id=self.bib_id,
+                barcode=item.barcode,
+                item_id=item.item_id,
                 copy_number=copy_number,
                 total_copies=item.legacy_item_count,
                 grade_level=item.grade_level,
@@ -92,8 +93,11 @@ class LegacyTeacherSetBatch:
 class LegacyTeacherSet:
     def __init__(
         self,
+        barcode: str,
+        bib_id: str,
         copy_number: int,
         grade_level: str,
+        item_id: str,
         language: str,
         legacy_call_number: str,
         parts: list[TeacherSetBook],
@@ -108,8 +112,11 @@ class LegacyTeacherSet:
         local_topic_term: list[str] | None = None,
         physical_description: str | None = None,
     ) -> None:
+        self.barcode = barcode
+        self.bib_id = bib_id
         self.copy_number = copy_number
         self.grade_level = grade_level
+        self.item_id = item_id
         self.language = language
         self.legacy_call_number = legacy_call_number
         self.parts = parts
@@ -127,6 +134,22 @@ class LegacyTeacherSet:
         self.enhanced = enhanced
         self.local_genre_term = local_genre_term
         self.local_topic_term = local_topic_term
+
+    @property
+    def var_field_data(self) -> list[VarFieldData]:
+        return [
+            VarFieldData(
+                tag="950",
+                ind1=" ",
+                ind2=" ",
+                subfields=[
+                    ("a", f"b{self.bib_id}a"),
+                    ("b", f"i{self.item_id}a"),
+                    ("c", self.barcode),
+                    ("d", self.legacy_call_number),
+                ],
+            )
+        ]
 
 
 class LegacyBibData:

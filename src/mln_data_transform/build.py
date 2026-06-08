@@ -1,10 +1,12 @@
 import logging
 
 import pandas as pd
+from bookops_marc import Bib
 from pydantic import ValidationError
 
 from mln_data_transform.legacy import LegacyTeacherSetBatch
-from mln_data_transform.models import TeacherSetBib, TeacherSetModel
+from mln_data_transform.serialize import TeacherSetBib
+from mln_data_transform.validate import TeacherSetModel
 
 logger = logging.getLogger(__name__)
 
@@ -19,34 +21,17 @@ def create_sets_from_data(
     for set in set_list:
         try:
             set_model = TeacherSetModel.model_validate(set, from_attributes=True)
-            bibs.append(TeacherSetBib(data=set_model))
+            bibs.append(set_model.to_set_bib())
         except ValidationError as e:
             logger.info(e.json())
             errors.append(e.json())
-        # bib = TeacherSetData(
-        #     copy_number=set.copy_number,
-        #     grade_level=GradeReadingLevel[set.grade_level],
-        #     language=set.language,
-        #     parts=set.parts,
-        #     physical_description=set.physical_description,
-        #     record_type=set.record_type,
-        #     shelf_number=set.shelf_number,
-        #     study_program_info=SubjectStudyProgram[set.study_program_info],
-        #     set_title=set.set_title,
-        #     total_copies=set.total_copies,
-        #     enhanced=set.enhanced,
-        #     local_genre_term=set.local_genre_term,
-        #     local_topic_term=set.local_topic_term,
-        #     set_type=SetTypeFormat[set.set_type],
-        # )
 
     return bibs
 
 
-def write_sets_to_marc(set_bibs: list[TeacherSetBib], file: str) -> None:
-    bibs = [i.to_bib() for i in set_bibs]
+def write_sets_to_marc(set_bibs: list[Bib], file: str) -> None:
     with open(file, "ab") as fh:
-        for bib in bibs:
+        for bib in set_bibs:
             fh.write(bib.as_marc())
 
 

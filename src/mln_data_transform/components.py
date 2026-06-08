@@ -6,40 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class CallNumber:
-    """The components that make up a call number for a Teacher Set bib."""
-
-    format: str
-    grade_level: str
-    shelf_number: str
-    subject_code: str
-    enhanced: str | None = None
-
-    @property
-    def sub_a(self) -> str:
-        return f"MLNYC {self.subject_code}"
-
-    @property
-    def sub_c(self) -> str:
-        return self.shelf_number
-
-    @property
-    def sub_f(self) -> str:
-        if self.enhanced:
-            return f"{self.format} {self.enhanced}"
-        else:
-            return self.format
-
-    @property
-    def sub_p(self) -> str:
-        return self.grade_level
-
-    def __str__(self) -> str:
-        return f"{self.sub_a} {self.sub_f} {self.sub_p} {self.sub_c}"
-
-
-@dataclass
-class SubjectData:
+class VarFieldData:
     """Data used to create a 6xx field."""
 
     tag: str
@@ -56,12 +23,11 @@ class SetPart:
     description: str
     title: str
 
+    def entry_dict(self) -> dict[str, Any]:
+        return {}
 
-@dataclass(frozen=True)
-class MinimalPart:
-    title: str
-    description: str
-    isbn: str | None = None
+    def summary_component(self) -> tuple[str, str]:
+        return (self.title, f"{self.description.strip('.')}.", self.copies)
 
 
 @dataclass(frozen=True)
@@ -69,12 +35,31 @@ class TeacherSetBook(SetPart):
     """A book included within a Teacher Set."""
 
     isbn: str
-    full_title: str
     author: str | None = None
     author_dates: str | None = None
     pub_date: str | None = None
-    statement_of_responsibility: str | None = None
     subjects: list[dict[str, Any]] | None = None
+
+    def entry_dict(self) -> dict[str, Any]:
+        subfields = []
+        if self.author:
+            tag = "700"
+            ind1 = "1"
+            subfields.append(("a", self.author))
+            if self.author_dates:
+                subfields.append(("d", self.author_dates))
+            subfields.append(("t", self.title))
+        else:
+            tag = "730"
+            ind1 = "0"
+            subfields.append(("a", self.title))
+        if self.pub_date:
+            subfields.append(("f", self.pub_date))
+        subfields.append(("x", self.isbn))
+        return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
+
+    def summary_component(self) -> tuple[str, str]:
+        return (self.title, f"{self.description.strip('.')}.", self.copies)
 
 
 @dataclass(frozen=True)

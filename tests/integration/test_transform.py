@@ -1,19 +1,298 @@
+from typing import Any
+
 import pytest
 from dotenv import load_dotenv
 
-from mln_data_transform.build import build_item_mapping, create_sets_from_data
+from mln_data_transform.build import (
+    build_item_mapping,
+    create_sets_from_data,
+    write_sets_to_marc,
+)
+from mln_data_transform.components import TeacherSetBook, TeacherSetSpecialFormat
+from mln_data_transform.models import TeacherSetData
+from mln_data_transform.validate import TeacherSetModel
 
 
-class TestLegacyTeacherSetBatch:
-    load_dotenv()
+@pytest.fixture
+def set_test_data() -> dict[str, Any]:
+    return {
+        "record_type": "a",
+        "control_number": "nn-mlnyc-0000001",
+        "language": "eng",
+        "grade_level": "Pre-K",
+        "shelf_number": "10",
+        "set_title": "Foo Bar Teacher Set",
+        "copy_number": 1,
+        "total_copies": 1,
+        "physical_description": "1 item",
+        "study_program_info": "Arts & Music",
+        "set_type": "Book Club",
+        "local_topic_term": ["New York City"],
+        "local_genre_term": ["Fiction"],
+    }
 
+
+@pytest.fixture
+def parts_test_data() -> list[dict[str, Any]]:
+    return [
+        {
+            "title": "Foo Bar",
+            "author": "Baz",
+            "copies": 1,
+            "isbn": "9781234567890",
+            "description": "A book.",
+            "author_dates": "2020-",
+            "pub_date": "2025",
+        },
+        {
+            "title": "Test Title",
+            "author": "Foo",
+            "copies": 2,
+            "isbn": "9780987654321",
+            "description": "Another book.",
+            "pub_date": "2025",
+        },
+        {
+            "title": "Another Book",
+            "copies": 2,
+            "isbn": "9780000000000",
+            "description": "Yet another book.",
+            "pub_date": "2025",
+        },
+    ]
+
+
+class TestNewTeacherSetFromModel:
+    def test_teacher_set_bib(self, set_test_data, parts_test_data, today_str, caplog):
+        parts_test_data[0]["subjects"] = [
+            {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]}
+        ]
+        parts_test_data[1]["subjects"] = [
+            {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]}
+        ]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSetModel(**set_data.to_dict())
+        set_bib = teacher_set.to_set_bib()
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000nac  2200000 a 4500"
+        assert teacher_set.local_genre_term == ["Fiction"]
+        assert teacher_set.local_topic_term == ["New York City"]
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}i20252025xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC ART$fCLUB$pA$c10",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 2 copies of "Another Book".',
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=520  \\\\$3Another Book$aYet another book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=650  \\0$aRobots",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
+            "=730  02$aAnother Book$f2025$x9780000000000",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo Bar$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+        ]
+
+    def test_teacher_set_bib_kit(self, set_test_data, parts_test_data, today_str):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_test_data["parts"].append(
+            TeacherSetSpecialFormat(copies=1, description="A puppet", title="Puppet")
+        )
+        set_test_data["record_type"] = "o"
+        set_test_data["enhanced"] = "E"
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSetModel(**set_data.to_dict())
+        set_bib = teacher_set.to_set_bib()
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000noc  2200000 a 4500"
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}i20252025xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
+            "=091  \\\\$aMLNYC ART$fCLUB E$pA$c10",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 2 copies of "Another Book".',
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=520  \\\\$3Another Book$aYet another book.",
+            "=520  \\\\$3Puppet$aA puppet.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
+            "=730  02$aAnother Book$f2025$x9780000000000",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo Bar$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Puppet$leduls$m-$p0.00$t252$um",
+        ]
+
+    def test_teacher_set_bib_no_pub_dates(
+        self, set_test_data, parts_test_data, today_str
+    ):
+        parts_test_data[0]["pub_date"] = None
+        parts_test_data[1]["pub_date"] = None
+        parts_test_data[2]["pub_date"] = None
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSetModel(**set_data.to_dict())
+        set_bib = teacher_set.to_set_bib()
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000nac  2200000 a 4500"
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC ART$fCLUB$pA$c10",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 2 copies of "Another Book".',
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=520  \\\\$3Another Book$aYet another book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$x9781234567890",
+            "=700  12$aFoo$tTest Title$x9780987654321",
+            "=730  02$aAnother Book$x9780000000000",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo Bar$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+        ]
+
+    def test_teacher_set_bib_no_local_subjects(
+        self, set_test_data, parts_test_data, today_str
+    ):
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_test_data["local_topic_term"] = None
+        set_test_data["local_genre_term"] = None
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSetModel(**set_data.to_dict())
+        set_bib = teacher_set.to_set_bib()
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000nac  2200000 a 4500"
+        assert teacher_set.local_genre_term is None
+        assert teacher_set.local_topic_term is None
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}i20252025xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC ART$fCLUB$pA$c10",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 2 copies of "Another Book".',
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=520  \\\\$3Another Book$aYet another book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=690  \\7$aBook Club$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
+            "=730  02$aAnother Book$f2025$x9780000000000",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo Bar$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+        ]
+
+    def test_teacher_set_bib_with_local_subjects(
+        self, set_test_data, parts_test_data, today_str
+    ):
+        set_test_data["local_topic_term"] = ["New York City"]
+        set_test_data["local_genre_term"] = ["Fiction"]
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSetModel(**set_data.to_dict())
+        set_bib = teacher_set.to_set_bib()
+        bib = set_bib.to_bib()
+        field_strings = [str(i) for i in bib.fields]
+        assert bib.leader == "00000nac  2200000 a 4500"
+        assert teacher_set.local_genre_term == ["Fiction"]
+        assert teacher_set.local_topic_term == ["New York City"]
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            f"=008  {today_str}i20252025xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC ART$fCLUB$pA$c10",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
+            "=300  \\\\$a1 item",
+            '=500  \\\\$aSet consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 2 copies of "Another Book".',
+            "=520  \\\\$3Foo Bar$aA book.",
+            "=520  \\\\$3Test Title$aAnother book.",
+            "=520  \\\\$3Another Book$aYet another book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aArts & Music",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=700  12$aBaz$d2020-$tFoo Bar$f2025$x9781234567890",
+            "=700  12$aFoo$tTest Title$f2025$x9780987654321",
+            "=730  02$aAnother Book$f2025$x9780000000000",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo Bar$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Test Title$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Another Book$leduls$m-$p0.00$t252$um",
+        ]
+
+
+class TestLegacyTeacherSetFromModel:
     def test_create_teacher_sets(self, mock_responses, today_str):
         bibs = create_sets_from_data(
             bib_id="19538471", item_mapping={"33333402207449": "358"}
         )
         set_bibs = [i.to_bib() for i in bibs]
         field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].data.parts) == 1
+        assert len(bibs[0].components) == 1
         assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
             ["This is New York by M. Sasek. Copy 1 of 1"]
         )
@@ -36,17 +315,34 @@ class TestLegacyTeacherSetBatch:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=950  \\\\$ab19538471a$bi31187496a$c33333402207449$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
         ]
 
-    @pytest.mark.livetest
+
+@pytest.mark.livetest
+class TestLiveLegacyDataTransform:
+    load_dotenv()
+
     def test_worldcat_data_this_is_ny(self, today_str, caplog):
-        item_mapping = build_item_mapping("data/260605_batch_01.csv")
+        item_mapping = build_item_mapping("data/260608_batch_01.csv")
         bibs = create_sets_from_data(
             bib_id="19538471", item_mapping=item_mapping["19538471"]
         )
         set_bibs = [i.to_bib() for i in bibs]
+        write_sets_to_marc(set_bibs=set_bibs, file="data/test_marc.mrc")
         field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].data.parts) == 1
+        assert len(bibs[0].components) == 1
         assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
             [
                 "This is New York by M. Sasek. Copy 1 of 7",
@@ -79,20 +375,31 @@ class TestLegacyTeacherSetBatch:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$m-$p0.00$t252$um",
+            "=950  \\\\$ab19538471a$bi33176403a$c33333402207472$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-4",
         ]
         assert (
             len(caplog.records) == 5
         )  # should be the number of volumes in set x 3 + 2
 
-    @pytest.mark.livetest
     def test_worldcat_data_ancient_civ(self, today_str, caplog):
-        item_mapping = build_item_mapping("data/260605_batch_01.csv")
+        item_mapping = build_item_mapping("data/260608_batch_01.csv")
         bibs = create_sets_from_data(
             bib_id="20895133", item_mapping=item_mapping["20895133"]
         )
         set_bibs = [i.to_bib() for i in bibs]
         field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].data.parts) == 8
+        assert len(bibs[0].components) == 8
         assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
             [
                 "Ancient Civilizations. Copy 1 of 8",
@@ -153,61 +460,15 @@ class TestLegacyTeacherSetBatch:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Rome$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Mesopotamia$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Maya$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient India$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Greece$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Egypt$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient China$leduls$m-$p0.00$t252$um",
+            "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$m-$p0.00$t252$um",
+            "=950  \\\\$ab20895133a$bi33828842a$c33333408154173$dTeacher Set SOC C Ancient Civilizations 2-6",
         ]
         assert len(caplog.records) == 26
-
-    def test_build_item_mapping(self, caplog):
-        item_mapping = build_item_mapping("data/260605_batch_01.csv")
-        assert item_mapping["19963240"] == {
-            "33333837268594": "558",
-            "33333837269519": "559",
-        }
-
-
-#     @pytest.mark.livetest
-#     def test_live_data(self, test_bib, today_str):
-#         batch = LegacyTeacherSetBatch(bib_data=test_bib)
-#         sets = batch.create_teacher_sets()
-#         set_bib = TeacherSetBib(data=sets[0])
-#         bib = set_bib.to_bib()
-#         field_strings = [str(i) for i in bib.fields]
-#         assert len(sets) == 5
-#         assert batch.worldcat_data.parts[0].title == "Little woodchucks"
-#         assert (
-#             batch.worldcat_data.parts[0].full_title
-#             == "Little woodchucks : Offerman woodshop's guide to tools and tomfoolery"
-#         )
-#         assert (
-#             batch.worldcat_data.parts[0].statement_of_responsibility
-#             == "Nick Offerman and Lee Buchanan"
-#         )
-#         assert batch.worldcat_data.parts[0].author == "Offerman, Nick"
-#         assert batch.worldcat_data.parts[0].author_dates == "1970-"
-#         assert (
-#             batch.worldcat_data.parts[0].description
-#             == '"From New York Times bestselling author, Emmy-winning actor, and charismatically carnivorous woodworker Nick Offerman, an illustrated woodworking guide with projects for the whole family"-- Provided by publisher.'
-#         )
-#         assert batch.worldcat_data.parts[0].pub_date == "2025"
-#         assert len(batch.worldcat_data.parts) == 10
-#         assert len(sets) == 1
-#         assert field_strings == [
-#             "=001  ",
-#             "=003  BookOps",
-#             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-#             "=091  \\\\$aMLNYC SOC-1$fCLUB$pA$cTHIS IS 1-1",
-#             "=245  00$aThis is New York : fake subtitle.$nCopy 1 of 10",
-#             "=300  \\\\$a1 item",
-#             '=500  \\\\$aSet consists of 1 copy of "This is New York".',
-#             "=520  \\\\$3This is New York$aFake description of book.",
-#             "=521  2\\$aPre-K",
-#             "=526  8\\$aSocial Studies",
-#             "=651  \\0$aNew York (N.Y.)",
-#             "=655  \\7$aFake genre.$2lcgft",
-#             "=690  \\7$aBook Club$2bookops",
-#             "=691  \\7$aNew York City$2bookops",
-#             "=695  \\7$aFiction$2bookops",
-#             "=700  12$aM. Sasek.$d1916-1980.$tThis is New York$f2025$x9780789308849",
-#             "=901  \\\\$amlnyc-bot$bCATBL",
-#             "=910  \\\\$aBL",
-#             "=909  \\\\$aOCLC Holdings Exclusion",
-#         ]

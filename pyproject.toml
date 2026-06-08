@@ -41,6 +41,7 @@ dev = [
 
 [tool.mypy]
 mypy_path = "src"
+plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]

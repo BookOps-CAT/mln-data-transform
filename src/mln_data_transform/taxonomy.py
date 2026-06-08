@@ -51,18 +51,6 @@ class TaxonomyGenre(StrEnum):
     romance = "Romance"
 
 
-class TaxonomySubject(StrEnum):
-    arts_music = "Arts & Music"
-    engineering = "Engineering"
-    language_arts = "Language Arts"
-    math = "Math"
-    professional_development = "Professional Development"
-    science = "Science"
-    social_emotional_learning = "Social Emotional Learning"
-    social_studies = "Social Studies"
-    technology = "Technology"
-
-
 class TaxonomyTopic(StrEnum):
     african_americans = "African Americans"
     ancient_civilization = "Ancient Civilization"

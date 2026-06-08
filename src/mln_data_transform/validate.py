@@ -1,78 +1,81 @@
 import logging
 from typing import Any, Sequence
 
+from pydantic import BaseModel, computed_field, field_validator, model_serializer
+
 from mln_data_transform.components import (
     TeacherSetBook,
     TeacherSetSpecialFormat,
     VarFieldData,
 )
+from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.taxonomy import (
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
+    TaxonomyGenre,
+    TaxonomyTopic,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class TeacherSetData:
-    """A data model for a copy of a MyLibraryNYC TeacherSet."""
+class TeacherSetModel(BaseModel):
+    copy_number: int
+    grade_level: GradeReadingLevel
+    language: str
+    parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat]
+    physical_description: str
+    record_type: str
+    set_title: str
+    set_type: SetTypeFormat
+    shelf_number: str
+    study_program_info: SubjectStudyProgram
+    total_copies: int
+    control_number: str | None = None
+    enhanced: str | None = None
+    local_genre_term: list[TaxonomyGenre] | None = None
+    local_topic_term: list[TaxonomyTopic] | None = None
+    var_field_data: list[VarFieldData] | None = None
 
-    def __init__(
-        self,
-        copy_number: int,
-        grade_level: str | GradeReadingLevel,
-        language: str,
-        parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat],
-        physical_description: str,
-        record_type: str,
-        shelf_number: str,
-        study_program_info: str | SubjectStudyProgram,
-        set_title: str,
-        set_type: str | SetTypeFormat,
-        total_copies: int,
-        control_number: str | None = None,
-        enhanced: str | None = None,
-        local_genre_term: list[str] | None = None,
-        local_topic_term: list[str] | None = None,
-        var_field_data: list[VarFieldData] | None = None,
-    ) -> None:
-        self.copy_number = copy_number
-        self.control_number = control_number
-        self.enhanced = enhanced
-        self.grade_level = (
-            GradeReadingLevel(grade_level)
-            if isinstance(grade_level, str)
-            else grade_level
-        )
-        self.language = language
-        self.local_genre_term = local_genre_term
-        self.local_topic_term = local_topic_term
-        self.parts = parts
-        self.physical_description = physical_description
-        self.record_type = record_type
-        self.set_title = set_title
-        self.set_type = (
-            SetTypeFormat(set_type) if isinstance(set_type, str) else set_type
-        )
-        self.shelf_number = shelf_number
-        self.study_program_info = (
-            SubjectStudyProgram(study_program_info)
-            if isinstance(study_program_info, str)
-            else study_program_info
-        )
-        self.total_copies = total_copies
-        self.var_field_data = var_field_data
+    @field_validator("grade_level", mode="before")
+    @classmethod
+    def validate_reading_level(cls, value: Any) -> GradeReadingLevel:
+        if isinstance(value, str):
+            try:
+                value = GradeReadingLevel[value]
+            except KeyError:
+                value = GradeReadingLevel(value)
+        return value
 
-    @property
-    def bib_code(self) -> str:
-        return "e"
+    @field_validator("set_type", mode="before")
+    @classmethod
+    def validate_set_type(cls, value: Any) -> SetTypeFormat:
+        if isinstance(value, str):
+            try:
+                value = SetTypeFormat[value]
+            except KeyError:
+                value = SetTypeFormat(value)
+        return value
 
+    @field_validator("study_program_info", mode="before")
+    @classmethod
+    def validate_subject(cls, value: Any) -> SubjectStudyProgram:
+        if isinstance(value, str):
+            try:
+                value = SubjectStudyProgram[value]
+            except KeyError:
+                value = SubjectStudyProgram(value)
+        return value
+
+    @computed_field
     @property
     def contents_note(self) -> str:
         part_list = []
         for part in self.parts:
-            if part.copies > 1:
+            if isinstance(part, TeacherSetSpecialFormat):
+                continue
+            elif part.copies > 1:
                 copy_part = " copies of "
             else:
                 copy_part = " copy of "
@@ -81,14 +84,7 @@ class TeacherSetData:
             )
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
-    @property
-    def location(self) -> str:
-        return "ed"
-
-    @property
-    def material_type(self) -> str:
-        return "8"
-
+    @computed_field
     @property
     def pub_dates(self) -> list[str]:
         all_pub_dates = []
@@ -105,6 +101,7 @@ class TeacherSetData:
             return sorted(fuzzy_dates)
         return all_pub_dates
 
+    @computed_field
     @property
     def subjects(self) -> list[VarFieldData]:
         subjects = []
@@ -123,7 +120,8 @@ class TeacherSetData:
                 )
         return subjects
 
-    def to_dict(self) -> dict[str, Any]:
+    @model_serializer
+    def dump_model(self) -> dict[str, Any]:
         return {
             "added_entries": [i.entry_dict() for i in self.parts if i.entry_dict()],
             "components": [
@@ -137,7 +135,6 @@ class TeacherSetData:
             "language": self.language,
             "local_genre_term": self.local_genre_term,
             "local_topic_term": self.local_topic_term,
-            "parts": self.parts,
             "physical_description": self.physical_description,
             "pub_dates": self.pub_dates,
             "record_type": self.record_type,
@@ -149,3 +146,23 @@ class TeacherSetData:
             "total_copies": self.total_copies,
             "var_field_data": self.var_field_data,
         }
+
+    def to_set_bib(self) -> TeacherSetBib:
+        data = self.model_dump()
+        data["subjects"] = [
+            VarFieldData(
+                tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
+            )
+            for i in data["subjects"]
+        ]
+        if data["var_field_data"]:
+            data["var_field_data"] = [
+                VarFieldData(
+                    tag=i["tag"],
+                    ind1=i["ind1"],
+                    ind2=i["ind2"],
+                    subfields=i["subfields"],
+                )
+                for i in data["var_field_data"]
+            ]
+        return TeacherSetBib(**data)

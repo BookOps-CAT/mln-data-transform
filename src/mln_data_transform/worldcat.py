@@ -43,27 +43,11 @@ class FullWorldCatResponse:
         return self.record["245"]["a"].strip(" :/")
 
     @property
-    def full_title(self) -> str:
-        title_field = self.record["245"]
-        title = title_field["a"]
-        subtitle = title_field.get("b")
-        if subtitle:
-            title += f" {subtitle}"
-        return title.strip(" /")
-
-    @property
     def pub_date(self) -> str | None:
         pub_date = self.record.pubyear
         if isinstance(pub_date, str):
             return pub_date.strip("[].")
         return pub_date
-
-    @property
-    def statement_of_responsibility(self) -> str | None:
-        statement_of_responsibility = self.record["245"].get("c")
-        if isinstance(statement_of_responsibility, str):
-            return statement_of_responsibility.strip(".")
-        return statement_of_responsibility
 
     @property
     def subjects(self) -> list[dict[str, Any]]:
