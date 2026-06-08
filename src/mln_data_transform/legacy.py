@@ -72,8 +72,6 @@ class LegacyTeacherSetBatch:
         ]
         for n, item in enumerate(self.item_data):
             copy_number = n + 1
-            if not phys_desc:
-                phys_desc = str(sum([i.copies for i in worldcat_parts]))
             set = LegacyTeacherSet(
                 copy_number=copy_number,
                 total_copies=item.legacy_item_count,
@@ -100,7 +98,6 @@ class LegacyTeacherSet:
         language: str,
         legacy_call_number: str,
         parts: list[TeacherSetBook],
-        physical_description: str,
         record_type: str,
         shelf_number: str,
         study_program_info: str,
@@ -110,13 +107,18 @@ class LegacyTeacherSet:
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
+        physical_description: str | None = None,
     ) -> None:
         self.copy_number = copy_number
         self.grade_level = grade_level
         self.language = language
         self.legacy_call_number = legacy_call_number
         self.parts = parts
-        self.physical_description = physical_description
+        self.physical_description = (
+            physical_description
+            if physical_description
+            else str(sum([i.copies for i in self.parts]))
+        )
         self.record_type = record_type
         self.shelf_number = shelf_number
         self.study_program_info = study_program_info
