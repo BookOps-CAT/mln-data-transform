@@ -37,7 +37,6 @@ class LegacyTeacherSetBatch:
         count = len(self.platform_items)
         item_list = []
         for item in self.platform_items:
-            print(self.item_mapping)
             barcode = item["barcode"]
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
