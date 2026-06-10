@@ -78,6 +78,7 @@ class LegacySetBuilder(SetBuilder):
         return locs
 
     def create_sets(self, bib_id: str) -> list[LegacyTeacherSet]:
+        logger.info(f"Creating sets for {bib_id}")
         batch = LegacyTeacherSetBatch(
             bib_id=bib_id,
             control_number=self.control_number(bib_id),
@@ -95,7 +96,7 @@ class LegacySetBuilder(SetBuilder):
             except ValidationError as e:
                 logger.error(
                     f"Validation errors for bib {set.bib_id}, copy "
-                    f"{set.copy_number} of {set.total_copies}"
+                    f"{set.copy_number} of {set.copies_of_set}"
                 )
                 error_data.append(json.loads(e.json()))
         if error_data:

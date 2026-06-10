@@ -37,7 +37,7 @@ class TestLegacySetBuilder:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
-            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
@@ -59,7 +59,7 @@ class TestLegacySetBuilder:
             legacy_sets = builder.create_sets(bib_id)
             builder.validate_set_records(sets=legacy_sets)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 5
+        assert len(caplog.records) == 8
 
 
 @pytest.fixture(scope="class")
@@ -115,7 +115,7 @@ class TestLiveLegacySetBuilder:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
-            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
@@ -128,8 +128,8 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=950  \\\\$ab19538471a$bi33176403a$c33333402207472$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-4",
         ]
-        # should be the number of volumes in set x 3 + 2
-        assert len(caplog.records) == 5
+        # should be the number of volumes in set x 3 + 3
+        assert len(caplog.records) == 8
 
     def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
         teacher_sets = self.BUILDER.create_sets(bib_id="20895133")
@@ -198,7 +198,7 @@ class TestLiveLegacySetBuilder:
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
-            "=949  \\\\$a*b2=8;bn=ed;",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
             "=949  \\\\$h10$i[BARCODE]-Ancient Rome$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Ancient Mesopotamia$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Ancient Maya$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
@@ -209,4 +209,4 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=950  \\\\$ab20895133a$bi33828842a$c33333408154173$dTeacher Set SOC C Ancient Civilizations 2-6",
         ]
-        assert len(caplog.records) == 26
+        assert len(caplog.records) == 29

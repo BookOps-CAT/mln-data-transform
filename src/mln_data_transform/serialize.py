@@ -33,7 +33,7 @@ class TeacherSetBib:
         study_program_info: SubjectStudyProgram,
         set_title: str,
         set_type: SetTypeFormat,
-        total_copies: int,
+        copies_of_set: int,
         control_number: str | None = None,
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
@@ -59,7 +59,7 @@ class TeacherSetBib:
         self.shelf_number = shelf_number
         self.study_program_info = study_program_info
         self.subjects = subjects
-        self.total_copies = total_copies
+        self.copies_of_set = copies_of_set
         self.var_field_data = var_field_data
 
     @property
@@ -122,7 +122,7 @@ class TeacherSetBib:
             subfields=[
                 Subfield(code="a", value=f"{self.set_title.strip('.')}."),
                 Subfield(
-                    code="n", value=f"Copy {self.copy_number} of {self.total_copies}"
+                    code="n", value=f"Copy {self.copy_number} of {self.copies_of_set}"
                 ),
             ],
         )
@@ -292,7 +292,7 @@ class TeacherSetBib:
         return Field(
             tag="949",
             indicators=Indicators(" ", " "),
-            subfields=[Subfield(code="a", value="*b2=8;bn=ed;")],
+            subfields=[Subfield(code="a", value="*b2=8;b3=e;bn=ed;")],
         )
 
     @property

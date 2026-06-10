@@ -86,21 +86,6 @@ class TestLegacyData:
         )
         assert legacy_bib.copy_info == output
 
-    def test_legacy_bib_data_no_copy_info(self, test_bib_data):
-        legacy_bib = LegacyBibData(
-            bib_id=test_bib_data["id"],
-            set_title=test_bib_data["title"],
-            fixed_fields={},
-            var_fields={},
-            language=test_bib_data["lang"],
-        )
-        with pytest.raises(ValueError) as exc:
-            legacy_bib.copy_info
-        assert (
-            str(exc.value)
-            == "500 and 520 fields do not match pattern. Cannot extract copy info: []"
-        )
-
     def test_legacy_item_data(self, test_bib_data, test_item_data):
         legacy_item = LegacyItemData(
             legacy_item_count=len(test_bib_data["items"].split(",")),

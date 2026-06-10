@@ -35,7 +35,7 @@ class TeacherSetModel(BaseModel):
     shelf_number: str
     study_program_info: SubjectStudyProgram
     subjects: list[VarFieldData]
-    total_copies: int
+    copies_of_set: int
     enhanced: str | None = None
     local_genre_term: list[TaxonomyGenre] | None = None
     local_topic_term: list[TaxonomyTopic] | None = None
@@ -94,7 +94,7 @@ class TeacherSetModel(BaseModel):
             "shelf_number": self.shelf_number,
             "study_program_info": self.study_program_info,
             "subjects": self.subjects,
-            "total_copies": self.total_copies,
+            "copies_of_set": self.copies_of_set,
             "var_field_data": self.var_field_data,
         }
 

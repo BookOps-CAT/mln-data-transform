@@ -6,6 +6,7 @@ from typing import Any
 
 from mln_data_transform.components import TeacherSetBook, VarFieldData
 from mln_data_transform.transform import Transformer
+from mln_data_transform.utils import is_valid_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class LegacyTeacherSetBatch:
                 item_id=item.item_id,
                 control_number=self.control_number,
                 copy_number=copy_number,
-                total_copies=item.legacy_item_count,
+                copies_of_set=item.legacy_item_count,
                 grade_level=item.grade_level,
                 language=self.bib_data.language,
                 set_type=item.set_type,
@@ -109,7 +110,7 @@ class LegacyTeacherSet:
         study_program_info: str,
         set_title: str,
         set_type: str,
-        total_copies: int,
+        copies_of_set: int,
         var_fields: list[dict[str, Any]],
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
@@ -138,7 +139,7 @@ class LegacyTeacherSet:
         self.study_program_info = study_program_info
         self.set_title = set_title
         self.set_type = set_type
-        self.total_copies = total_copies
+        self.copies_of_set = copies_of_set
         self.var_fields = var_fields
 
     @property
@@ -221,10 +222,10 @@ class LegacyBibData:
     COPY_INFO_PATTERN = re.compile(
         r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
     )  # noqa: E501
-    # COPY_INFO_PATTERN = re.compile(
-    #     r"((\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(\d+|[A-z]+))(?:\s+[a-z]+))|(?:(\d\s+)?(([Bb]ookpack)|([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
-    # )
     SECONDARY_COPY_INFO_PATTERN = re.compile(
+        r"(?:(\d\s+)?(([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
+    )
+    SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
         r"(((([Bb]oard)|([Vv]ideo)|([Tt]abletop))(\s[Gg]ame))|([Gg]ame)|([Dd][Vv][Dd]))(?:\s*\([A-z\s]+\))?(\s*-\s*)"  # noqa: E501
     )
 
@@ -270,14 +271,12 @@ class LegacyBibData:
                 if title_count.isalpha():
                     title_count = self.digits[title_count]
                 return (int(copy_count), int(title_count))
+
         for content in fields_5xx:
-            matched = self.SECONDARY_COPY_INFO_PATTERN.match(content)
+            matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
             if matched:
                 return (1, 1)
-        raise ValueError(
-            f"500 and 520 fields do not match pattern. Cannot extract "
-            f"copy info: {fields}"
-        )
+        return (1, 1)
 
     @property
     def isbns(self) -> list[str]:
@@ -286,11 +285,7 @@ class LegacyBibData:
             subfields_944 = isbns[0]["subfields"]
             isbn_string = " ".join([i["content"] for i in subfields_944])
             isbn_list = isbn_string.split()
-            return [
-                i
-                for i in isbn_list
-                if (len(i) == 13 and i.startswith("978")) or len(i) == 10
-            ]
+            return [i for i in isbn_list if is_valid_isbn(i)]
         return []
 
     @property

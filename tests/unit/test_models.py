@@ -19,7 +19,7 @@ def set_test_data() -> dict[str, Any]:
         "shelf_number": "10",
         "set_title": "Foo Bar Teacher Set",
         "copy_number": 1,
-        "total_copies": 1,
+        "copies_of_set": 1,
         "physical_description": "1 item",
         "study_program_info": "Arts & Music",
         "set_type": "Book Club",
@@ -90,9 +90,6 @@ class TestTeacherSetData:
         assert teacher_set.local_topic_term == ["New York City"]
         assert teacher_set.local_genre_term == ["Fiction"]
         assert len(teacher_set.subjects) == 2
-        assert teacher_set.location == "ed"
-        assert teacher_set.material_type == "8"
-        assert teacher_set.bib_code == "e"
         assert len(teacher_set_dict["added_entries"]) == 3
         assert teacher_set_dict["components"][0] == ("Foo Bar", "A book.", 1)
         assert teacher_set_dict["components"][1] == ("Test Title", "Another book.", 2)

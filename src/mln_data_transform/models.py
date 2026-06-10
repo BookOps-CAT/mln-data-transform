@@ -30,7 +30,7 @@ class TeacherSetData:
         study_program_info: str | SubjectStudyProgram,
         set_title: str,
         set_type: str | SetTypeFormat,
-        total_copies: int,
+        copies_of_set: int,
         control_number: str | None = None,
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
@@ -61,12 +61,8 @@ class TeacherSetData:
             if isinstance(study_program_info, str)
             else study_program_info
         )
-        self.total_copies = total_copies
+        self.copies_of_set = copies_of_set
         self.var_field_data = var_field_data
-
-    @property
-    def bib_code(self) -> str:
-        return "e"
 
     @property
     def contents_note(self) -> str:
@@ -82,14 +78,6 @@ class TeacherSetData:
                 "".join([str(part.copies), copy_part, '"', part.title, '", '])
             )
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
-
-    @property
-    def location(self) -> str:
-        return "ed"
-
-    @property
-    def material_type(self) -> str:
-        return "8"
 
     @property
     def pub_dates(self) -> list[str]:
@@ -148,6 +136,6 @@ class TeacherSetData:
             "shelf_number": self.shelf_number,
             "study_program_info": self.study_program_info,
             "subjects": self.subjects,
-            "total_copies": self.total_copies,
+            "copies_of_set": self.copies_of_set,
             "var_field_data": self.var_field_data,
         }

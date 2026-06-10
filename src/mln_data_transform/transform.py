@@ -51,7 +51,9 @@ class Transformer:
         logger.info(f"Getting items from platform for {bib_id}.")
         with PlatformSession(authorization=self.platform_token) as session:
             response = session.get_bib_items(id=bib_id)
-            return response.json()["data"]
+            data = response.json()["data"]
+            logger.info(f"{len(data)} item records found for bib b{bib_id}a.")
+            return data
 
     def get_oclc_number_from_isbn(self, isbn: str, session: MetadataSession) -> str:
         logger.info(f"Getting worldcat brief bib record for {isbn}.")
@@ -75,6 +77,7 @@ class Transformer:
         self, isbns: list[str]
     ) -> list[FullWorldCatResponse]:
         parts: list[FullWorldCatResponse] = []
+        logger.info(f"Record contains {len(isbns)} ISBNs to check.")
         with MetadataSession(
             authorization=self.worldcat_token, timeout=(10, 10)
         ) as session:
