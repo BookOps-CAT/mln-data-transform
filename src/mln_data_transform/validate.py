@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Sequence
 
-from pydantic import BaseModel, computed_field, field_validator, model_serializer
+from pydantic import BaseModel, field_validator, model_serializer
 
 from mln_data_transform.components import (
     TeacherSetBook,
@@ -21,18 +21,21 @@ logger = logging.getLogger(__name__)
 
 
 class TeacherSetModel(BaseModel):
+    contents_note: str
+    control_number: str
     copy_number: int
     grade_level: GradeReadingLevel
     language: str
     parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat]
     physical_description: str
+    pub_dates: list[str]
     record_type: str
     set_title: str
     set_type: SetTypeFormat
     shelf_number: str
     study_program_info: SubjectStudyProgram
+    subjects: list[VarFieldData]
     total_copies: int
-    control_number: str | None = None
     enhanced: str | None = None
     local_genre_term: list[TaxonomyGenre] | None = None
     local_topic_term: list[TaxonomyTopic] | None = None
@@ -67,58 +70,6 @@ class TeacherSetModel(BaseModel):
             except KeyError:
                 value = SubjectStudyProgram(value)
         return value
-
-    @computed_field
-    @property
-    def contents_note(self) -> str:
-        part_list = []
-        for part in self.parts:
-            if isinstance(part, TeacherSetSpecialFormat):
-                continue
-            elif part.copies > 1:
-                copy_part = " copies of "
-            else:
-                copy_part = " copy of "
-            part_list.append(
-                "".join([str(part.copies), copy_part, '"', part.title, '", '])
-            )
-        return f"Set consists of {''.join(part_list).rstrip(', ')}."
-
-    @computed_field
-    @property
-    def pub_dates(self) -> list[str]:
-        all_pub_dates = []
-        fuzzy_dates = []
-        for part in self.parts:
-            date = part.pub_date
-            if isinstance(date, str) and date.isdigit():
-                all_pub_dates.append(date)
-            elif isinstance(date, str) and date.isalnum():
-                fuzzy_dates.append(date)
-        if all_pub_dates:
-            return sorted([str(i) for i in all_pub_dates])
-        elif fuzzy_dates:
-            return sorted(fuzzy_dates)
-        return all_pub_dates
-
-    @computed_field
-    @property
-    def subjects(self) -> list[VarFieldData]:
-        subjects = []
-        for part in self.parts:
-            if isinstance(part, TeacherSetBook) and part.subjects:
-                subjects.extend(
-                    [
-                        VarFieldData(
-                            tag=i["tag"],
-                            ind1=i["ind1"],
-                            ind2=i["ind2"],
-                            subfields=i["subfields"],
-                        )
-                        for i in part.subjects
-                    ]
-                )
-        return subjects
 
     @model_serializer
     def dump_model(self) -> dict[str, Any]:

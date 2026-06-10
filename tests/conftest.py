@@ -106,7 +106,6 @@ class FakePlatformSession(FakeSession):
     def get_bib_items(self, id: str) -> dict[str, Any]:
         with open("tests/data/platform_item.json", "r") as fh:
             json_data = json.load(fh)
-            json_data["id"] = id
             return MockJsonResponse({"data": [json_data]})
 
 
@@ -239,7 +238,11 @@ def mock_worldcat_response_missing_data(monkeypatch, mock_responses) -> None:
             Field(
                 tag="264",
                 indicators=Indicators(" ", "1"),
-                subfields=[Subfield(code="a", value="New York")],
+                subfields=[
+                    Subfield(code="a", value="New York :"),
+                    Subfield(code="b", value="Universe,"),
+                    Subfield(code="c", value="20uu."),
+                ],
             )
         )
         record.add_field(
@@ -247,6 +250,29 @@ def mock_worldcat_response_missing_data(monkeypatch, mock_responses) -> None:
                 tag="650",
                 indicators=Indicators(" ", "4"),
                 subfields=[Subfield(code="a", value="NYC")],
+            )
+        )
+        return MockMarcResponse(record.as_marc())
+
+    monkeypatch.setattr(FakeMetadataSession, "bib_get", fake_marc_record)
+
+
+@pytest.fixture
+def mock_worldcat_response_no_pub_dates(monkeypatch, mock_responses) -> None:
+    def fake_marc_record(*args, **kwargs) -> None:
+        record = Record()
+        record.add_field(
+            Field(
+                tag="245",
+                indicators=Indicators("1", "0"),
+                subfields=[Subfield(code="a", value="This is New York.")],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="264",
+                indicators=Indicators(" ", "1"),
+                subfields=[Subfield(code="a", value="New York")],
             )
         )
         return MockMarcResponse(record.as_marc())

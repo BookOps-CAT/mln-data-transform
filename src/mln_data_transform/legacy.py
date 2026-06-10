@@ -142,6 +142,50 @@ class LegacyTeacherSet:
         self.var_fields = var_fields
 
     @property
+    def contents_note(self) -> str:
+        part_list = []
+        for part in self.parts:
+            copy_part = " copies of " if part.copies > 1 else " copy of "
+            part_list.append(
+                "".join([str(part.copies), copy_part, '"', part.title, '", '])
+            )
+        return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
+    @property
+    def pub_dates(self) -> list[str]:
+        all_pub_dates = []
+        fuzzy_dates = []
+        for part in self.parts:
+            date = part.pub_date
+            if isinstance(date, str) and date.isdigit():
+                all_pub_dates.append(date)
+            elif isinstance(date, str) and date.isalnum():
+                fuzzy_dates.append(date)
+        if all_pub_dates:
+            return sorted([str(i) for i in all_pub_dates])
+        elif fuzzy_dates:
+            return sorted(fuzzy_dates)
+        return all_pub_dates
+
+    @property
+    def subjects(self) -> list[VarFieldData]:
+        subjects = []
+        for part in self.parts:
+            if part.subjects:
+                subjects.extend(
+                    [
+                        VarFieldData(
+                            tag=i["tag"],
+                            ind1=i["ind1"],
+                            ind2=i["ind2"],
+                            subfields=i["subfields"],
+                        )
+                        for i in part.subjects
+                    ]
+                )
+        return subjects
+
+    @property
     def var_field_data(self) -> list[VarFieldData]:
         fields = []
         for field in self.var_fields:

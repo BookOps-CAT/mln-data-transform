@@ -29,14 +29,6 @@ def set_test_data() -> dict[str, Any]:
 
 
 @pytest.fixture
-def subject_test_data() -> list[dict[str, Any]]:
-    return [
-        {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "Robots")]},
-        {"tag": "650", "ind1": " ", "ind2": "0", "subfields": [("a", "LEGO toys")]},
-    ]
-
-
-@pytest.fixture
 def parts_test_data() -> list[dict[str, Any]]:
     return [
         {
@@ -47,6 +39,20 @@ def parts_test_data() -> list[dict[str, Any]]:
             "description": "A book.",
             "author_dates": "2020-",
             "pub_date": "2025",
+            "subjects": [
+                {
+                    "tag": "650",
+                    "ind1": " ",
+                    "ind2": "0",
+                    "subfields": [("a", "Robots")],
+                },
+                {
+                    "tag": "650",
+                    "ind1": " ",
+                    "ind2": "0",
+                    "subfields": [("a", "LEGO toys")],
+                },
+            ],
         },
         {
             "title": "Test Title",
@@ -65,8 +71,7 @@ def parts_test_data() -> list[dict[str, Any]]:
 
 
 class TestTeacherSetData:
-    def test_teacher_set_data(self, set_test_data, parts_test_data, subject_test_data):
-        parts_test_data[0]["subjects"] = subject_test_data
+    def test_teacher_set_data(self, set_test_data, parts_test_data):
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
         teacher_set_dict = teacher_set.to_dict()
@@ -104,10 +109,13 @@ class TestTeacherSetData:
         teacher_set = TeacherSetData(**set_test_data)
         assert teacher_set.pub_dates == output
 
-    def test_teacher_set_data_special_format(
-        self, set_test_data, parts_test_data, subject_test_data
-    ):
-        parts_test_data[0]["subjects"] = subject_test_data
+    def test_teacher_set_data_no_subjects(self, set_test_data, parts_test_data):
+        parts_test_data[0]["subjects"] = {}
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        teacher_set = TeacherSetData(**set_test_data)
+        assert teacher_set.subjects == []
+
+    def test_teacher_set_data_special_format(self, set_test_data, parts_test_data):
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_test_data["parts"].append(
             TeacherSetSpecialFormat(

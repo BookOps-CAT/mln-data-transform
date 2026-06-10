@@ -72,7 +72,9 @@ class TeacherSetData:
     def contents_note(self) -> str:
         part_list = []
         for part in self.parts:
-            if part.copies > 1:
+            if not isinstance(part, TeacherSetBook):
+                continue
+            elif part.copies > 1:
                 copy_part = " copies of "
             else:
                 copy_part = " copy of "
