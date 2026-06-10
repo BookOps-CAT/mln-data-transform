@@ -197,6 +197,7 @@ class TestLegacyTeacherSetBatch:
         sets = batch.create_teacher_sets()
         assert isinstance(sets[0], LegacyTeacherSet)
         assert len(sets) == 1
+        assert "950" in [i.tag for i in sets[0].var_field_data]
 
     def test_create_teacher_sets_missing_data(
         self, mock_worldcat_response_missing_data
