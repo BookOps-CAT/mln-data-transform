@@ -12,9 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 def create_sets_from_data(
-    bib_id: str, item_mapping: dict[str, str]
+    bib_id: str, control_number: str, item_mapping: dict[str, str]
 ) -> list[TeacherSetBib]:
-    batch = LegacyTeacherSetBatch(bib_id=bib_id, item_mapping=item_mapping)
+    batch = LegacyTeacherSetBatch(
+        bib_id=bib_id, control_number=control_number, item_mapping=item_mapping
+    )
     set_list = batch.create_teacher_sets()
     bibs = []
     errors = []

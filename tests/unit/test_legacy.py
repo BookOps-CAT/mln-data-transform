@@ -202,7 +202,9 @@ class TestLegacyData:
 class TestLegacyTeacherSetBatch:
     def test_create_teacher_sets(self, mock_responses):
         batch = LegacyTeacherSetBatch(
-            bib_id="12345", item_mapping={"33333402207449": "1"}
+            bib_id="12345",
+            item_mapping={"33333402207449": "1"},
+            control_number="nn-mlnyc-0000001",
         )
         sets = batch.create_teacher_sets()
         assert isinstance(sets[0], LegacyTeacherSet)

@@ -11,7 +11,9 @@ from mln_data_transform.build import (
 class TestLegacyTeacherSetFromModel:
     def test_create_teacher_sets(self, mock_responses, today_str):
         bibs = create_sets_from_data(
-            bib_id="19538471", item_mapping={"33333402207449": "358"}
+            bib_id="19538471",
+            control_number="nn-mlnyc-00000001",
+            item_mapping={"33333402207449": "358"},
         )
         set_bibs = [i.to_bib() for i in bibs]
         field_strings = [str(i) for i in set_bibs[0].fields]
@@ -21,7 +23,7 @@ class TestLegacyTeacherSetFromModel:
         )
         assert len(bibs) == 1
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-00000001",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",

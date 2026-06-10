@@ -11,16 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class LegacyTeacherSetBatch:
-    def __init__(self, bib_id: str, item_mapping: dict[str, str]) -> None:
-        self._bib_id = bib_id
+    def __init__(
+        self, bib_id: str, control_number: str, item_mapping: dict[str, str]
+    ) -> None:
+        self.bib_id = bib_id
+        self.control_number = control_number
         self.item_mapping = item_mapping
         self.transformer = Tranformer()
         self.platform_bib = self.transformer.get_platform_bib(self.bib_id)
         self.platform_items = self.transformer.get_platform_bib_items(self.bib_id)
-
-    @property
-    def bib_id(self) -> str:
-        return self._bib_id
 
     @property
     def bib_data(self) -> LegacyBibData:
@@ -54,6 +53,7 @@ class LegacyTeacherSetBatch:
         wc_data_list = self.transformer.get_worldcat_data_for_parts(
             isbns=self.bib_data.isbns
         )
+        var_fields = self.bib_data.var_fields
         worldcat_parts = [
             TeacherSetBook(
                 isbn=i.isbn,
@@ -73,6 +73,7 @@ class LegacyTeacherSetBatch:
                 bib_id=self.bib_id,
                 barcode=item.barcode,
                 item_id=item.item_id,
+                control_number=self.control_number,
                 copy_number=copy_number,
                 total_copies=item.legacy_item_count,
                 grade_level=item.grade_level,
@@ -85,6 +86,7 @@ class LegacyTeacherSetBatch:
                 set_title=self.bib_data.set_title,
                 parts=worldcat_parts,
                 legacy_call_number=item.call_number,
+                var_fields=var_fields,
             )
             sets.append(set)
         return sets
@@ -95,6 +97,7 @@ class LegacyTeacherSet:
         self,
         barcode: str,
         bib_id: str,
+        control_number: str,
         copy_number: int,
         grade_level: str,
         item_id: str,
@@ -107,6 +110,7 @@ class LegacyTeacherSet:
         set_title: str,
         set_type: str,
         total_copies: int,
+        var_fields: list[dict[str, Any]],
         enhanced: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
@@ -114,11 +118,15 @@ class LegacyTeacherSet:
     ) -> None:
         self.barcode = barcode
         self.bib_id = bib_id
+        self.control_number = control_number
         self.copy_number = copy_number
+        self.enhanced = enhanced
         self.grade_level = grade_level
         self.item_id = item_id
         self.language = language
         self.legacy_call_number = legacy_call_number
+        self.local_genre_term = local_genre_term
+        self.local_topic_term = local_topic_term
         self.parts = parts
         self.physical_description = (
             physical_description
@@ -131,13 +139,23 @@ class LegacyTeacherSet:
         self.set_title = set_title
         self.set_type = set_type
         self.total_copies = total_copies
-        self.enhanced = enhanced
-        self.local_genre_term = local_genre_term
-        self.local_topic_term = local_topic_term
+        self.var_fields = var_fields
 
     @property
     def var_field_data(self) -> list[VarFieldData]:
-        return [
+        fields = []
+        for field in self.var_fields:
+            if field.get("subfields"):
+                subfields = [(i["tag"], i["content"]) for i in field["subfields"]]
+                fields.append(
+                    VarFieldData(
+                        tag=field["marcTag"],
+                        ind1=field["ind1"],
+                        ind2=field["ind2"],
+                        subfields=subfields,
+                    )
+                )
+        fields.append(
             VarFieldData(
                 tag="950",
                 ind1=" ",
@@ -149,7 +167,8 @@ class LegacyTeacherSet:
                     ("d", self.legacy_call_number),
                 ],
             )
-        ]
+        )
+        return fields
 
 
 class LegacyBibData:
@@ -222,7 +241,12 @@ class LegacyBibData:
         if isbns:
             subfields_944 = isbns[0]["subfields"]
             isbn_string = " ".join([i["content"] for i in subfields_944])
-            return isbn_string.split()
+            isbn_list = isbn_string.split()
+            return [
+                i
+                for i in isbn_list
+                if (len(i) == 13 and i.startswith("978")) or len(i) == 10
+            ]
         return []
 
     @property
