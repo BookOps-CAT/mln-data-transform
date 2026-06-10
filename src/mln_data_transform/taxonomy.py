@@ -25,7 +25,10 @@ class SetTypeFormat(StrEnum):
 class SubjectStudyProgram(StrEnum):
     ART = "Arts & Music"
     ENG = "Engineering"
-    LAN = "Language Arts"
+    ELA = "Language Arts"
+    CHLA = "Language Arts"
+    FRLA = "Language Arts"
+    SPLA = "Language Arts"
     MAT = "Math"
     PDE = "Professional Development"
     SCI = "Science"
