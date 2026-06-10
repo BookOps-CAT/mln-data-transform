@@ -58,9 +58,6 @@ class TeacherSetBook(SetPart):
         subfields.append(("x", self.isbn))
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
 
-    def summary_component(self) -> tuple[str, str]:
-        return (self.title, f"{self.description.strip('.')}.", self.copies)
-
 
 @dataclass(frozen=True)
 class TeacherSetSpecialFormat(SetPart):

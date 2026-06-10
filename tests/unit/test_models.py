@@ -2,7 +2,11 @@ from typing import Any
 
 import pytest
 
-from mln_data_transform.models import TeacherSetBook, TeacherSetData
+from mln_data_transform.models import (
+    TeacherSetBook,
+    TeacherSetData,
+    TeacherSetSpecialFormat,
+)
 
 
 @pytest.fixture
@@ -46,11 +50,16 @@ def parts_test_data() -> list[dict[str, Any]]:
         },
         {
             "title": "Test Title",
-            "author": "Foo",
             "copies": 2,
             "isbn": "9780987654321",
             "description": "Another book.",
-            "pub_date": "2025",
+        },
+        {
+            "title": "Third book",
+            "author": "Some author",
+            "copies": 1,
+            "isbn": "9781111111111",
+            "description": "Book.",
         },
     ]
 
@@ -60,12 +69,13 @@ class TestTeacherSetData:
         parts_test_data[0]["subjects"] = subject_test_data
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
+        teacher_set_dict = teacher_set.to_dict()
         assert (
             teacher_set.contents_note
-            == 'Set consists of 1 copy of "Foo Bar", 2 copies of "Test Title".'
+            == 'Set consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 1 copy of "Third book".'
         )
         assert teacher_set.control_number == "nn-mlnyc-0000001"
-        assert teacher_set.pub_dates == ["2025", "2025"]
+        assert teacher_set.pub_dates == ["2025"]
         assert teacher_set.language == "eng"
         assert teacher_set.set_title == "Foo Bar Teacher Set"
         assert teacher_set.physical_description == "1 item"
@@ -78,6 +88,9 @@ class TestTeacherSetData:
         assert teacher_set.location == "ed"
         assert teacher_set.material_type == "8"
         assert teacher_set.bib_code == "e"
+        assert len(teacher_set_dict["added_entries"]) == 3
+        assert teacher_set_dict["components"][0] == ("Foo Bar", "A book.", 1)
+        assert teacher_set_dict["components"][1] == ("Test Title", "Another book.", 2)
 
     @pytest.mark.parametrize(
         "pub_dates,output", [(("20uu", None), ["20uu"]), ((None, None), [])]
@@ -90,3 +103,21 @@ class TestTeacherSetData:
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
         assert teacher_set.pub_dates == output
+
+    def test_teacher_set_data_special_format(
+        self, set_test_data, parts_test_data, subject_test_data
+    ):
+        parts_test_data[0]["subjects"] = subject_test_data
+        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+        set_test_data["parts"].append(
+            TeacherSetSpecialFormat(
+                title="Cat puppet", description="A puppet", copies=1
+            )
+        )
+        teacher_set = TeacherSetData(**set_test_data)
+        teacher_set_dict = teacher_set.to_dict()
+        assert len(teacher_set_dict["added_entries"]) == 3
+        assert teacher_set_dict["components"][0] == ("Foo Bar", "A book.", 1)
+        assert teacher_set_dict["components"][1] == ("Test Title", "Another book.", 2)
+        assert teacher_set_dict["components"][2] == ("Third book", "Book.", 1)
+        assert teacher_set_dict["components"][3] == ("Cat puppet", "A puppet.", 1)
