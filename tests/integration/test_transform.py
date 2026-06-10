@@ -1,29 +1,23 @@
 import pytest
 from dotenv import load_dotenv
 
-from mln_data_transform.build import (
-    build_item_mapping,
-    create_sets_from_data,
-    write_sets_to_marc,
-)
+from mln_data_transform.build import LegacySetBuilder
 
 
-class TestLegacyTeacherSetFromModel:
+class TestLegacySetBuilder:
     def test_create_teacher_sets(self, mock_responses, today_str):
-        bibs = create_sets_from_data(
-            bib_id="19538471",
-            control_number="nn-mlnyc-00000001",
-            item_mapping={"33333402207449": "358"},
-        )
-        set_bibs = [i.to_bib() for i in bibs]
-        field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].components) == 1
-        assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
+        builder = LegacySetBuilder(file="data/260609_high_circ.csv")
+        legacy_sets = builder.create_sets(bib_id="19538471")
+        set_bibs = builder.validate_set_records(legacy_sets)
+        bibs = [i.to_bib() for i in set_bibs]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert len(set_bibs[0].components) == 1
+        assert sorted([i.field_245.format_field() for i in set_bibs]) == sorted(
             ["This is New York by M. Sasek. Copy 1 of 1"]
         )
         assert len(bibs) == 1
         assert field_strings == [
-            "=001  nn-mlnyc-00000001",
+            "=001  nn-mlnyc-0000002",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
@@ -56,19 +50,28 @@ class TestLegacyTeacherSetFromModel:
 
 
 @pytest.mark.livetest
-class TestLiveLegacyDataTransform:
+class TestLiveLegacySetBuilder:
     load_dotenv()
+    BUILDER = LegacySetBuilder(file="data/260609_high_circ.csv")
 
-    def test_worldcat_data_this_is_ny(self, today_str, caplog):
-        item_mapping = build_item_mapping("data/260608_batch_01.csv")
-        bibs = create_sets_from_data(
-            bib_id="19538471", item_mapping=item_mapping["19538471"]
-        )
-        set_bibs = [i.to_bib() for i in bibs]
-        write_sets_to_marc(set_bibs=set_bibs, file="data/test_marc.mrc")
-        field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].components) == 1
-        assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
+    # def test_legacy_set_builder_live(self, caplog):
+    #     builder = LegacySetBuilder(file="data/260609_high_circ.csv")
+    #     for bib in self.BUILDER.all_bib_ids:
+    #         set_list = builder.create_sets(bib)
+    #         set_bibs = builder.validate_set_records(sets=set_list)
+    #         builder.write_marc_to_file(
+    #             set_bibs=set_bibs, out_file="data/marc/valid_high_circ.mrc"
+    #         )
+    #         time.sleep(5)
+    #     assert "Validation error for " not in [i.msg for i in caplog.records]
+
+    def test_legacy_set_builder_this_is_ny(self, today_str, caplog):
+        teacher_sets = self.BUILDER.create_sets(bib_id="19538471")
+        valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
+        bib_records = [i.to_bib() for i in valid_set_bibs]
+        field_strings = [str(i) for i in bib_records[0].fields]
+        assert len(valid_set_bibs[0].components) == 1
+        assert sorted([i.field_245.format_field() for i in valid_set_bibs]) == sorted(
             [
                 "This is New York by M. Sasek. Copy 1 of 7",
                 "This is New York by M. Sasek. Copy 2 of 7",
@@ -79,9 +82,9 @@ class TestLiveLegacyDataTransform:
                 "This is New York by M. Sasek. Copy 7 of 7",
             ]
         )
-        assert len(bibs) == 7
+        assert len(bib_records) == 7
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000002",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$cINC-1356",
@@ -113,19 +116,16 @@ class TestLiveLegacyDataTransform:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=950  \\\\$ab19538471a$bi33176403a$c33333402207472$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-4",
         ]
-        assert (
-            len(caplog.records) == 5
-        )  # should be the number of volumes in set x 3 + 2
+        # should be the number of volumes in set x 3 + 2
+        assert len(caplog.records) == 5
 
-    def test_worldcat_data_ancient_civ(self, today_str, caplog):
-        item_mapping = build_item_mapping("data/260608_batch_01.csv")
-        bibs = create_sets_from_data(
-            bib_id="20895133", item_mapping=item_mapping["20895133"]
-        )
-        set_bibs = [i.to_bib() for i in bibs]
-        field_strings = [str(i) for i in set_bibs[0].fields]
-        assert len(bibs[0].components) == 8
-        assert sorted([i.field_245.format_field() for i in bibs]) == sorted(
+    def test_legacy_set_builder_ancient_civ(self, today_str, caplog):
+        teacher_sets = self.BUILDER.create_sets(bib_id="20895133")
+        valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
+        bib_records = [i.to_bib() for i in valid_set_bibs]
+        field_strings = [str(i) for i in bib_records[0].fields]
+        assert len(valid_set_bibs[0].components) == 8
+        assert sorted([i.field_245.format_field() for i in valid_set_bibs]) == sorted(
             [
                 "Ancient Civilizations. Copy 1 of 8",
                 "Ancient Civilizations. Copy 2 of 8",
@@ -137,9 +137,9 @@ class TestLiveLegacyDataTransform:
                 "Ancient Civilizations. Copy 8 of 8",
             ]
         )
-        assert len(bibs) == 8
+        assert len(bib_records) == 8
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pC$c1077",
@@ -167,6 +167,7 @@ class TestLiveLegacyDataTransform:
             "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
             "=651  \\0$aIndia$xCivilization$yTo 1200$vJuvenile literature.",
             "=651  \\0$aGreece$xCivilization$yTo 146 B.C.$vJuvenile literature.",
+            "=651  \\0$aEgypt$xHistory$vJuvenile literature.",
             "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
@@ -179,7 +180,7 @@ class TestLiveLegacyDataTransform:
             "=700  12$aEdwards, Sue Bradford$tAncient Maya$f2015$x9781624035401",
             "=700  12$aRowell, Rebecca$tAncient India$f2015$x9781624035395",
             "=700  12$aBailey, Diane$d1966-$tAncient Greece$f2015$x9781624035388",
-            "=700  12$aAmstutz, Lisa J.$tAncient Egypt$f2015$x9781624035371",
+            "=700  12$aAmstutz, L. J.$tAncient Egypt$f2015$x9781624035371",
             "=700  12$aAtkins, Marcie Flinchum$tAncient China$f2015$x9781624035364",
             "=700  12$aKenney, Karen Latchana$tAncient Aztecs$f2015$x9781624035357",
             "=901  \\\\$amlnyc-bot$bCATBL",
