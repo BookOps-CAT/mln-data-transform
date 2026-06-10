@@ -10,7 +10,7 @@ import pytest
 from pymarc import Field, Indicators, Record, Subfield
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mock_creds() -> None:
     os.environ["NYPL_PLATFORM_CLIENT"] = "platform_client"
     os.environ["NYPL_PLATFORM_SECRET"] = "platform_secret"

@@ -1,3 +1,6 @@
+import os
+from typing import Generator
+
 import pytest
 from dotenv import load_dotenv
 
@@ -48,13 +51,33 @@ class TestLegacySetBuilder:
             "=950  \\\\$ab19538471a$bi31187496a$c33333402207449$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
         ]
 
+    def test_create_teacher_set_from_sheet(
+        self, mock_responses, today_str, mock_legacy_mapping_data, caplog
+    ):
+        builder = LegacySetBuilder(file="data/foo_bar.csv")
+        for bib_id in builder.all_bib_ids:
+            legacy_sets = builder.create_sets(bib_id)
+            builder.validate_set_records(sets=legacy_sets)
+        assert len(builder.all_bib_ids) == 1
+        assert len(caplog.records) == 5
+
+
+@pytest.fixture(scope="class")
+def live_creds() -> Generator[None, None, None]:
+    load_dotenv()
+    yield
+    os.environ["NYPL_PLATFORM_CLIENT"] = "platform_client"
+    os.environ["NYPL_PLATFORM_SECRET"] = "platform_secret"
+    os.environ["NYPL_PLATFORM_OAUTH"] = "fakeurl"
+    os.environ["WORLDCAT_KEY"] = "worldcat_key"
+    os.environ["WORLDCAT_SECRET"] = "worldcat_secret"
+
 
 @pytest.mark.livetest
 class TestLiveLegacySetBuilder:
-    load_dotenv()
     BUILDER = LegacySetBuilder(file="data/260609_high_circ.csv")
 
-    def test_legacy_set_builder_this_is_ny(self, today_str, caplog):
+    def test_legacy_set_builder_this_is_ny(self, today_str, caplog, live_creds):
         teacher_sets = self.BUILDER.create_sets(bib_id="19538471")
         valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
         bib_records = [i.to_bib() for i in valid_set_bibs]
@@ -108,7 +131,7 @@ class TestLiveLegacySetBuilder:
         # should be the number of volumes in set x 3 + 2
         assert len(caplog.records) == 5
 
-    def test_legacy_set_builder_ancient_civ(self, today_str, caplog):
+    def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
         teacher_sets = self.BUILDER.create_sets(bib_id="20895133")
         valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
         bib_records = [i.to_bib() for i in valid_set_bibs]
