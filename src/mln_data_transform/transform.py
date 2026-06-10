@@ -28,7 +28,7 @@ class BriefBibResponse:
         return (1, int(self.cat_level))
 
 
-class Tranformer:
+class Transformer:
     def __init__(self) -> None:
         self.platform_token = PlatformToken(
             client_id=os.environ["NYPL_PLATFORM_CLIENT"],

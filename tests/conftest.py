@@ -2,12 +2,21 @@ import datetime
 import json
 import logging
 import logging.config
+import os
 from typing import Any
 
+import pandas as pd
 import pytest
-from bookops_nypl_platform import PlatformSession
-from bookops_worldcat import MetadataSession
 from pymarc import Field, Indicators, Record, Subfield
+
+
+@pytest.fixture(autouse=True)
+def mock_creds() -> None:
+    os.environ["NYPL_PLATFORM_CLIENT"] = "platform_client"
+    os.environ["NYPL_PLATFORM_SECRET"] = "platform_secret"
+    os.environ["NYPL_PLATFORM_OAUTH"] = "fakeurl"
+    os.environ["WORLDCAT_KEY"] = "worldcat_key"
+    os.environ["WORLDCAT_SECRET"] = "worldcat_secret"
 
 
 @pytest.fixture(autouse=True)
@@ -59,94 +68,112 @@ def today_str() -> str:
     return datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
 
 
-class MockResponse:
-    def __init__(self, data: dict[str, Any], marc: bytes) -> None:
-        self.marc = marc
+class MockJsonResponse:
+    def __init__(self, data: dict[str, Any]) -> None:
         self.data = data
-
-    @property
-    def content(self) -> bytes:
-        return self.marc
 
     def json(self) -> dict[str, Any]:
         return self.data
 
 
-@pytest.fixture
-def stub_pymarc_record() -> Record:
-    record = Record()
-    record.add_field(
-        Field(
-            tag="100",
-            indicators=Indicators("1", " "),
-            subfields=[
-                Subfield(code="a", value="Sasek, M."),
-                Subfield(code="d", value="1916-1980"),
-            ],
-        )
-    )
-    record.add_field(
-        Field(
-            tag="245",
-            indicators=Indicators("0", "0"),
-            subfields=[
-                Subfield(code="a", value="This is New York :"),
-                Subfield(code="b", value="fake subtitle /"),
-                Subfield(code="c", value="by M. Sasek."),
-            ],
-        )
-    )
-    record.add_field(
-        Field(
-            tag="264",
-            indicators=Indicators(" ", "1"),
-            subfields=[
-                Subfield(code="a", value="New York :"),
-                Subfield(code="b", value="Universe,"),
-                Subfield(code="c", value="2003."),
-            ],
-        )
-    )
-    record.add_field(
-        Field(
-            tag="520",
-            indicators=Indicators(" ", " "),
-            subfields=[Subfield(code="a", value="Fake description of book.")],
-        )
-    )
-    record.add_field(
-        Field(
-            tag="651",
-            indicators=Indicators(" ", "0"),
-            subfields=[Subfield(code="a", value="New York (N.Y.)")],
-        )
-    )
-    record.add_field(
-        Field(
-            tag="655",
-            indicators=Indicators(" ", "7"),
-            subfields=[
-                Subfield(code="a", value="Fake genre."),
-                Subfield(code="2", value="lcgft"),
-            ],
-        )
-    )
-    return record
+class MockMarcResponse:
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+
+    @property
+    def content(self) -> bytes:
+        return self.data
 
 
-@pytest.fixture
-def mock_responses(
-    monkeypatch, test_bib_data, test_item_data, stub_pymarc_record
-) -> None:
-    def platform_bib(*args, **kwargs):
-        return MockResponse(data={"data": test_bib_data}, marc=b"")
+class FakeSession:
+    def __init__(self, *args, **kwargs):
+        pass
 
-    def platform_items(*args, **kwargs):
-        return MockResponse(data={"data": [test_item_data]}, marc=b"")
+    def __enter__(self, *args, **kwargs) -> "FakeSession":
+        return self
 
-    def oclc_num_response(*args, **kwargs):
-        return MockResponse(
-            data={
+    def __exit__(self, *args, **kwargs) -> None:
+        pass
+
+
+class FakePlatformSession(FakeSession):
+    def get_bib(self, id: str) -> dict[str, Any]:
+        with open("tests/data/platform_bib.json", "r") as fh:
+            json_data = json.load(fh)
+            json_data["id"] = id
+            return MockJsonResponse({"data": json_data})
+
+    def get_bib_items(self, id: str) -> dict[str, Any]:
+        with open("tests/data/platform_item.json", "r") as fh:
+            json_data = json.load(fh)
+            json_data["id"] = id
+            return MockJsonResponse({"data": [json_data]})
+
+
+class FakeMetadataSession(FakeSession):
+    def bib_get(self, *args, **kwargs) -> dict[str, Any]:
+        record = Record()
+        record.add_field(
+            Field(
+                tag="100",
+                indicators=Indicators("1", " "),
+                subfields=[
+                    Subfield(code="a", value="Sasek, M."),
+                    Subfield(code="d", value="1916-1980"),
+                ],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="245",
+                indicators=Indicators("0", "0"),
+                subfields=[
+                    Subfield(code="a", value="This is New York :"),
+                    Subfield(code="b", value="fake subtitle /"),
+                    Subfield(code="c", value="by M. Sasek."),
+                ],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="264",
+                indicators=Indicators(" ", "1"),
+                subfields=[
+                    Subfield(code="a", value="New York :"),
+                    Subfield(code="b", value="Universe,"),
+                    Subfield(code="c", value="2003."),
+                ],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="520",
+                indicators=Indicators(" ", " "),
+                subfields=[Subfield(code="a", value="Fake description of book.")],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="651",
+                indicators=Indicators(" ", "0"),
+                subfields=[Subfield(code="a", value="New York (N.Y.)")],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="655",
+                indicators=Indicators(" ", "7"),
+                subfields=[
+                    Subfield(code="a", value="Fake genre."),
+                    Subfield(code="2", value="lcgft"),
+                ],
+            )
+        )
+        return MockMarcResponse(record.as_marc())
+
+    def brief_bibs_search(self, *args, **kwargs) -> dict[str, Any]:
+        return MockJsonResponse(
+            {
                 "briefRecords": [
                     {
                         "oclcNumber": "ocn123456789",
@@ -157,15 +184,50 @@ def mock_responses(
                         "oclcNumber": "ocn123456789",
                         "catalogingInfo": {"levelOfCataloging": "7"},
                     },
+                    {
+                        "oclcNumber": "ocn123456789",
+                        "catalogingInfo": {"levelOfCataloging": "M"},
+                    },
                 ]
-            },
-            marc=b"",
+            }
         )
 
-    def pymarc_record(*args, **kwargs) -> MockResponse:
-        return MockResponse(data={}, marc=stub_pymarc_record.as_marc())
 
-    monkeypatch.setattr(PlatformSession, "get_bib", platform_bib)
-    monkeypatch.setattr(PlatformSession, "get_bib_items", platform_items)
-    monkeypatch.setattr(MetadataSession, "brief_bibs_search", oclc_num_response)
-    monkeypatch.setattr(MetadataSession, "bib_get", pymarc_record)
+@pytest.fixture
+def mock_responses(monkeypatch, mock_creds) -> None:
+    def fake_token(*args, **kwargs) -> None:
+        pass
+
+    def fake_platform_session(*args, **kwargs) -> FakePlatformSession:
+        return FakePlatformSession()
+
+    def fake_metadata_session(*args, **kwargs) -> FakeMetadataSession:
+        return FakeMetadataSession()
+
+    monkeypatch.setattr("mln_data_transform.transform.PlatformToken", fake_token)
+    monkeypatch.setattr(
+        "mln_data_transform.transform.PlatformSession", fake_platform_session
+    )
+    monkeypatch.setattr(
+        "mln_data_transform.transform.MetadataSession", fake_metadata_session
+    )
+    monkeypatch.setattr("mln_data_transform.transform.WorldcatAccessToken", fake_token)
+
+
+@pytest.fixture
+def mock_legacy_mapping_data(monkeypatch) -> None:
+    def mock_read_csv(*args, **kwargs):
+        return pd.DataFrame(
+            data=[
+                {
+                    "SUBJECT": "ELA",
+                    "BARCODE": "33333402207449",
+                    "LOCATION": "1",
+                    "BIB_ID": "12345678",
+                    "ITEM_ID": "23456789",
+                    "CONTROL_NUMBER": "nn-mlnyc-0000001",
+                }
+            ]
+        )
+
+    monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)

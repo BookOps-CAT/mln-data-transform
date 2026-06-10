@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from mln_data_transform.components import TeacherSetBook, VarFieldData
-from mln_data_transform.transform import Tranformer
+from mln_data_transform.transform import Transformer
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class LegacyTeacherSetBatch:
         self.bib_id = bib_id
         self.control_number = control_number
         self.item_mapping = item_mapping
-        self.transformer = Tranformer()
+        self.transformer = Transformer()
         self.platform_bib = self.transformer.get_platform_bib(self.bib_id)
         self.platform_items = self.transformer.get_platform_bib_items(self.bib_id)
 

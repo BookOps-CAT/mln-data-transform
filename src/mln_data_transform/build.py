@@ -69,24 +69,13 @@ class LegacySetBuilder(SetBuilder):
     def control_number(self, bib_id: str) -> str:
         df = self.mapping_data
         bib_df = df[df["BIB_ID"] == bib_id]
-        control_numbers = bib_df["CONTROL_NUMBER"]
-        if control_numbers.nunique() == 1:
-            return control_numbers.iloc[0]
-        return ValueError(f"Multiple control numbers present for {bib_id}.")
+        return bib_df["CONTROL_NUMBER"].iloc[0]
 
     def location_mapping(self, bib_id: str) -> dict[str, str]:
         df = self.mapping_data
         bib_df = df[df["BIB_ID"] == bib_id]
         locs = dict(zip(bib_df["BARCODE"], bib_df["LOCATION"]))
         return locs
-
-    def subject(self, bib_id: str) -> str:
-        df = self.mapping_data
-        bib_df = df[df["BIB_ID"] == bib_id]
-        subjects = bib_df["SUBJECT"]
-        if subjects.nunique() == 1:
-            return subjects[0]
-        return ValueError(f"Multiple subjects present for {bib_id}.")
 
     def create_sets(self, bib_id: str) -> list[LegacyTeacherSet]:
         batch = LegacyTeacherSetBatch(
@@ -105,7 +94,7 @@ class LegacySetBuilder(SetBuilder):
                 valid_bibs.append(set_model.to_set_bib())
             except ValidationError as e:
                 logger.error(
-                    f"Validation errors for Bib ID{set.bib_id}, copy "
+                    f"Validation errors for bib {set.bib_id}, copy "
                     f"{set.copy_number} of {set.total_copies}"
                 )
                 error_data.append(json.loads(e.json()))

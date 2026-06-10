@@ -60,6 +60,10 @@ class TestTeacherSetData:
         parts_test_data[0]["subjects"] = subject_test_data
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         teacher_set = TeacherSetData(**set_test_data)
+        assert (
+            teacher_set.contents_note
+            == 'Set consists of 1 copy of "Foo Bar", 2 copies of "Test Title".'
+        )
         assert teacher_set.control_number == "nn-mlnyc-0000001"
         assert teacher_set.pub_dates == ["2025", "2025"]
         assert teacher_set.language == "eng"
