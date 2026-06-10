@@ -297,19 +297,7 @@ class TeacherSetBib:
 
     @property
     def item_fields(self) -> list[Field]:
-        """
-        Location $l
-        Item Code 1
-        Item Type $t
-        Price
-        Item Message
-        OPAC Message
-        Item Agency $h
-        Barcode $1
-        Item Note
-        Unit/Initials
-        Funding Source
-        """
+        """Missing: Funding Source"""
         fields = []
         for comp in self.components:
             for copy in range(0, comp[2]):
@@ -321,10 +309,12 @@ class TeacherSetBib:
                             Subfield(code="h", value="10"),
                             Subfield(code="i", value=f"[BARCODE]-{comp[0]}"),
                             Subfield(code="l", value="eduls"),
-                            Subfield(code="m", value="-"),
+                            Subfield(code="m", value="m"),
                             Subfield(code="p", value="0.00"),
+                            Subfield(code="q", value="30010"),
                             Subfield(code="t", value="252"),
-                            Subfield(code="u", value="m"),
+                            Subfield(code="u", value="-"),
+                            Subfield(code="v", value="LOGDOE/mlnyc-bot"),
                         ],
                     )
                 )
@@ -346,6 +336,16 @@ class TeacherSetBib:
                 )
             )
         return fields
+
+    def add_var_fields(self, bib: Bib) -> None:
+        field_tags = [i.tag for i in bib.fields]
+        notes_fields = ["500", "520", "521", "526"]
+        for field in self.var_fields:
+            if field.tag == "950":
+                bib.add_ordered_field(field)
+            elif field.tag not in field_tags and field.tag in notes_fields:
+                field.subfields.append(Subfield(code="x", value="legacy-data"))
+                bib.add_ordered_field(field)
 
     def to_bib(self) -> Bib:
         bib = Bib()
@@ -372,11 +372,10 @@ class TeacherSetBib:
         for field in self.field_7xx:
             bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_901)
-        bib.add_ordered_field(self.field_910)
         bib.add_ordered_field(self.field_909)
-        for field in self.var_fields:
-            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_910)
         bib.add_ordered_field(self.command_line_field)
         for field in self.item_fields:
             bib.add_ordered_field(field)
+        self.add_var_fields(bib)
         return bib
