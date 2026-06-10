@@ -54,17 +54,6 @@ class TestLiveLegacySetBuilder:
     load_dotenv()
     BUILDER = LegacySetBuilder(file="data/260609_high_circ.csv")
 
-    # def test_legacy_set_builder_live(self, caplog):
-    #     builder = LegacySetBuilder(file="data/260609_high_circ.csv")
-    #     for bib in self.BUILDER.all_bib_ids:
-    #         set_list = builder.create_sets(bib)
-    #         set_bibs = builder.validate_set_records(sets=set_list)
-    #         builder.write_marc_to_file(
-    #             set_bibs=set_bibs, out_file="data/marc/valid_high_circ.mrc"
-    #         )
-    #         time.sleep(5)
-    #     assert "Validation error for " not in [i.msg for i in caplog.records]
-
     def test_legacy_set_builder_this_is_ny(self, today_str, caplog):
         teacher_sets = self.BUILDER.create_sets(bib_id="19538471")
         valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
