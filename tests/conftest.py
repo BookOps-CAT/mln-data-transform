@@ -154,6 +154,16 @@ class FakeMetadataSession(FakeSession):
         )
         record.add_field(
             Field(
+                tag="650",
+                indicators=Indicators(" ", "7"),
+                subfields=[
+                    Subfield(code="a", value="Fake fast term."),
+                    Subfield(code="2", value="fast"),
+                ],
+            )
+        )
+        record.add_field(
+            Field(
                 tag="651",
                 indicators=Indicators(" ", "0"),
                 subfields=[Subfield(code="a", value="New York (N.Y.)")],
@@ -212,6 +222,36 @@ def mock_responses(monkeypatch, mock_creds) -> None:
         "mln_data_transform.transform.MetadataSession", fake_metadata_session
     )
     monkeypatch.setattr("mln_data_transform.transform.WorldcatAccessToken", fake_token)
+
+
+@pytest.fixture
+def mock_worldcat_response_missing_data(monkeypatch, mock_responses) -> None:
+    def fake_marc_record(*args, **kwargs) -> None:
+        record = Record()
+        record.add_field(
+            Field(
+                tag="245",
+                indicators=Indicators("1", "0"),
+                subfields=[Subfield(code="a", value="This is New York.")],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="264",
+                indicators=Indicators(" ", "1"),
+                subfields=[Subfield(code="a", value="New York")],
+            )
+        )
+        record.add_field(
+            Field(
+                tag="650",
+                indicators=Indicators(" ", "4"),
+                subfields=[Subfield(code="a", value="NYC")],
+            )
+        )
+        return MockMarcResponse(record.as_marc())
+
+    monkeypatch.setattr(FakeMetadataSession, "bib_get", fake_marc_record)
 
 
 @pytest.fixture

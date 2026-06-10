@@ -197,3 +197,18 @@ class TestLegacyTeacherSetBatch:
         sets = batch.create_teacher_sets()
         assert isinstance(sets[0], LegacyTeacherSet)
         assert len(sets) == 1
+
+    def test_create_teacher_sets_missing_data(
+        self, mock_worldcat_response_missing_data
+    ):
+        batch = LegacyTeacherSetBatch(
+            bib_id="12345",
+            item_mapping={"33333402207449": "1"},
+            control_number="nn-mlnyc-0000001",
+        )
+        sets = batch.create_teacher_sets()
+        assert sets[0].parts[0].author is None
+        assert sets[0].parts[0].author_dates is None
+        assert sets[0].parts[0].description == ""
+        assert sets[0].parts[0].pub_date is None
+        assert sets[0].parts[0].subjects == []
