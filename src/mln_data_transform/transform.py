@@ -19,10 +19,12 @@ class BriefBibResponse:
         self.oclc_number = wc_response["oclcNumber"]
 
     def sort_key(self) -> tuple[int, int]:
-        if self.cat_level == " ":
+        if self.cat_level in [" ", "I"]:
             return (0, 0)
         if self.cat_level is None:
             return (2, 0)
+        if self.cat_level in ["K", "L", "M"]:
+            return (1, 9)
         return (1, int(self.cat_level))
 
 
