@@ -218,9 +218,9 @@ def mock_responses(monkeypatch, mock_creds) -> None:
         "mln_data_transform.transform.PlatformSession", fake_platform_session
     )
     monkeypatch.setattr(
-        "mln_data_transform.worldcat.MetadataSession", fake_metadata_session
+        "mln_data_transform.transform.MetadataSession", fake_metadata_session
     )
-    monkeypatch.setattr("mln_data_transform.worldcat.WorldcatAccessToken", fake_token)
+    monkeypatch.setattr("mln_data_transform.transform.WorldcatAccessToken", fake_token)
 
 
 @pytest.fixture

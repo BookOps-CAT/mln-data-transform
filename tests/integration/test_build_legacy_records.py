@@ -9,7 +9,7 @@ from mln_data_transform.build import LegacySetBuilder
 
 class TestLegacySetBuilder:
     def test_create_teacher_sets(self, mock_responses, today_str):
-        builder = LegacySetBuilder(file="data/260609_high_circ.csv")
+        builder = LegacySetBuilder(file="data/260611_high_circ.csv")
         legacy_sets = builder.create_sets(bib_id="19538471")
         set_bibs = builder.validate_set_records(legacy_sets)
         bibs = [i.to_bib() for i in set_bibs]

@@ -47,7 +47,7 @@ class LegacySetBuilder(SetBuilder):
         df = pd.read_csv(
             self.file,
             sep="|",
-            names=[
+            usecols=[
                 "SUBJECT",
                 "BARCODE",
                 "LOCATION",
@@ -68,7 +68,7 @@ class LegacySetBuilder(SetBuilder):
 
     def control_number(self, bib_id: str) -> str:
         df = self.mapping_data
-        bib_df = df[df["BIB_ID"] == bib_id]
+        bib_df = df[df["BIB_ID"] == bib_id].reindex()
         return bib_df["CONTROL_NUMBER"].iloc[0]
 
     def location_mapping(self, bib_id: str) -> dict[str, str]:

@@ -6,9 +6,8 @@ from typing import Any
 
 from mln_data_transform.components import TeacherSetBook, VarFieldData
 from mln_data_transform.taxonomy import TaxonomyGenre, TaxonomyTopic
-from mln_data_transform.transform import PlatformManager
+from mln_data_transform.transform import PlatformManager, WorldcatManager
 from mln_data_transform.utils import is_valid_isbn
-from mln_data_transform.worldcat import WorldcatManager
 
 logger = logging.getLogger(__name__)
 
