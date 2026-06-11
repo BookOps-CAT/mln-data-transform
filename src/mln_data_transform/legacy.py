@@ -5,8 +5,10 @@ import re
 from typing import Any
 
 from mln_data_transform.components import TeacherSetBook, VarFieldData
-from mln_data_transform.transform import Transformer
+from mln_data_transform.taxonomy import TaxonomyGenre, TaxonomyTopic
+from mln_data_transform.transform import PlatformManager
 from mln_data_transform.utils import is_valid_isbn
+from mln_data_transform.worldcat import WorldcatManager
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +20,10 @@ class LegacyTeacherSetBatch:
         self.bib_id = bib_id
         self.control_number = control_number
         self.item_mapping = item_mapping
-        self.transformer = Transformer()
-        self.platform_bib = self.transformer.get_platform_bib(self.bib_id)
-        self.platform_items = self.transformer.get_platform_bib_items(self.bib_id)
+        self.platform_manager = PlatformManager()
+        self.platform_bib = self.platform_manager.get_platform_bib(self.bib_id)
+        self.platform_items = self.platform_manager.get_platform_bib_items(self.bib_id)
+        self.worldcat_manager = WorldcatManager()
 
     @property
     def bib_data(self) -> LegacyBibData:
@@ -34,13 +37,11 @@ class LegacyTeacherSetBatch:
 
     @property
     def item_data(self) -> list[LegacyItemData]:
-        count = len(self.platform_items)
         item_list = []
         for item in self.platform_items:
             barcode = item["barcode"]
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
-                legacy_item_count=count,
                 item_id=item["id"],
                 barcode=barcode,
                 shelf_number=self.item_mapping[barcode],
@@ -51,7 +52,7 @@ class LegacyTeacherSetBatch:
     def create_teacher_sets(self) -> list[LegacyTeacherSet]:
         sets = []
         phys_desc = self.bib_data.physical_description
-        wc_data_list = self.transformer.get_worldcat_data_for_parts(
+        wc_data_list = self.worldcat_manager.get_worldcat_data_for_parts(
             isbns=self.bib_data.isbns
         )
         var_fields = self.bib_data.var_fields
@@ -63,11 +64,12 @@ class LegacyTeacherSetBatch:
                 author_dates=i.author_dates,
                 pub_date=i.pub_date,
                 description=i.description,
-                copies=self.bib_data.copy_info[0],
+                copies=self.bib_data.copy_count,
                 subjects=i.subjects,
             )
             for i in wc_data_list
         ]
+        count = len(self.platform_items)
         for n, item in enumerate(self.item_data):
             copy_number = n + 1
             set = LegacyTeacherSet(
@@ -76,14 +78,14 @@ class LegacyTeacherSetBatch:
                 item_id=item.item_id,
                 control_number=self.control_number,
                 copy_number=copy_number,
-                copies_of_set=item.legacy_item_count,
-                grade_level=item.grade_level,
+                copies_of_set=count,
+                grade_level=self.bib_data.grade_level,
                 language=self.bib_data.language,
-                set_type=item.set_type,
+                set_type=self.bib_data.set_type,
                 physical_description=phys_desc,
                 record_type=self.bib_data.record_type,
                 shelf_number=item.shelf_number,
-                study_program_info=item.subject,
+                study_program_info=self.bib_data.subject,
                 set_title=self.bib_data.set_title,
                 parts=worldcat_parts,
                 legacy_call_number=item.call_number,
@@ -113,8 +115,6 @@ class LegacyTeacherSet:
         copies_of_set: int,
         var_fields: list[dict[str, Any]],
         enhanced: str | None = None,
-        local_genre_term: list[str] | None = None,
-        local_topic_term: list[str] | None = None,
         physical_description: str | None = None,
     ) -> None:
         self.barcode = barcode
@@ -126,8 +126,6 @@ class LegacyTeacherSet:
         self.item_id = item_id
         self.language = language
         self.legacy_call_number = legacy_call_number
-        self.local_genre_term = local_genre_term
-        self.local_topic_term = local_topic_term
         self.parts = parts
         self.physical_description = (
             physical_description
@@ -151,6 +149,32 @@ class LegacyTeacherSet:
                 "".join([str(part.copies), copy_part, '"', part.title, '", '])
             )
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
+    @property
+    def local_genre_term(self) -> list[TaxonomyGenre]:
+        genre_terms = []
+        for subject in self.subjects:
+            subject_str = " ".join([i[1] for i in subject.subfields])
+            for genre in TaxonomyGenre:
+                if subject_str in genre.value:
+                    genre_terms.append(genre)
+        for genre in TaxonomyGenre:
+            if genre.value in self.legacy_call_number:
+                genre_terms.append(genre)
+        self._local_genre_term = list(set(genre_terms))
+
+    @property
+    def local_topic_term(self) -> list[TaxonomyTopic]:
+        topic_terms = []
+        for subject in self.subjects:
+            subject_str = " ".join([i[1] for i in subject.subfields])
+            for topic in TaxonomyTopic:
+                if subject_str.casefold() in topic.value:
+                    topic_terms.append(topic)
+        for topic in TaxonomyTopic:
+            if topic.value in self.legacy_call_number.casefold():
+                topic_terms.append(topic)
+        self._local_topic_term = list(set(topic_terms))
 
     @property
     def pub_dates(self) -> list[str]:
@@ -202,15 +226,10 @@ class LegacyTeacherSet:
                 )
         fields.append(
             VarFieldData(
-                tag="950",
+                tag="901",
                 ind1=" ",
                 ind2=" ",
-                subfields=[
-                    ("a", f"b{self.bib_id}a"),
-                    ("b", f"i{self.item_id}a"),
-                    ("c", self.barcode),
-                    ("d", self.legacy_call_number),
-                ],
+                subfields=[("n", self.barcode), ("o", self.legacy_call_number)],
             )
         )
         return fields
@@ -228,7 +247,18 @@ class LegacyBibData:
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
         r"(((([Bb]oard)|([Vv]ideo)|([Tt]abletop))(\s[Gg]ame))|([Gg]ame)|([Dd][Vv][Dd]))(?:\s*\([A-z\s]+\))?(\s*-\s*)"  # noqa: E501
     )
-
+    CALL_NUMBER_PATTERN = re.compile(
+        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
+    )
+    GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
+    SUBJECT_MAPPING = {
+        "Language Arts ENG": "ELA",
+        "Language Arts": "LA",
+        "Arts": "ART",
+        "Games": "GAME",
+        "Social Studies": "SOC",
+        "Science": "SCI",
+    }
     digits = {
         "zero": 0,
         "one": 1,
@@ -258,87 +288,10 @@ class LegacyBibData:
         self.var_fields = var_fields
 
     @property
-    def copy_info(self) -> tuple[int, int]:
-        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
-        fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
-        for content in fields_5xx:
-            matched = self.COPY_INFO_PATTERN.match(content)
-            if matched:
-                copy_count = matched["copy_count"].casefold()
-                title_count = matched["title_count"].casefold()
-                if copy_count.isalpha():
-                    copy_count = self.digits[copy_count]
-                if title_count.isalpha():
-                    title_count = self.digits[title_count]
-                return (int(copy_count), int(title_count))
-
-        for content in fields_5xx:
-            matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
-            if matched:
-                return (1, 1)
-        return (1, 1)
-
-    @property
-    def isbns(self) -> list[str]:
-        isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
-        if isbns:
-            subfields_944 = isbns[0]["subfields"]
-            isbn_string = " ".join([i["content"] for i in subfields_944])
-            isbn_list = isbn_string.split()
-            return [i for i in isbn_list if is_valid_isbn(i)]
-        return []
-
-    @property
-    def leader(self) -> str | None:
-        leader = [i["content"] for i in self.var_fields if not i["marcTag"]]
-        if leader:
-            return leader[0]
-        return None
-
-    @property
-    def physical_description(self) -> str | None:
-        field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
-        if field_300:
-            subfields_300 = field_300[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_300])
-        return None
-
-    @property
-    def record_type(self) -> str:
-        if self.leader:
-            return self.leader[6]
-        return "a"
-
-
-class LegacyItemData:
-    """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
-
-    CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(?P<shelf_number>\d+)(?:-)?(?P<set_copy_number>\d+)?$"  # noqa: E501
-    )
-    GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
-    SUBJECT_MAPPING = {
-        "Language Arts ENG": "ELA",
-        "Language Arts": "LA",
-        "Arts": "ART",
-        "Games": "GAME",
-        "Social Studies": "SOC",
-        "Science": "SCI",
-    }
-
-    def __init__(
-        self,
-        barcode: str,
-        call_number: str,
-        item_id: str,
-        legacy_item_count: int,
-        shelf_number: str,
-    ) -> None:
-        self.barcode = barcode
-        self.call_number = call_number.strip()
-        self.item_id = item_id
-        self.legacy_item_count = legacy_item_count
-        self.shelf_number = shelf_number
+    def call_number(self) -> str:
+        field_091 = [i for i in self.var_fields if i["marcTag"] == "091"]
+        subfields_091 = field_091[0]["subfields"]
+        return " ".join([i["content"] for i in subfields_091])
 
     @property
     def call_number_components(self) -> re.Match:
@@ -350,6 +303,24 @@ class LegacyItemData:
                 f"Cannot extract components."
             )
         return components
+
+    @property
+    def copy_count(self) -> int | None:
+        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
+        fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
+        for content in fields_5xx:
+            matched = self.COPY_INFO_PATTERN.match(content)
+            if matched:
+                copy_count = matched["copy_count"].casefold()
+                if copy_count.isalpha():
+                    copy_count = self.digits[copy_count]
+                return int(copy_count)
+
+        for content in fields_5xx:
+            matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
+            if matched:
+                return 1
+        return None
 
     @property
     def enhanced(self) -> str | None:
@@ -373,20 +344,50 @@ class LegacyItemData:
             return grade_level
 
     @property
+    def isbns(self) -> list[str]:
+        isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
+        if isbns:
+            subfields_944 = isbns[0]["subfields"]
+            isbn_string = " ".join([i["content"] for i in subfields_944])
+            isbn_list = isbn_string.split()
+            return [i for i in isbn_list if is_valid_isbn(i)]
+        return []
+
+    @property
     def lang(self) -> str:
         """Parses language from call number if present."""
         return self.call_number_components["lang"]
 
     @property
-    def set_copy_number(self) -> int:
-        """Parses copy number for set from legacy item record."""
-        return int(self.call_number_components["set_copy_number"])
+    def leader(self) -> str | None:
+        for field in self.var_fields:
+            if not field["marcTag"]:
+                return field["content"]
+        return None
+
+    @property
+    def physical_description(self) -> str | None:
+        field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
+        if field_300:
+            subfields_300 = field_300[0]["subfields"]
+            return " ".join([i["content"] for i in subfields_300])
+        return None
+
+    @property
+    def record_type(self) -> str:
+        if self.leader:
+            return self.leader[6]
+        return "a"
 
     @property
     def set_type(self) -> str:
         """Parses majority of call number string to identify set type."""
         set_type = self.call_number_components["set_type"].casefold()
-        if "book club".casefold() in set_type or "BC".casefold() in set_type:
+        if (
+            "book club".casefold() in set_type
+            or "BC".casefold() in set_type
+            or "club".casefold() in set_type
+        ):
             return "CLUB"
         elif "game" in set_type or "game" in self.subject.casefold():
             return "GAME"
@@ -394,7 +395,9 @@ class LegacyItemData:
             return "STORY"
         elif "audio" in set_type or ("digital" in set_type and "devices" in set_type):
             return "AUDIO"
-        elif "large print".casefold() in set_type:
+        elif "lprint".casefold() in set_type or (
+            "large".casefold() in set_type and "print".casefold() in set_type
+        ):
             return "LPRINT"
         else:
             return "TOPIC"
@@ -411,3 +414,23 @@ class LegacyItemData:
         if len(subject_no_lang) == 2:
             return f"{self.lang[:2]}{subject_no_lang}"
         return subject_no_lang
+
+
+class LegacyItemData:
+    """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
+
+    def __init__(
+        self, barcode: str, call_number: str, item_id: str, shelf_number: str
+    ) -> None:
+        self.barcode = barcode
+        self.call_number = call_number.strip()
+        self.item_id = item_id
+        self.shelf_number = shelf_number
+
+    @property
+    def bib_call_number(self) -> str:
+        """Removes enumeration from end of item call number for validation."""
+        if self.call_number[-3] == "-":
+            return self.call_number[:-3]
+        else:
+            return self.call_number[:-2]

@@ -1,9 +1,87 @@
+from __future__ import annotations
+
 import logging
+import os
 from typing import Any
 
+from bookops_worldcat import MetadataSession, WorldcatAccessToken
+from pydantic import BaseModel
 from pymarc import Field, Record
+from requests import Response
 
 logger = logging.getLogger(__name__)
+
+
+class BriefBibResponse:
+    def __init__(self, wc_response: dict[str, Any]) -> None:
+        self.cat_level: str | None = wc_response.get("catalogingInfo", {}).get(
+            "levelOfCataloging"
+        )
+        self.oclc_number = wc_response["oclcNumber"]
+
+    def sort_key(self) -> tuple[int, int]:
+        if self.cat_level in [" ", "I"]:
+            return (0, 0)
+        if self.cat_level is None:
+            return (2, 0)
+        if self.cat_level in ["K", "L", "M"]:
+            return (1, 9)
+        return (1, int(self.cat_level))
+
+
+class WorldcatManager:
+    def __init__(self) -> None:
+        self.worldcat_token = WorldcatAccessToken(
+            key=os.environ["WORLDCAT_KEY"],
+            secret=os.environ["WORLDCAT_SECRET"],
+            scopes="WorldCatMetadataAPI",
+        )
+
+    def get_oclc_number_from_isbn(self, response: Response) -> str:
+        parsed_responses = [
+            BriefBibResponse(i) for i in response.json()["briefRecords"]
+        ]
+        sorted_recs = sorted(parsed_responses, key=BriefBibResponse.sort_key)
+        return [i.oclc_number for i in sorted_recs][0]
+
+    def get_full_record(self, oclc_number: str, session: MetadataSession) -> Record:
+        logger.info(f"Getting worldcat full MARC record for {oclc_number}.")
+        full_bib_response = session.bib_get(
+            oclcNumber=oclc_number, responseFormat="application/marc"
+        )
+        return Record(data=full_bib_response.content)  # type: ignore
+
+    def get_worldcat_data_for_parts(
+        self, isbns: list[str]
+    ) -> list[FullWorldCatResponse]:
+        parts: list[FullWorldCatResponse] = []
+        logger.info(f"Record contains {len(isbns)} ISBN(s) to check.")
+        with MetadataSession(
+            authorization=self.worldcat_token, timeout=(10, 10)
+        ) as session:
+            for isbn in isbns:
+                logger.info(f"Searching worldcat for {isbn}.")
+                brief_bib = session.brief_bibs_search(
+                    q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
+                )
+                oclc_number = self.get_oclc_number_from_isbn(response=brief_bib)
+
+                full_rec = self.get_full_record(
+                    oclc_number=oclc_number, session=session
+                )
+                full_resp = FullWorldCatResponse(isbn=isbn, wc_response=full_rec)
+                parts.append(full_resp)
+        return parts
+
+
+class RequiredResponseFields(BaseModel):
+    description: str
+    isbn: str
+    pub_date: str | None
+    subjects: list[dict[str, Any]]
+    title: str
+    author_data: str | None = None
+    author_dates: str | None = None
 
 
 class FullWorldCatResponse:

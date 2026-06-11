@@ -341,7 +341,7 @@ class TeacherSetBib:
         field_tags = [i.tag for i in bib.fields]
         notes_fields = ["500", "520", "521", "526"]
         for field in self.var_fields:
-            if field.tag == "950":
+            if field.tag == "901" and [i.code for i in field.subfields] == ["n", "o"]:
                 bib.add_ordered_field(field)
             elif field.tag not in field_tags and field.tag in notes_fields:
                 field.subfields.append(Subfield(code="x", value="legacy-data"))

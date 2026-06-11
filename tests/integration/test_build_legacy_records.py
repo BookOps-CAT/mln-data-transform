@@ -35,6 +35,7 @@ class TestLegacySetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
             "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333402207449$oTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
@@ -48,7 +49,6 @@ class TestLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=950  \\\\$ab19538471a$bi31187496a$c33333402207449$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
         ]
 
     def test_create_teacher_set_from_sheet(
@@ -59,7 +59,7 @@ class TestLegacySetBuilder:
             legacy_sets = builder.create_sets(bib_id)
             builder.validate_set_records(sets=legacy_sets)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 8
+        assert len(caplog.records) == 7
 
 
 @pytest.fixture(scope="class")
@@ -113,6 +113,7 @@ class TestLiveLegacySetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
             "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333402207472$oTeacher Set SOC A Book Club Set NYC History - This Is New York 1-4",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
@@ -126,10 +127,18 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=950  \\\\$ab19538471a$bi33176403a$c33333402207472$dTeacher Set SOC A Book Club Set NYC History - This Is New York 1-4",
         ]
-        # should be the number of volumes in set x 3 + 3
-        assert len(caplog.records) == 8
+        # should be the number of volumes in set x 2 + 5
+        assert len(caplog.records) == 7
+        assert [i.msg for i in caplog.records] == [
+            "Creating sets for 19538471",
+            "Getting bib from platform for 19538471.",
+            "Getting items from platform for 19538471.",
+            "7 item records found for bib b19538471a.",
+            "Record contains 1 ISBN(s) to check.",
+            "Searching worldcat for 9780789308849.",
+            "Getting worldcat full MARC record for 52510777.",
+        ]
 
     def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
         teacher_sets = self.BUILDER.create_sets(bib_id="20895133")
@@ -173,7 +182,6 @@ class TestLiveLegacySetBuilder:
             "=651  \\0$aRome$xCivilization.",
             "=651  \\0$aRome$xHistory.",
             "=651  \\0$aRome$xSocial life and customs.",
-            "=651  \\0$aIraq$xHistory$yTo 634$vJuvenile literature.",
             "=651  \\0$aIraq$xCivilization$yTo 634$vJuvenile literature.",
             "=651  \\0$aMexico$xCivilization$vJuvenile literature.",
             "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
@@ -196,6 +204,7 @@ class TestLiveLegacySetBuilder:
             "=700  12$aAtkins, Marcie Flinchum$tAncient China$f2015$x9781624035364",
             "=700  12$aKenney, Karen Latchana$tAncient Aztecs$f2015$x9781624035357",
             "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333408154173$oTeacher Set SOC C Ancient Civilizations 2-6",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
@@ -207,6 +216,28 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Ancient Egypt$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Ancient China$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=950  \\\\$ab20895133a$bi33828842a$c33333408154173$dTeacher Set SOC C Ancient Civilizations 2-6",
         ]
-        assert len(caplog.records) == 29
+        assert len(caplog.records) == 21
+        assert [i.msg for i in caplog.records] == [
+            "Creating sets for 20895133",
+            "Getting bib from platform for 20895133.",
+            "Getting items from platform for 20895133.",
+            "8 item records found for bib b20895133a.",
+            "Record contains 8 ISBN(s) to check.",
+            "Searching worldcat for 9781624035425.",
+            "Getting worldcat full MARC record for 911497614.",
+            "Searching worldcat for 9781624035418.",
+            "Getting worldcat full MARC record for 904347324.",
+            "Searching worldcat for 9781624035401.",
+            "Getting worldcat full MARC record for 904346699.",
+            "Searching worldcat for 9781624035395.",
+            "Getting worldcat full MARC record for 891122638.",
+            "Searching worldcat for 9781624035388.",
+            "Getting worldcat full MARC record for 914136830.",
+            "Searching worldcat for 9781624035371.",
+            "Getting worldcat full MARC record for 910879363.",
+            "Searching worldcat for 9781624035364.",
+            "Getting worldcat full MARC record for 908256277.",
+            "Searching worldcat for 9781624035357.",
+            "Getting worldcat full MARC record for 891122602.",
+        ]
