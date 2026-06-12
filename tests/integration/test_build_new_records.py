@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from mln_data_transform.components import TeacherSetBook, TeacherSetSpecialFormat
-from mln_data_transform.models import TeacherSetData
+from mln_data_transform.teacher_sets import TeacherSetData
 from mln_data_transform.validate import TeacherSetCopyModel
 
 

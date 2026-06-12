@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from mln_data_transform.models import (
+from mln_data_transform.teacher_sets import (
     TeacherSetBook,
     TeacherSetData,
     TeacherSetSpecialFormat,

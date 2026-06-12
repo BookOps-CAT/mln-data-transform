@@ -148,7 +148,9 @@ class LegacyBibData:
         field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
         if field_300:
             subfields_300 = field_300[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_300])
+            return " ".join([i["content"] for i in subfields_300]).replace(
+                "v.", "items"
+            )
         return None
 
     @property

@@ -15,7 +15,7 @@ class TestLegacyData:
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.isbns == ["9780789308849"]
         assert legacy_bib.leader == "00000nam  2200000 a 4500"
-        assert legacy_bib.physical_description == "10 v."
+        assert legacy_bib.physical_description == "10 items"
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_count == 10
 

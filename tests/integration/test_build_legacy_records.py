@@ -9,7 +9,7 @@ from mln_data_transform.build import LegacySetBuilder
 
 class TestLegacySetBuilder:
     def test_create_validate_set(self, mock_responses, today_str, caplog):
-        builder = LegacySetBuilder(file="data/260611_high_circ.csv")
+        builder = LegacySetBuilder(file="tests/data/high_circ.csv")
         legacy_set = builder.create_set(bib_id="19538471")
         builder.validate_set(legacy_set)
         assert len(caplog.records) == 6
@@ -24,7 +24,7 @@ class TestLegacySetBuilder:
         ]
 
     def test_create_teacher_sets(self, mock_responses, today_str):
-        builder = LegacySetBuilder(file="data/260611_high_circ.csv")
+        builder = LegacySetBuilder(file="tests/data/high_circ.csv")
         legacy_set = builder.create_set(bib_id="19538471")
         set_bib = builder.validate_set(legacy_set)
         set_copies = builder.create_set_copy_batch(set_bib)
@@ -42,7 +42,7 @@ class TestLegacySetBuilder:
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
             "=245  00$aThis is New York by M. Sasek.$nCopy 1 of 1",
-            "=300  \\\\$a10 v.",
+            "=300  \\\\$a10 items",
             '=500  \\\\$aSet consists of 10 copies of "This is New York".',
             "=520  \\\\$3This is New York$aFake description of book.",
             "=521  2\\$aPre-K",
@@ -107,7 +107,7 @@ def live_creds() -> Generator[None, None, None]:
 
 @pytest.mark.livetest
 class TestLiveLegacySetBuilder:
-    BUILDER = LegacySetBuilder(file="data/260611_high_circ.csv")
+    BUILDER = LegacySetBuilder(file="tests/data/high_circ.csv")
 
     def test_legacy_set_builder_this_is_ny(self, today_str, caplog, live_creds):
         teacher_set = self.BUILDER.create_set(bib_id="19538471")
@@ -135,7 +135,7 @@ class TestLiveLegacySetBuilder:
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$cINC-1356",
             "=245  00$aThis is New York by M. Sasek.$nCopy 1 of 7",
-            "=300  \\\\$a10 v.",
+            "=300  \\\\$a10 items",
             '=500  \\\\$aSet consists of 10 copies of "This is New York".',
             "=520  \\\\$3This is New York$aA pictorial tour of Manhattan Island presenting drawings of its neighborhoods, transportation and traffic, buildings, and the city's activities, from the local shoeshine stall to Wall Street.",
             "=521  2\\$aPre-K",
@@ -203,7 +203,7 @@ class TestLiveLegacySetBuilder:
             f"=008  {today_str}i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pC$c1077",
             "=245  00$aAncient Civilizations.$nCopy 1 of 8",
-            "=300  \\\\$a8 v.",
+            "=300  \\\\$a8 items",
             '=500  \\\\$aSet consists of 1 copy of "Ancient Rome", 1 copy of "Ancient Mesopotamia", 1 copy of "Ancient Maya", 1 copy of "Ancient India", 1 copy of "Ancient Greece", 1 copy of "Ancient Egypt", 1 copy of "Ancient China", 1 copy of "Ancient Aztecs".',
             "=520  \\\\$3Ancient Rome$a\"In Ancient Rome, readers discover the history and impressive accomplishments of the ancient Romans, including their military power and feats of engineering. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
             "=520  \\\\$3Ancient Mesopotamia$a\"In Ancient Mesopotamia, readers discover the history and impressive accomplishments of the ancient Mesopotamians, including their extraordinary cultural achievements and technological wonders. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
