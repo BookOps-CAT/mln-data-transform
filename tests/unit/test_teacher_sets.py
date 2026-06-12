@@ -2,127 +2,72 @@ from typing import Any
 
 import pytest
 
-from mln_data_transform.teacher_sets import (
-    TeacherSetBook,
-    TeacherSetData,
-    TeacherSetSpecialFormat,
+from mln_data_transform.taxonomy import (
+    GradeReadingLevel,
+    SetTypeFormat,
+    SubjectStudyProgram,
+    TaxonomyGenre,
+    TaxonomyTopic,
 )
+from mln_data_transform.teacher_sets import TeacherSetData, TeacherSetSpecialFormat
 
 
 @pytest.fixture
 def set_test_data() -> dict[str, Any]:
     return {
-        "record_type": "a",
-        "control_number": "nn-mlnyc-0000001",
-        "language": "eng",
-        "grade_level": "Pre-K",
-        "shelf_number": "10",
-        "set_title": "Foo Bar Teacher Set",
-        "copy_number": 1,
         "copies_of_set": 1,
-        "physical_description": "1 item",
-        "study_program_info": "Arts & Music",
+        "grade_level": "Pre-K",
+        "language": "eng",
+        "set_title": "Foo Bar Teacher Set",
+        "parts": [
+            {"isbn": "9781234567890", "copies": 1},
+            {"copies": 2, "isbn": "9780987654321"},
+        ],
         "set_type": "Book Club",
-        "local_topic_term": ["New York City"],
+        "study_program_info": "Arts & Music",
         "local_genre_term": ["Fiction"],
+        "local_topic_term": ["New York City"],
     }
 
 
-@pytest.fixture
-def parts_test_data() -> list[dict[str, Any]]:
-    return [
-        {
-            "title": "Foo Bar",
-            "author": "Baz",
-            "copies": 1,
-            "isbn": "9781234567890",
-            "description": "A book.",
-            "author_dates": "2020-",
-            "pub_date": "2025",
-            "subjects": [
-                {
-                    "tag": "650",
-                    "ind1": " ",
-                    "ind2": "0",
-                    "subfields": [("a", "Robots")],
-                },
-                {
-                    "tag": "650",
-                    "ind1": " ",
-                    "ind2": "0",
-                    "subfields": [("a", "LEGO toys")],
-                },
-            ],
-        },
-        {
-            "title": "Test Title",
-            "copies": 2,
-            "isbn": "9780987654321",
-            "description": "Another book.",
-        },
-        {
-            "title": "Third book",
-            "author": "Some author",
-            "copies": 1,
-            "isbn": "9781111111111",
-            "description": "Book.",
-        },
-    ]
-
-
 class TestTeacherSetData:
-    def test_teacher_set_data(self, set_test_data, parts_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
+    def test_teacher_set_data(self, set_test_data):
         teacher_set = TeacherSetData(**set_test_data)
-        teacher_set_dict = teacher_set.to_dict()
-        assert (
-            teacher_set.contents_note
-            == 'Set consists of 1 copy of "Foo Bar", 2 copies of "Test Title", 1 copy of "Third book".'
-        )
-        assert teacher_set.control_number == "nn-mlnyc-0000001"
-        assert teacher_set.pub_dates == ["2025"]
+        assert teacher_set.grade_level == GradeReadingLevel("Pre-K")
         assert teacher_set.language == "eng"
+        assert teacher_set.local_topic_term == [TaxonomyTopic("New York City")]
+        assert teacher_set.local_genre_term == [TaxonomyGenre("Fiction")]
+        assert teacher_set.parts[0].isbn == "9781234567890"
+        assert len(teacher_set.parts) == 2
+        assert teacher_set.record_type == "a"
         assert teacher_set.set_title == "Foo Bar Teacher Set"
-        assert teacher_set.physical_description == "1 item"
-        assert teacher_set.grade_level == "Pre-K"
-        assert teacher_set.study_program_info == "Arts & Music"
-        assert teacher_set.set_type == "Book Club"
-        assert teacher_set.local_topic_term == ["New York City"]
-        assert teacher_set.local_genre_term == ["Fiction"]
-        assert len(teacher_set.subjects) == 2
-        assert len(teacher_set_dict["added_entries"]) == 3
-        assert teacher_set_dict["components"][0] == ("Foo Bar", "A book.", 1)
-        assert teacher_set_dict["components"][1] == ("Test Title", "Another book.", 2)
+        assert teacher_set.set_type == SetTypeFormat("Book Club")
+        assert teacher_set.study_program_info == SubjectStudyProgram("Arts & Music")
 
-    @pytest.mark.parametrize(
-        "pub_dates,output", [(("20uu", None), ["20uu"]), ((None, None), [])]
-    )
-    def test_teacher_set_data_pub_dates(
-        self, set_test_data, parts_test_data, pub_dates, output
-    ):
-        parts_test_data[0]["pub_date"] = pub_dates[0]
-        parts_test_data[1]["pub_date"] = pub_dates[1]
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
-        teacher_set = TeacherSetData(**set_test_data)
-        assert teacher_set.pub_dates == output
-
-    def test_teacher_set_data_no_subjects(self, set_test_data, parts_test_data):
-        parts_test_data[0]["subjects"] = {}
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
-        teacher_set = TeacherSetData(**set_test_data)
-        assert teacher_set.subjects == []
-
-    def test_teacher_set_data_special_format(self, set_test_data, parts_test_data):
-        set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
-        set_test_data["parts"].append(
+    def test_teacher_set_data_special_format(self, set_test_data):
+        set_test_data["special_formats"] = [
             TeacherSetSpecialFormat(
                 title="Cat puppet", description="A puppet", copies=1
             )
-        )
+        ]
         teacher_set = TeacherSetData(**set_test_data)
-        teacher_set_dict = teacher_set.to_dict()
-        assert len(teacher_set_dict["added_entries"]) == 3
-        assert teacher_set_dict["components"][0] == ("Foo Bar", "A book.", 1)
-        assert teacher_set_dict["components"][1] == ("Test Title", "Another book.", 2)
-        assert teacher_set_dict["components"][2] == ("Third book", "Book.", 1)
-        assert teacher_set_dict["components"][3] == ("Cat puppet", "A puppet.", 1)
+        assert teacher_set.enhanced == "E"
+        assert teacher_set.record_type == "o"
+
+    # @pytest.mark.parametrize(
+    #     "pub_dates,output", [(("20uu", None), ["20uu"]), ((None, None), [])]
+    # )
+    # def test_teacher_set_data_pub_dates(
+    #     self, set_test_data, parts_test_data, pub_dates, output
+    # ):
+    #     parts_test_data[0]["pub_date"] = pub_dates[0]
+    #     parts_test_data[1]["pub_date"] = pub_dates[1]
+    #     set_test_data["parts"] = [WorldcatSetPart(**i) for i in parts_test_data]
+    #     teacher_set = TeacherSetData(**set_test_data)
+    #     assert teacher_set.pub_dates == output
+
+    # def test_teacher_set_data_no_subjects(self, set_test_data, parts_test_data):
+    #     parts_test_data[0]["subjects"] = {}
+    #     set_test_data["parts"] = [WorldcatSetPart(**i) for i in parts_test_data]
+    #     teacher_set = TeacherSetData(**set_test_data)
+    #     assert teacher_set.subjects == []

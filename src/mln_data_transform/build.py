@@ -1,57 +1,23 @@
 import datetime
 import json
 import logging
-from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any, TypeVar
+from typing import Any
 
 import pandas as pd
 from pydantic import ValidationError
 
-from mln_data_transform.legacy import (
-    LegacyTeacherSet,
-    LegacyTeacherSetBatch,
-    LegacyTeacherSetCopy,
-)
+from mln_data_transform.legacy import LegacyTeacherSet, LegacyTeacherSetData
+from mln_data_transform.model import TeacherSetCopy
 from mln_data_transform.serialize import TeacherSetBib
+from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
+from mln_data_transform.transform import PlatformManager, WorldcatManager
 from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
 
 logger = logging.getLogger(__name__)
 
-S = TypeVar("S")  # variable for `TeacherSetData` and `LegacyTeacherSet` types
 
-
-class SetBuilder(ABC):
-    @abstractmethod
-    def create_set(self, *args, **kwargs) -> S: ...  # pragma: no branch
-
-    @abstractmethod
-    def validate_set(self, *args, **kwargs) -> S | None: ...  # pragma: no branch
-
-    @abstractmethod
-    def create_set_copy_batch(
-        self, *args, **kwargs
-    ) -> list[S]: ...  # pragma: no branch
-
-    @abstractmethod
-    def validate_set_copies(
-        self, *args, **kwargs
-    ) -> list[TeacherSetBib]: ...  # pragma: no branch
-
-    def write_errors_to_file(self, errors: list[dict[str, Any]]) -> None:
-        today_str = datetime.datetime.strftime(datetime.date.today(), "%y%m%d")
-        df = pd.DataFrame(errors)
-        df.to_csv(f"data/{today_str}_validation_errors.csv", index=False, mode="a")
-
-    def write_marc_to_file(self, out_file: str, set_bibs: list[TeacherSetBib]) -> None:
-        logger.info(f"Writing records to file for {set_bibs[0].control_number}.")
-        with open(out_file, "ab") as fh:
-            for set_bib in set_bibs:
-                bib = set_bib.to_bib()
-                fh.write(bib.as_marc())
-
-
-class LegacySetBuilder(SetBuilder):
+class TeacherSetBuilder:
     def __init__(self, file: str) -> None:
         self.file = file
 
@@ -60,14 +26,7 @@ class LegacySetBuilder(SetBuilder):
         df = pd.read_csv(
             self.file,
             sep="|",
-            usecols=[
-                "SUBJECT",
-                "BARCODE",
-                "LOCATION",
-                "BIB_ID",
-                "ITEM_ID",
-                "CONTROL_NUMBER",
-            ],
+            usecols=["SUBJECT", "BARCODE", "LOCATION", "BIB_ID"],
             header=0,
             dtype=str,
         )
@@ -79,45 +38,83 @@ class LegacySetBuilder(SetBuilder):
         df = self.mapping_data
         return df["BIB_ID"].unique().tolist()
 
-    def control_number(self, bib_id: str) -> str:
+    def location_mapping(self, bib_id: str) -> dict[str, list[str]]:
         df = self.mapping_data
-        bib_df = df[df["BIB_ID"] == bib_id].reindex()
-        return bib_df["CONTROL_NUMBER"].iloc[0]
+        bib_df = df[df["BIB_ID"] == bib_id].reset_index()
+        return bib_df.to_dict("index")
 
-    def location_mapping(self, bib_id: str) -> dict[str, str]:
-        df = self.mapping_data
-        bib_df = df[df["BIB_ID"] == bib_id]
-        locs = dict(zip(bib_df["BARCODE"], bib_df["LOCATION"]))
-        return locs
-
-    def create_set(self, bib_id: str) -> LegacyTeacherSet:
+    def create_legacy_set(self, bib_id: str) -> LegacyTeacherSet:
         logger.info(f"Creating base teacher set for {bib_id}.")
-        legacy_set = LegacyTeacherSet(
-            bib_id=bib_id, control_number=self.control_number(bib_id)
+        platform_manager = PlatformManager()
+        set_data = LegacyTeacherSetData(
+            bib_id=bib_id, platform_manager=platform_manager
         )
-        return legacy_set
+        with WorldcatManager() as manager:
+            legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_manager=manager)
+            return legacy_set
 
-    def create_set_copy_batch(
-        self, legacy_set: LegacyTeacherSet
-    ) -> list[LegacyTeacherSetCopy]:
-        logger.info(f"Creating copies of legacy set: {legacy_set.bib_id}.")
-        batch = LegacyTeacherSetBatch(
-            legacy_set=legacy_set, item_mapping=self.location_mapping(legacy_set.bib_id)
+    def create_teacher_set(
+        self,
+        copies_of_set: int,
+        grade_level: str,
+        language: str,
+        parts: list[dict[str, str]],
+        set_title: str,
+        set_type: str,
+        study_program_info: str,
+        local_genre_term: list[str] | None = None,
+        local_topic_term: list[str] | None = None,
+    ) -> TeacherSet:
+        set_data = TeacherSetData(
+            copies_of_set=copies_of_set,
+            grade_level=grade_level,
+            language=language,
+            parts=parts,
+            set_title=set_title,
+            set_type=set_type,
+            study_program_info=study_program_info,
+            local_genre_term=local_genre_term,
+            local_topic_term=local_topic_term,
         )
-        return batch.create_set_copies()
+        with WorldcatManager() as manager:
+            teacher_set = TeacherSet(set_data=set_data, worldcat_manager=manager)
+            return teacher_set
 
-    def validate_set(self, set: LegacyTeacherSet) -> LegacyTeacherSet | None:
-        logger.info(f"Validating set for {set.bib_id}.")
+    def create_set_copies(
+        self, teacher_set_dict: dict[str, Any]
+    ) -> list[TeacherSetCopy]:
+        copies = []
+        bib_id = teacher_set_dict.get("bib_id")
+        for copy_num in range(0, teacher_set_dict["copies_of_set"]):
+            if bib_id:
+                logger.info(f"Creating copies of legacy set: {bib_id}.")
+                mapping = self.location_mapping(bib_id)
+                teacher_set_dict["var_field_data"].append(
+                    {
+                        "tag": "901",
+                        "ind1": " ",
+                        "ind2": " ",
+                        "subfields": [("n", mapping[copy_num]["BARCODE"])],
+                    }
+                )
+                teacher_set_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
+            teacher_set_dict["copy_number"] = copy_num + 1
+            print(teacher_set_dict)
+            copies.append(TeacherSetCopy(**teacher_set_dict))
+        return copies
+
+    def validate_set(self, set: LegacyTeacherSet | TeacherSet) -> TeacherSetCopy:
+        logger.info("Validating set.")
         try:
-            TeacherSetModel.model_validate(set, from_attributes=True)
-            return set
+            teacher_set = TeacherSetModel.model_validate(set, from_attributes=True)
+            return teacher_set.model_dump()
         except ValidationError as e:
-            logger.error(f"Validation errors for bib {set.bib_id}: {e.json()}.")
+            logger.error(f"Validation errors for set: {e.json()}.")
             self.write_errors_to_file(json.loads(e.json()))
 
     def validate_set_copies(
-        self, legacy_set_copies: list[LegacyTeacherSetCopy]
-    ) -> list[LegacyTeacherSetCopy]:
+        self, legacy_set_copies: list[TeacherSetCopy]
+    ) -> list[TeacherSetCopy]:
         valid_bibs = []
         error_data = []
         logger.info(
@@ -131,9 +128,21 @@ class LegacySetBuilder(SetBuilder):
             except ValidationError as e:
                 logger.error(
                     f"Validation errors for bib {set.bib_id}, copy "
-                    f"{set.copy_number} of {set.copies_of_set}"
+                    f"{set.copy_number + 1} of {set.copies_of_set}: {e.json()}"
                 )
                 error_data.append(json.loads(e.json()))
         if error_data:
             self.write_errors_to_file(error_data)
         return valid_bibs
+
+    def write_errors_to_file(self, errors: list[dict[str, Any]]) -> None:
+        today_str = datetime.datetime.strftime(datetime.date.today(), "%y%m%d")
+        df = pd.DataFrame(errors)
+        df.to_csv(f"data/{today_str}_validation_errors.csv", index=False, mode="a")
+
+    def write_marc_to_file(self, out_file: str, set_bibs: list[TeacherSetBib]) -> None:
+        logger.info(f"Writing records to file for {set_bibs[0].control_number}.")
+        with open(out_file, "ab") as fh:
+            for set_bib in set_bibs:
+                bib = set_bib.to_bib()
+                fh.write(bib.as_marc())

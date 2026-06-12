@@ -95,6 +95,9 @@ class FakeSession:
     def __exit__(self, *args, **kwargs) -> None:
         pass
 
+    def close(self, *args, **kwargs) -> None:
+        pass
+
 
 class FakePlatformSession(FakeSession):
     def get_bib(self, id: str) -> dict[str, Any]:

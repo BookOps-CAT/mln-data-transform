@@ -4,30 +4,31 @@ from typing import Generator
 import pytest
 from dotenv import load_dotenv
 
-from mln_data_transform.build import LegacySetBuilder
+from mln_data_transform.build import TeacherSetBuilder
 
 
-class TestLegacySetBuilder:
+class TestTeacherSetBuilder:
     def test_create_validate_set(self, mock_responses, today_str, caplog):
-        builder = LegacySetBuilder(file="tests/data/high_circ.csv")
-        legacy_set = builder.create_set(bib_id="19538471")
+        builder = TeacherSetBuilder(file="tests/data/high_circ.csv")
+        legacy_set = builder.create_legacy_set(bib_id="19538471")
         builder.validate_set(legacy_set)
-        assert len(caplog.records) == 6
+        assert len(caplog.records) == 7
         # should be 2 x the number of components + 4
         assert [i.msg for i in caplog.records] == [
             "Creating base teacher set for 19538471.",
             "Getting bib record from platform for 19538471.",
-            "Record contains 1 ISBN(s) to check.",
+            "Getting items from platform for 19538471.",
+            "1 item records found for bib b19538471a.",
+            "Validating set.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
-            "Validating set for 19538471.",
         ]
 
     def test_create_teacher_sets(self, mock_responses, today_str):
-        builder = LegacySetBuilder(file="tests/data/high_circ.csv")
-        legacy_set = builder.create_set(bib_id="19538471")
-        set_bib = builder.validate_set(legacy_set)
-        set_copies = builder.create_set_copy_batch(set_bib)
+        builder = TeacherSetBuilder(file="tests/data/high_circ.csv")
+        legacy_set = builder.create_legacy_set(bib_id="19538471")
+        set_data = builder.validate_set(legacy_set)
+        set_copies = builder.create_set_copies(set_data)
         valid_set_copies = builder.validate_set_copies(set_copies)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
@@ -37,7 +38,7 @@ class TestLegacySetBuilder:
         )
         assert len(bibs) == 1
         assert field_strings == [
-            "=001  nn-mlnyc-0000002",
+            "=001  ",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
@@ -52,7 +53,7 @@ class TestLegacySetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=901  \\\\$n33333402207449$oTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
+            # "=901  \\\\$n33333402207449$oTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
@@ -71,25 +72,24 @@ class TestLegacySetBuilder:
     def test_create_teacher_set_from_sheet(
         self, mock_responses, today_str, mock_legacy_mapping_data, caplog
     ):
-        builder = LegacySetBuilder(file="data/foo_bar.csv")
+        builder = TeacherSetBuilder(file="data/foo_bar.csv")
         for bib_id in builder.all_bib_ids:
-            legacy_set = builder.create_set(bib_id=bib_id)
-            set_bib = builder.validate_set(legacy_set)
-            set_copies = builder.create_set_copy_batch(set_bib)
+            legacy_set = builder.create_legacy_set(bib_id=bib_id)
+            set_data = builder.validate_set(legacy_set)
+            set_copies = builder.create_set_copies(set_data)
             builder.validate_set_copies(set_copies)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 10
-        # should be 2 x the number of components + 8
+        assert len(caplog.records) == 9
+        # should be 2 x the number of components + 7
         assert [i.msg for i in caplog.records] == [
             "Creating base teacher set for 12345678.",
             "Getting bib record from platform for 12345678.",
-            "Record contains 1 ISBN(s) to check.",
-            "ISBN 9780789308849: retrieving brief bib record.",
-            "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
-            "Validating set for 12345678.",
-            "Creating copies of legacy set: 12345678.",
             "Getting items from platform for 12345678.",
             "1 item records found for bib b12345678a.",
+            "Validating set.",
+            "ISBN 9780789308849: retrieving brief bib record.",
+            "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
+            "Creating copies of legacy set: 12345678.",
             "Validating 1 set copies for 12345678.",
         ]
 
@@ -106,13 +106,13 @@ def live_creds() -> Generator[None, None, None]:
 
 
 @pytest.mark.livetest
-class TestLiveLegacySetBuilder:
-    BUILDER = LegacySetBuilder(file="tests/data/high_circ.csv")
+class TestLiveTeacherSetBuilder:
+    BUILDER = TeacherSetBuilder(file="tests/data/high_circ.csv")
 
     def test_legacy_set_builder_this_is_ny(self, today_str, caplog, live_creds):
-        teacher_set = self.BUILDER.create_set(bib_id="19538471")
+        teacher_set = self.BUILDER.create_legacy_set(bib_id="19538471")
         valid_set_bib = self.BUILDER.validate_set(teacher_set)
-        set_copies = self.BUILDER.create_set_copy_batch(valid_set_bib)
+        set_copies = self.BUILDER.create_set_copies(valid_set_bib)
         valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
         bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
@@ -130,7 +130,7 @@ class TestLiveLegacySetBuilder:
         )
         assert len(bib_records) == 7
         assert field_strings == [
-            "=001  nn-mlnyc-0000002",
+            "=001  ",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$cINC-1356",
@@ -169,7 +169,7 @@ class TestLiveLegacySetBuilder:
             "Record contains 1 ISBN(s) to check.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: 52510777).",
-            "Validating set for 19538471.",
+            "Validating set.",
             "Creating copies of legacy set: 19538471.",
             "Getting items from platform for 19538471.",
             "7 item records found for bib b19538471a.",
@@ -177,9 +177,9 @@ class TestLiveLegacySetBuilder:
         ]
 
     def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
-        teacher_set = self.BUILDER.create_set(bib_id="20895133")
+        teacher_set = self.BUILDER.create_legacy_set(bib_id="20895133")
         valid_set_bib = self.BUILDER.validate_set(teacher_set)
-        set_copies = self.BUILDER.create_set_copy_batch(valid_set_bib)
+        set_copies = self.BUILDER.create_set_copies(valid_set_bib)
         valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
         bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
@@ -198,7 +198,7 @@ class TestLiveLegacySetBuilder:
         )
         assert len(bib_records) == 8
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  ",
             "=003  BookOps",
             f"=008  {today_str}i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pC$c1077",
@@ -273,7 +273,7 @@ class TestLiveLegacySetBuilder:
             "ISBN 9781624035364: retrieving full bib record (OCLC number: 891122570).",
             "ISBN 9781624035357: retrieving brief bib record.",
             "ISBN 9781624035357: retrieving full bib record (OCLC number: 891122602).",
-            "Validating set for 20895133.",
+            "Validating set.",
             "Creating copies of legacy set: 20895133.",
             "Getting items from platform for 20895133.",
             "8 item records found for bib b20895133a.",

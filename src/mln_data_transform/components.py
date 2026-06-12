@@ -15,6 +15,14 @@ class VarFieldData:
     subfields: list[tuple[str, str]]
 
 
+@dataclass
+class SetBook:
+    """A book included within a Teacher Set to be searched for in WorldCat."""
+
+    copies: int
+    isbn: str
+
+
 @dataclass(frozen=True)
 class SetPart:
     """A book or other item included within a Teacher Set."""
@@ -31,10 +39,13 @@ class SetPart:
 
 
 @dataclass(frozen=True)
-class TeacherSetBook(SetPart):
+class WorldcatSetPart:
     """A book included within a Teacher Set."""
 
+    copies: int
+    description: str
     isbn: str
+    title: str
     author: str | None = None
     author_dates: str | None = None
     pub_date: str | None = None
@@ -57,6 +68,9 @@ class TeacherSetBook(SetPart):
             subfields.append(("f", self.pub_date))
         subfields.append(("x", self.isbn))
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
+
+    def summary_component(self) -> tuple[str, str]:
+        return (self.title, f"{self.description.strip('.')}.", self.copies)
 
 
 @dataclass(frozen=True)

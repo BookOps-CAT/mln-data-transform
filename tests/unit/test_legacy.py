@@ -1,9 +1,15 @@
 import pytest
 
-from mln_data_transform.legacy import LegacyBibData, LegacyItemData, LegacyTeacherSet
+from mln_data_transform.legacy import (
+    LegacyBibData,
+    LegacyItemData,
+    LegacyTeacherSet,
+    LegacyTeacherSetData,
+)
+from mln_data_transform.transform import PlatformManager, WorldcatManager
 
 
-class TestLegacyData:
+class TestLegacyBibData:
     def test_legacy_bib_data(self, test_bib_data):
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
@@ -12,9 +18,7 @@ class TestLegacyData:
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.isbns == ["9780789308849"]
-        assert legacy_bib.leader == "00000nam  2200000 a 4500"
         assert legacy_bib.physical_description == "10 items"
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_count == 10
@@ -28,7 +32,6 @@ class TestLegacyData:
             language=test_bib_data["lang"],
         )
         assert legacy_bib.isbns == []
-        assert legacy_bib.leader is None
         assert legacy_bib.physical_description is None
         assert legacy_bib.record_type == "a"
 
@@ -107,9 +110,10 @@ class TestLegacyData:
             == "Call number 'call number' does not match pattern. Cannot extract components."
         )
 
+
+class TestLegacyItemData:
     def test_legacy_item_data(self, test_item_data):
         legacy_item = LegacyItemData(
-            shelf_number="1",
             item_id=test_item_data["id"],
             call_number=test_item_data["callNumber"],
             barcode="33333123456789",
@@ -149,37 +153,51 @@ class TestLegacyData:
             item_id="i123456789",
             call_number=f"Teacher Set {arg}",
             barcode="33333123456789",
-            shelf_number=1,
         )
         assert legacy_item.call_number == f"Teacher Set {arg}"
         assert legacy_item.bib_call_number == f"Teacher Set {result}"
 
 
-class TestLegacyTeacherSet:
-    def test_create_teacher_sets(self, mock_responses):
-        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
-        assert (
-            legacy_set.contents_note
-            == 'Set consists of 10 copies of "This is New York".'
+class TestLegacyTeacherSetData:
+    def test_create_teacher_set_data(self, mock_responses, caplog):
+        platform_manager = PlatformManager()
+        legacy_set = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
         )
-        assert legacy_set.pub_dates == ["2003"]
-        assert len(legacy_set.subjects) == 2
+        assert (
+            legacy_set.bib_data.call_number
+            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
+        )
+        assert len(legacy_set.item_data) == 1
 
-    def test_create_teacher_sets_missing_data(
-        self, mock_worldcat_response_missing_data
+
+class TestLegacyTeacherSet:
+    def test_create_teacher_set_missing_data(
+        self, mock_worldcat_response_missing_data, caplog
     ):
-        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
+        platform_manager = PlatformManager()
+        legacy_set_data = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
+        )
+        with WorldcatManager() as manager:
+            legacy_set = LegacyTeacherSet(
+                set_data=legacy_set_data, worldcat_manager=manager
+            )
         assert legacy_set.parts[0].author is None
         assert legacy_set.parts[0].author_dates is None
         assert legacy_set.parts[0].description == ""
         assert legacy_set.parts[0].pub_date == "20uu"
         assert legacy_set.parts[0].subjects == []
-        assert legacy_set.pub_dates == ["20uu"]
-        assert legacy_set.subjects == []
 
     def test_create_teacher_sets_no_pub_dates(
-        self, mock_worldcat_response_no_pub_dates
+        self, mock_worldcat_response_no_pub_dates, caplog
     ):
-        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
+        platform_manager = PlatformManager()
+        legacy_set_data = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
+        )
+        with WorldcatManager() as manager:
+            legacy_set = LegacyTeacherSet(
+                set_data=legacy_set_data, worldcat_manager=manager
+            )
         assert legacy_set.parts[0].pub_date is None
-        assert legacy_set.pub_dates == []

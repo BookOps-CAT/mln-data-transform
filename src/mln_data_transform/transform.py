@@ -123,6 +123,16 @@ class WorldcatManager:
             secret=os.environ["WORLDCAT_SECRET"],
             scopes="WorldCatMetadataAPI",
         )
+        self.session = None
+
+    def __enter__(self, *args, **kwargs) -> WorldcatManager:
+        self.session = MetadataSession(
+            authorization=self.worldcat_token, timeout=(10, 10)
+        )
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        self.session.close()
 
     def get_oclc_number_from_isbn(self, response: Response) -> str:
         parsed_responses = [
@@ -131,17 +141,30 @@ class WorldcatManager:
         sorted_recs = sorted(parsed_responses, key=BriefBibResponse.sort_key)
         return [i.oclc_number for i in sorted_recs][0]
 
-    def get_full_record(self, oclc_number: str, session: MetadataSession) -> Record:
-        full_bib_response = session.bib_get(
+    def get_full_record(self, oclc_number: str) -> Record:
+        full_bib_response = self.session.bib_get(
             oclcNumber=oclc_number, responseFormat="application/marc"
         )
         return Record(data=full_bib_response.content)  # type: ignore
+
+    def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
+        logger.info(f"ISBN {isbn}: retrieving brief bib record.")
+        brief_bib = self.session.brief_bibs_search(
+            q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
+        )
+        oclc_number = self.get_oclc_number_from_isbn(response=brief_bib)
+        logger.info(
+            f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
+        )
+        full_rec = self.get_full_record(oclc_number=oclc_number)
+        return FullWorldCatResponse(isbn=isbn, wc_response=full_rec)
 
     def get_worldcat_data_for_parts(
         self, isbns: list[str]
     ) -> list[FullWorldCatResponse]:
         parts: list[FullWorldCatResponse] = []
         logger.info(f"Record contains {len(isbns)} ISBN(s) to check.")
+        logger.info("Starting MetadataSession.")
         with MetadataSession(
             authorization=self.worldcat_token, timeout=(10, 10)
         ) as session:
