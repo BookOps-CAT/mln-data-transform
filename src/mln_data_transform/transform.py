@@ -102,7 +102,7 @@ class PlatformManager:
         )
 
     def get_platform_bib(self, bib_id: str) -> dict[str, Any]:
-        logger.info(f"Getting bib from platform for {bib_id}.")
+        logger.info(f"Getting bib record from platform for {bib_id}.")
         with PlatformSession(authorization=self.platform_token) as session:
             response = session.get_bib(id=bib_id)
             return response.json()["data"]
@@ -132,7 +132,6 @@ class WorldcatManager:
         return [i.oclc_number for i in sorted_recs][0]
 
     def get_full_record(self, oclc_number: str, session: MetadataSession) -> Record:
-        logger.info(f"Getting worldcat full MARC record for {oclc_number}.")
         full_bib_response = session.bib_get(
             oclcNumber=oclc_number, responseFormat="application/marc"
         )
@@ -147,12 +146,15 @@ class WorldcatManager:
             authorization=self.worldcat_token, timeout=(10, 10)
         ) as session:
             for isbn in isbns:
-                logger.info(f"Searching worldcat for {isbn}.")
+                logger.info(f"ISBN {isbn}: retrieving brief bib record.")
                 brief_bib = session.brief_bibs_search(
                     q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
                 )
                 oclc_number = self.get_oclc_number_from_isbn(response=brief_bib)
-
+                logger.info(
+                    f"ISBN {isbn}: retrieving full bib record "
+                    f"(OCLC number: {oclc_number})."
+                )
                 full_rec = self.get_full_record(
                     oclc_number=oclc_number, session=session
                 )

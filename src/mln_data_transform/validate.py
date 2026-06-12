@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 class TeacherSetModel(BaseModel):
     contents_note: str
     control_number: str
-    copy_number: int
     grade_level: GradeReadingLevel
     language: str
     parts: Sequence[TeacherSetBook | TeacherSetSpecialFormat]
@@ -32,10 +31,8 @@ class TeacherSetModel(BaseModel):
     record_type: str
     set_title: str
     set_type: SetTypeFormat
-    shelf_number: str
     study_program_info: SubjectStudyProgram
     subjects: list[VarFieldData]
-    copies_of_set: int
     enhanced: str | None = None
     local_genre_term: list[TaxonomyGenre] | None = None
     local_topic_term: list[TaxonomyTopic] | None = None
@@ -70,6 +67,12 @@ class TeacherSetModel(BaseModel):
             except KeyError:
                 value = SubjectStudyProgram(value)
         return value
+
+
+class TeacherSetCopyModel(TeacherSetModel):
+    copy_number: int
+    shelf_number: str
+    copies_of_set: int
 
     @model_serializer
     def dump_model(self) -> dict[str, Any]:

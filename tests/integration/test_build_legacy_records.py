@@ -8,14 +8,31 @@ from mln_data_transform.build import LegacySetBuilder
 
 
 class TestLegacySetBuilder:
+    def test_create_validate_set(self, mock_responses, today_str, caplog):
+        builder = LegacySetBuilder(file="data/260611_high_circ.csv")
+        legacy_set = builder.create_set(bib_id="19538471")
+        builder.validate_set(legacy_set)
+        assert len(caplog.records) == 6
+        # should be 2 x the number of components + 4
+        assert [i.msg for i in caplog.records] == [
+            "Creating base teacher set for 19538471.",
+            "Getting bib record from platform for 19538471.",
+            "Record contains 1 ISBN(s) to check.",
+            "ISBN 9780789308849: retrieving brief bib record.",
+            "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
+            "Validating set for 19538471.",
+        ]
+
     def test_create_teacher_sets(self, mock_responses, today_str):
         builder = LegacySetBuilder(file="data/260611_high_circ.csv")
-        legacy_sets = builder.create_sets(bib_id="19538471")
-        set_bibs = builder.validate_set_records(legacy_sets)
-        bibs = [i.to_bib() for i in set_bibs]
+        legacy_set = builder.create_set(bib_id="19538471")
+        set_bib = builder.validate_set(legacy_set)
+        set_copies = builder.create_set_copy_batch(set_bib)
+        valid_set_copies = builder.validate_set_copies(set_copies)
+        bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
-        assert len(set_bibs[0].components) == 1
-        assert sorted([i.field_245.format_field() for i in set_bibs]) == sorted(
+        assert len(valid_set_copies[0].components) == 1
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["This is New York by M. Sasek. Copy 1 of 1"]
         )
         assert len(bibs) == 1
@@ -56,10 +73,25 @@ class TestLegacySetBuilder:
     ):
         builder = LegacySetBuilder(file="data/foo_bar.csv")
         for bib_id in builder.all_bib_ids:
-            legacy_sets = builder.create_sets(bib_id)
-            builder.validate_set_records(sets=legacy_sets)
+            legacy_set = builder.create_set(bib_id=bib_id)
+            set_bib = builder.validate_set(legacy_set)
+            set_copies = builder.create_set_copy_batch(set_bib)
+            builder.validate_set_copies(set_copies)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 7
+        assert len(caplog.records) == 10
+        # should be 2 x the number of components + 8
+        assert [i.msg for i in caplog.records] == [
+            "Creating base teacher set for 12345678.",
+            "Getting bib record from platform for 12345678.",
+            "Record contains 1 ISBN(s) to check.",
+            "ISBN 9780789308849: retrieving brief bib record.",
+            "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
+            "Validating set for 12345678.",
+            "Creating copies of legacy set: 12345678.",
+            "Getting items from platform for 12345678.",
+            "1 item records found for bib b12345678a.",
+            "Validating 1 set copies for 12345678.",
+        ]
 
 
 @pytest.fixture(scope="class")
@@ -75,15 +107,17 @@ def live_creds() -> Generator[None, None, None]:
 
 @pytest.mark.livetest
 class TestLiveLegacySetBuilder:
-    BUILDER = LegacySetBuilder(file="data/260609_high_circ.csv")
+    BUILDER = LegacySetBuilder(file="data/260611_high_circ.csv")
 
     def test_legacy_set_builder_this_is_ny(self, today_str, caplog, live_creds):
-        teacher_sets = self.BUILDER.create_sets(bib_id="19538471")
-        valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
-        bib_records = [i.to_bib() for i in valid_set_bibs]
+        teacher_set = self.BUILDER.create_set(bib_id="19538471")
+        valid_set_bib = self.BUILDER.validate_set(teacher_set)
+        set_copies = self.BUILDER.create_set_copy_batch(valid_set_bib)
+        valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
+        bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
-        assert len(valid_set_bibs[0].components) == 1
-        assert sorted([i.field_245.format_field() for i in valid_set_bibs]) == sorted(
+        assert len(valid_set_copies[0].components) == 1
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             [
                 "This is New York by M. Sasek. Copy 1 of 7",
                 "This is New York by M. Sasek. Copy 2 of 7",
@@ -128,25 +162,29 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
-        # should be the number of volumes in set x 2 + 5
-        assert len(caplog.records) == 7
+        assert len(caplog.records) == 10
         assert [i.msg for i in caplog.records] == [
-            "Creating sets for 19538471",
-            "Getting bib from platform for 19538471.",
+            "Creating base teacher set for 19538471.",
+            "Getting bib record from platform for 19538471.",
+            "Record contains 1 ISBN(s) to check.",
+            "ISBN 9780789308849: retrieving brief bib record.",
+            "ISBN 9780789308849: retrieving full bib record (OCLC number: 52510777).",
+            "Validating set for 19538471.",
+            "Creating copies of legacy set: 19538471.",
             "Getting items from platform for 19538471.",
             "7 item records found for bib b19538471a.",
-            "Record contains 1 ISBN(s) to check.",
-            "Searching worldcat for 9780789308849.",
-            "Getting worldcat full MARC record for 52510777.",
+            "Validating 7 set copies for 19538471.",
         ]
 
     def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
-        teacher_sets = self.BUILDER.create_sets(bib_id="20895133")
-        valid_set_bibs = self.BUILDER.validate_set_records(teacher_sets)
-        bib_records = [i.to_bib() for i in valid_set_bibs]
+        teacher_set = self.BUILDER.create_set(bib_id="20895133")
+        valid_set_bib = self.BUILDER.validate_set(teacher_set)
+        set_copies = self.BUILDER.create_set_copy_batch(valid_set_bib)
+        valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
+        bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
-        assert len(valid_set_bibs[0].components) == 8
-        assert sorted([i.field_245.format_field() for i in valid_set_bibs]) == sorted(
+        assert len(valid_set_copies[0].components) == 8
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             [
                 "Ancient Civilizations. Copy 1 of 8",
                 "Ancient Civilizations. Copy 2 of 8",
@@ -167,7 +205,7 @@ class TestLiveLegacySetBuilder:
             "=245  00$aAncient Civilizations.$nCopy 1 of 8",
             "=300  \\\\$a8 v.",
             '=500  \\\\$aSet consists of 1 copy of "Ancient Rome", 1 copy of "Ancient Mesopotamia", 1 copy of "Ancient Maya", 1 copy of "Ancient India", 1 copy of "Ancient Greece", 1 copy of "Ancient Egypt", 1 copy of "Ancient China", 1 copy of "Ancient Aztecs".',
-            "=520  \\\\$3Ancient Rome$aIn Ancient Rome, readers discover the history and impressive accomplishments of the ancient Romans, including their military power and feats of engineering. Text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.",
+            "=520  \\\\$3Ancient Rome$a\"In Ancient Rome, readers discover the history and impressive accomplishments of the ancient Romans, including their military power and feats of engineering. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
             "=520  \\\\$3Ancient Mesopotamia$a\"In Ancient Mesopotamia, readers discover the history and impressive accomplishments of the ancient Mesopotamians, including their extraordinary cultural achievements and technological wonders. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
             "=520  \\\\$3Ancient Maya$a\"In Ancient Maya, readers discover the history and impressive accomplishments of the Maya people, including their advanced mathematics and massive stone cities. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's website.",
             "=520  \\\\$3Ancient India$a\"In Ancient India, readers discover the history and impressive accomplishments of the people of ancient India, including their enduring religions and rich literary traditions. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
@@ -179,28 +217,25 @@ class TestLiveLegacySetBuilder:
             "=526  8\\$aSocial Studies",
             "=650  \\0$aMayas$vJuvenile literature.",
             "=650  \\0$aAztecs$vJuvenile literature.",
-            "=651  \\0$aRome$xCivilization.",
-            "=651  \\0$aRome$xHistory.",
-            "=651  \\0$aRome$xSocial life and customs.",
+            "=651  \\0$aRome$xCivilization$vJuvenile literature.",
             "=651  \\0$aIraq$xCivilization$yTo 634$vJuvenile literature.",
             "=651  \\0$aMexico$xCivilization$vJuvenile literature.",
             "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
             "=651  \\0$aIndia$xCivilization$yTo 1200$vJuvenile literature.",
             "=651  \\0$aGreece$xCivilization$yTo 146 B.C.$vJuvenile literature.",
-            "=651  \\0$aEgypt$xHistory$vJuvenile literature.",
             "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
-            "=651  \\0$aChina$xHistory$vJuvenile literature.",
-            "=651  \\0$aGreece$xSocial life and customs$vJuvenile literature.",
             "=655  \\7$aLiterature.$2lcgft",
+            "=655  \\7$aHistory.$0(OCoLC)fst01411628$2lcgft",
+            "=655  \\7$aJuvenile works.$0(OCoLC)fst01411637$2lcgft",
             "=690  \\7$aTopic$2bookops",
             "=700  12$aHamen, Susan E.$tAncient Rome$f2015$x9781624035425",
             "=700  12$aHead, Tom$tAncient Mesopotamia$f2015$x9781624035418",
             "=700  12$aEdwards, Sue Bradford$tAncient Maya$f2015$x9781624035401",
             "=700  12$aRowell, Rebecca$tAncient India$f2015$x9781624035395",
             "=700  12$aBailey, Diane$d1966-$tAncient Greece$f2015$x9781624035388",
-            "=700  12$aAmstutz, L. J.$tAncient Egypt$f2015$x9781624035371",
+            "=700  12$aAmstutz, Lisa J.$tAncient Egypt$f2015$x9781624035371",
             "=700  12$aAtkins, Marcie Flinchum$tAncient China$f2015$x9781624035364",
             "=700  12$aKenney, Karen Latchana$tAncient Aztecs$f2015$x9781624035357",
             "=901  \\\\$amlnyc-bot$bCATBL",
@@ -217,27 +252,30 @@ class TestLiveLegacySetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Ancient China$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
-        assert len(caplog.records) == 21
+        assert len(caplog.records) == 24
         assert [i.msg for i in caplog.records] == [
-            "Creating sets for 20895133",
-            "Getting bib from platform for 20895133.",
+            "Creating base teacher set for 20895133.",
+            "Getting bib record from platform for 20895133.",
+            "Record contains 8 ISBN(s) to check.",
+            "ISBN 9781624035425: retrieving brief bib record.",
+            "ISBN 9781624035425: retrieving full bib record (OCLC number: 891122605).",
+            "ISBN 9781624035418: retrieving brief bib record.",
+            "ISBN 9781624035418: retrieving full bib record (OCLC number: 904347324).",
+            "ISBN 9781624035401: retrieving brief bib record.",
+            "ISBN 9781624035401: retrieving full bib record (OCLC number: 904346699).",
+            "ISBN 9781624035395: retrieving brief bib record.",
+            "ISBN 9781624035395: retrieving full bib record (OCLC number: 891122638).",
+            "ISBN 9781624035388: retrieving brief bib record.",
+            "ISBN 9781624035388: retrieving full bib record (OCLC number: 914136830).",
+            "ISBN 9781624035371: retrieving brief bib record.",
+            "ISBN 9781624035371: retrieving full bib record (OCLC number: 914136829).",
+            "ISBN 9781624035364: retrieving brief bib record.",
+            "ISBN 9781624035364: retrieving full bib record (OCLC number: 891122570).",
+            "ISBN 9781624035357: retrieving brief bib record.",
+            "ISBN 9781624035357: retrieving full bib record (OCLC number: 891122602).",
+            "Validating set for 20895133.",
+            "Creating copies of legacy set: 20895133.",
             "Getting items from platform for 20895133.",
             "8 item records found for bib b20895133a.",
-            "Record contains 8 ISBN(s) to check.",
-            "Searching worldcat for 9781624035425.",
-            "Getting worldcat full MARC record for 911497614.",
-            "Searching worldcat for 9781624035418.",
-            "Getting worldcat full MARC record for 904347324.",
-            "Searching worldcat for 9781624035401.",
-            "Getting worldcat full MARC record for 904346699.",
-            "Searching worldcat for 9781624035395.",
-            "Getting worldcat full MARC record for 891122638.",
-            "Searching worldcat for 9781624035388.",
-            "Getting worldcat full MARC record for 914136830.",
-            "Searching worldcat for 9781624035371.",
-            "Getting worldcat full MARC record for 910879363.",
-            "Searching worldcat for 9781624035364.",
-            "Getting worldcat full MARC record for 908256277.",
-            "Searching worldcat for 9781624035357.",
-            "Getting worldcat full MARC record for 891122602.",
+            "Validating 8 set copies for 20895133.",
         ]

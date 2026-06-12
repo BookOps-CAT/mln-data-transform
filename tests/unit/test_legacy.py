@@ -1,11 +1,6 @@
 import pytest
 
-from mln_data_transform.legacy import (
-    LegacyBibData,
-    LegacyItemData,
-    LegacyTeacherSet,
-    LegacyTeacherSetBatch,
-)
+from mln_data_transform.legacy import LegacyBibData, LegacyItemData, LegacyTeacherSet
 
 
 class TestLegacyData:
@@ -160,47 +155,31 @@ class TestLegacyData:
         assert legacy_item.bib_call_number == f"Teacher Set {result}"
 
 
-class TestLegacyTeacherSetBatch:
+class TestLegacyTeacherSet:
     def test_create_teacher_sets(self, mock_responses):
-        batch = LegacyTeacherSetBatch(
-            bib_id="12345",
-            item_mapping={"33333402207449": "1"},
-            control_number="nn-mlnyc-0000001",
-        )
-        sets = batch.create_teacher_sets()
-        assert isinstance(sets[0], LegacyTeacherSet)
-        assert len(sets) == 1
+        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
         assert (
-            sets[0].contents_note == 'Set consists of 10 copies of "This is New York".'
+            legacy_set.contents_note
+            == 'Set consists of 10 copies of "This is New York".'
         )
-        assert sets[0].pub_dates == ["2003"]
-        assert len(sets[0].subjects) == 2
+        assert legacy_set.pub_dates == ["2003"]
+        assert len(legacy_set.subjects) == 2
 
     def test_create_teacher_sets_missing_data(
         self, mock_worldcat_response_missing_data
     ):
-        batch = LegacyTeacherSetBatch(
-            bib_id="12345",
-            item_mapping={"33333402207449": "1"},
-            control_number="nn-mlnyc-0000001",
-        )
-        sets = batch.create_teacher_sets()
-        assert sets[0].parts[0].author is None
-        assert sets[0].parts[0].author_dates is None
-        assert sets[0].parts[0].description == ""
-        assert sets[0].parts[0].pub_date == "20uu"
-        assert sets[0].parts[0].subjects == []
-        assert sets[0].pub_dates == ["20uu"]
-        assert sets[0].subjects == []
+        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
+        assert legacy_set.parts[0].author is None
+        assert legacy_set.parts[0].author_dates is None
+        assert legacy_set.parts[0].description == ""
+        assert legacy_set.parts[0].pub_date == "20uu"
+        assert legacy_set.parts[0].subjects == []
+        assert legacy_set.pub_dates == ["20uu"]
+        assert legacy_set.subjects == []
 
     def test_create_teacher_sets_no_pub_dates(
         self, mock_worldcat_response_no_pub_dates
     ):
-        batch = LegacyTeacherSetBatch(
-            bib_id="12345",
-            item_mapping={"33333402207449": "1"},
-            control_number="nn-mlnyc-0000001",
-        )
-        sets = batch.create_teacher_sets()
-        assert sets[0].parts[0].pub_date is None
-        assert sets[0].pub_dates == []
+        legacy_set = LegacyTeacherSet(bib_id="12345", control_number="nn-mlnyc-0000001")
+        assert legacy_set.parts[0].pub_date is None
+        assert legacy_set.pub_dates == []

@@ -8,22 +8,34 @@ from typing import Any, TypeVar
 import pandas as pd
 from pydantic import ValidationError
 
-from mln_data_transform.legacy import LegacyTeacherSet, LegacyTeacherSetBatch
+from mln_data_transform.legacy import (
+    LegacyTeacherSet,
+    LegacyTeacherSetBatch,
+    LegacyTeacherSetCopy,
+)
 from mln_data_transform.serialize import TeacherSetBib
-from mln_data_transform.validate import TeacherSetModel
+from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
 
 logger = logging.getLogger(__name__)
 
-S = TypeVar("S")  # variabe for `TeacherSetData` and `LegacyTeacherSet` types
+S = TypeVar("S")  # variable for `TeacherSetData` and `LegacyTeacherSet` types
 
 
 class SetBuilder(ABC):
     @abstractmethod
-    def create_sets(self, *args, **kwargs) -> list[S]: ...  # pragma: no branch
+    def create_set(self, *args, **kwargs) -> S: ...  # pragma: no branch
 
     @abstractmethod
-    def validate_set_records(
-        self, sets: list[S]
+    def validate_set(self, *args, **kwargs) -> S | None: ...  # pragma: no branch
+
+    @abstractmethod
+    def create_set_copy_batch(
+        self, *args, **kwargs
+    ) -> list[S]: ...  # pragma: no branch
+
+    @abstractmethod
+    def validate_set_copies(
+        self, *args, **kwargs
     ) -> list[TeacherSetBib]: ...  # pragma: no branch
 
     def write_errors_to_file(self, errors: list[dict[str, Any]]) -> None:
@@ -32,6 +44,7 @@ class SetBuilder(ABC):
         df.to_csv(f"data/{today_str}_validation_errors.csv", index=False, mode="a")
 
     def write_marc_to_file(self, out_file: str, set_bibs: list[TeacherSetBib]) -> None:
+        logger.info(f"Writing records to file for {set_bibs[0].control_number}.")
         with open(out_file, "ab") as fh:
             for set_bib in set_bibs:
                 bib = set_bib.to_bib()
@@ -77,22 +90,44 @@ class LegacySetBuilder(SetBuilder):
         locs = dict(zip(bib_df["BARCODE"], bib_df["LOCATION"]))
         return locs
 
-    def create_sets(self, bib_id: str) -> list[LegacyTeacherSet]:
-        logger.info(f"Creating sets for {bib_id}")
-        batch = LegacyTeacherSetBatch(
-            bib_id=bib_id,
-            control_number=self.control_number(bib_id),
-            item_mapping=self.location_mapping(bib_id),
+    def create_set(self, bib_id: str) -> LegacyTeacherSet:
+        logger.info(f"Creating base teacher set for {bib_id}.")
+        legacy_set = LegacyTeacherSet(
+            bib_id=bib_id, control_number=self.control_number(bib_id)
         )
-        return batch.create_teacher_sets()
+        return legacy_set
 
-    def validate_set_records(self, sets: list[LegacyTeacherSet]) -> list[TeacherSetBib]:
+    def create_set_copy_batch(
+        self, legacy_set: LegacyTeacherSet
+    ) -> list[LegacyTeacherSetCopy]:
+        logger.info(f"Creating copies of legacy set: {legacy_set.bib_id}.")
+        batch = LegacyTeacherSetBatch(
+            legacy_set=legacy_set, item_mapping=self.location_mapping(legacy_set.bib_id)
+        )
+        return batch.create_set_copies()
+
+    def validate_set(self, set: LegacyTeacherSet) -> LegacyTeacherSet | None:
+        logger.info(f"Validating set for {set.bib_id}.")
+        try:
+            TeacherSetModel.model_validate(set, from_attributes=True)
+            return set
+        except ValidationError as e:
+            logger.error(f"Validation errors for bib {set.bib_id}: {e.json()}.")
+            self.write_errors_to_file(json.loads(e.json()))
+
+    def validate_set_copies(
+        self, legacy_set_copies: list[LegacyTeacherSetCopy]
+    ) -> list[LegacyTeacherSetCopy]:
         valid_bibs = []
         error_data = []
-        for set in sets:
+        logger.info(
+            f"Validating {len(legacy_set_copies)} set copies for "
+            f"{legacy_set_copies[0].bib_id}."
+        )
+        for set in legacy_set_copies:
             try:
-                set_model = TeacherSetModel.model_validate(set, from_attributes=True)
-                valid_bibs.append(set_model.to_set_bib())
+                set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
+                valid_bibs.append(set_copy.to_set_bib())
             except ValidationError as e:
                 logger.error(
                     f"Validation errors for bib {set.bib_id}, copy "

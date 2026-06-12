@@ -4,7 +4,7 @@ import pytest
 
 from mln_data_transform.components import TeacherSetBook, TeacherSetSpecialFormat
 from mln_data_transform.models import TeacherSetData
-from mln_data_transform.validate import TeacherSetModel
+from mln_data_transform.validate import TeacherSetCopyModel
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ class TestNewTeacherSetFromModel:
         ]
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_data = TeacherSetData(**set_test_data)
-        teacher_set = TeacherSetModel(**set_data.to_dict())
+        teacher_set = TeacherSetCopyModel(**set_data.to_dict())
         set_bib = teacher_set.to_set_bib()
         bib = set_bib.to_bib()
         field_strings = [str(i) for i in bib.fields]
@@ -112,7 +112,7 @@ class TestNewTeacherSetFromModel:
         set_test_data["record_type"] = "o"
         set_test_data["enhanced"] = "E"
         set_data = TeacherSetData(**set_test_data)
-        teacher_set = TeacherSetModel(**set_data.to_dict())
+        teacher_set = TeacherSetCopyModel(**set_data.to_dict())
         set_bib = teacher_set.to_set_bib()
         bib = set_bib.to_bib()
         field_strings = [str(i) for i in bib.fields]
@@ -157,7 +157,7 @@ class TestNewTeacherSetFromModel:
         parts_test_data[2]["pub_date"] = None
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_data = TeacherSetData(**set_test_data)
-        teacher_set = TeacherSetModel(**set_data.to_dict())
+        teacher_set = TeacherSetCopyModel(**set_data.to_dict())
         set_bib = teacher_set.to_set_bib()
         bib = set_bib.to_bib()
         field_strings = [str(i) for i in bib.fields]
@@ -199,7 +199,7 @@ class TestNewTeacherSetFromModel:
         set_test_data["local_topic_term"] = None
         set_test_data["local_genre_term"] = None
         set_data = TeacherSetData(**set_test_data)
-        teacher_set = TeacherSetModel(**set_data.to_dict())
+        teacher_set = TeacherSetCopyModel(**set_data.to_dict())
         set_bib = teacher_set.to_set_bib()
         bib = set_bib.to_bib()
         field_strings = [str(i) for i in bib.fields]
@@ -241,7 +241,7 @@ class TestNewTeacherSetFromModel:
         set_test_data["local_genre_term"] = ["Fiction"]
         set_test_data["parts"] = [TeacherSetBook(**i) for i in parts_test_data]
         set_data = TeacherSetData(**set_test_data)
-        teacher_set = TeacherSetModel(**set_data.to_dict())
+        teacher_set = TeacherSetCopyModel(**set_data.to_dict())
         set_bib = teacher_set.to_set_bib()
         bib = set_bib.to_bib()
         field_strings = [str(i) for i in bib.fields]
