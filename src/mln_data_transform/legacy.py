@@ -5,7 +5,7 @@ import re
 from functools import cached_property
 from typing import Any
 
-from mln_data_transform.components import VarFieldData, WorldcatSetPart
+from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
 from mln_data_transform.taxonomy import (
     GradeReadingLevel,
     SetTypeFormat,
@@ -21,6 +21,10 @@ class LegacyTeacherSetData:
     def __init__(self, bib_id: str, platform_manager: PlatformManager) -> None:
         self.platform_manager = platform_manager
         self.bib_id = bib_id
+        self.parts = [
+            SetBook(isbn=i, copies=self.bib_data.copy_count)
+            for i in self.bib_data.isbns
+        ]
 
     @cached_property
     def bib_data(self) -> LegacyBibData:
@@ -217,14 +221,12 @@ class LegacyBibData:
     def subject(self) -> str:
         """Extracts subject from call number to map to study program info."""
         subject = self.call_number_components["subject"]
-        if not self.lang and subject not in self.SUBJECT_MAPPING.keys():
-            return subject.upper()
-        elif subject in self.SUBJECT_MAPPING.keys():
+        if subject in self.SUBJECT_MAPPING.keys():
             return self.SUBJECT_MAPPING[subject]
-        subject_no_lang = self.SUBJECT_MAPPING[subject.removesuffix(self.lang).strip()]
-        if len(subject_no_lang) == 2:
-            return f"{self.lang[:2]}{subject_no_lang}"
-        return subject_no_lang
+        elif self.lang and subject.removesuffix(self.lang).strip() == "Language Arts":
+            return "WorldLang"
+        else:
+            return subject.upper()
 
 
 class LegacyItemData:
@@ -245,10 +247,7 @@ class LegacyItemData:
 
 
 class LegacyTeacherSet:
-    def __init__(
-        self, set_data: LegacyTeacherSetData, worldcat_manager: WorldcatManager
-    ) -> None:
-        self.worldcat_manager = worldcat_manager
+    def __init__(self, set_data: LegacyTeacherSetData) -> None:
         self._set_data = set_data
         self.bib_id = self._set_data.bib_id
         self.legacy_call_number = self._set_data.bib_data.call_number.strip()
@@ -270,23 +269,41 @@ class LegacyTeacherSet:
         self.study_program_info = SubjectStudyProgram[self._set_data.bib_data.subject]
         self.var_fields = self._set_data.bib_data.var_fields
 
+    @property
+    def contents_note(self) -> str:
+        part_list = []
+        for part in self.parts:
+            if part.copies > 1:
+                copy_part = " copies of "
+            else:
+                copy_part = " copy of "
+            part_list.append(
+                "".join(
+                    [str(part.copies), copy_part, '"', part.title.strip("."), '", ']
+                )
+            )
+        return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
     @cached_property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        for isbn in self._set_data.bib_data.isbns:
-            worldcat_part = self.worldcat_manager.get_worldcat_data_for_part(isbn=isbn)
-            parts.append(
-                WorldcatSetPart(
-                    isbn=isbn,
-                    title=worldcat_part.title,
-                    author=worldcat_part.author_name,
-                    author_dates=worldcat_part.author_dates,
-                    pub_date=worldcat_part.pub_date,
-                    description=worldcat_part.description,
-                    copies=self._set_data.bib_data.copy_count,
-                    subjects=worldcat_part.subjects,
+        data_parts = self._set_data.parts
+        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        with WorldcatManager() as manager:
+            for part in data_parts:
+                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
+                parts.append(
+                    WorldcatSetPart(
+                        isbn=part.isbn,
+                        title=worldcat_part.title,
+                        author=worldcat_part.author_name,
+                        author_dates=worldcat_part.author_dates,
+                        pub_date=worldcat_part.pub_date,
+                        description=worldcat_part.description,
+                        copies=part.copies,
+                        subjects=worldcat_part.subjects,
+                    )
                 )
-            )
         return parts
 
     @property

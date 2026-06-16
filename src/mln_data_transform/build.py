@@ -49,9 +49,8 @@ class TeacherSetBuilder:
         set_data = LegacyTeacherSetData(
             bib_id=bib_id, platform_manager=platform_manager
         )
-        with WorldcatManager() as manager:
-            legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_manager=manager)
-            return legacy_set
+        legacy_set = LegacyTeacherSet(set_data=set_data)
+        return legacy_set
 
     def create_teacher_set(
         self,

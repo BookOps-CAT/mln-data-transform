@@ -6,7 +6,7 @@ from mln_data_transform.legacy import (
     LegacyTeacherSet,
     LegacyTeacherSetData,
 )
-from mln_data_transform.transform import PlatformManager, WorldcatManager
+from mln_data_transform.transform import PlatformManager
 
 
 class TestLegacyBibData:
@@ -175,10 +175,7 @@ class TestLegacyTeacherSet:
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
-        with WorldcatManager() as manager:
-            legacy_set = LegacyTeacherSet(
-                set_data=legacy_set_data, worldcat_manager=manager
-            )
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert legacy_set.parts[0].author is None
         assert legacy_set.parts[0].author_dates is None
         assert legacy_set.parts[0].description == ""
@@ -192,8 +189,5 @@ class TestLegacyTeacherSet:
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
-        with WorldcatManager() as manager:
-            legacy_set = LegacyTeacherSet(
-                set_data=legacy_set_data, worldcat_manager=manager
-            )
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert legacy_set.parts[0].pub_date is None

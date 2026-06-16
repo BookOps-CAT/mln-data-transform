@@ -12,14 +12,15 @@ class TestTeacherSetBuilder:
         builder = TeacherSetBuilder(file="tests/data/high_circ.csv")
         legacy_set = builder.create_legacy_set(bib_id="19538471")
         builder.validate_set(legacy_set)
-        assert len(caplog.records) == 7
-        # should be 2 x the number of components + 4
+        assert len(caplog.records) == 8
+        # should be 2 x the number of components + 6
         assert [i.msg for i in caplog.records] == [
             "Creating base teacher set for 19538471.",
             "Getting bib record from platform for 19538471.",
             "Getting items from platform for 19538471.",
             "1 item records found for bib b19538471a.",
             "Validating set.",
+            "Record contains 1 ISBN(s) to query WorldCat.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
         ]
@@ -79,14 +80,15 @@ class TestTeacherSetBuilder:
             set_copies = builder.create_set_copies(set_data)
             builder.validate_set_copies(set_copies)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 9
-        # should be 2 x the number of components + 7
+        assert len(caplog.records) == 10
+        # should be 2 x the number of components + 8
         assert [i.msg for i in caplog.records] == [
             "Creating base teacher set for 12345678.",
             "Getting bib record from platform for 12345678.",
             "Getting items from platform for 12345678.",
             "1 item records found for bib b12345678a.",
             "Validating set.",
+            "Record contains 1 ISBN(s) to query WorldCat.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
             "Creating copies of legacy set: 12345678.",
