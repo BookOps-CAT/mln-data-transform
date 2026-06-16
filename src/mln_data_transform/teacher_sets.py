@@ -32,7 +32,7 @@ class TeacherSetData:
         study_program_info: str,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
-        special_formats: list[TeacherSetSpecialFormat] | None = None,
+        special_formats: list[dict[str, str]] | None = None,
     ) -> None:
         self.copies_of_set = copies_of_set
         self.grade_level = GradeReadingLevel(grade_level)
@@ -47,7 +47,11 @@ class TeacherSetData:
         self.set_title = set_title
         self.set_type = SetTypeFormat(set_type)
         self.study_program_info = SubjectStudyProgram(study_program_info)
-        self.special_formats = special_formats
+        self.special_formats = (
+            [TeacherSetSpecialFormat(**i) for i in special_formats]
+            if special_formats
+            else None
+        )
 
     @property
     def enhanced(self) -> str | None:
@@ -63,10 +67,7 @@ class TeacherSetData:
 
 
 class TeacherSet:
-    def __init__(
-        self, set_data: TeacherSetData, worldcat_manager: WorldcatManager
-    ) -> None:
-        self.worldcat_manager = worldcat_manager
+    def __init__(self, set_data: TeacherSetData) -> None:
         self._set_data = set_data
 
         self.copies_of_set = self._set_data.copies_of_set
@@ -100,21 +101,25 @@ class TeacherSet:
     @cached_property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        for isbn, copies in self._set_data.parts.items():
-            worldcat_part = self.worldcat_manager.get_worldcat_data_for_part(isbn=isbn)
-            parts.append(
-                WorldcatSetPart(
-                    isbn=isbn,
-                    title=worldcat_part.title,
-                    author=worldcat_part.author_name,
-                    author_dates=worldcat_part.author_dates,
-                    pub_date=worldcat_part.pub_date,
-                    description=worldcat_part.description,
-                    copies=copies,
-                    subjects=worldcat_part.subjects,
+        data_parts = self._set_data.parts
+        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        with WorldcatManager() as manager:
+            for part in data_parts:
+                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
+                parts.append(
+                    WorldcatSetPart(
+                        isbn=part.isbn,
+                        title=worldcat_part.title,
+                        author=worldcat_part.author_name,
+                        author_dates=worldcat_part.author_dates,
+                        pub_date=worldcat_part.pub_date,
+                        description=worldcat_part.description,
+                        copies=part.copies,
+                        subjects=worldcat_part.subjects,
+                    )
                 )
-            )
-        parts.extend(self._set_data.special_formats)
+        if self._set_data.special_formats:
+            parts.extend(self._set_data.special_formats)
         return parts
 
     @property

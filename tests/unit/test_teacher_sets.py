@@ -9,7 +9,7 @@ from mln_data_transform.taxonomy import (
     TaxonomyGenre,
     TaxonomyTopic,
 )
-from mln_data_transform.teacher_sets import TeacherSetData, TeacherSetSpecialFormat
+from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
 
 
 @pytest.fixture
@@ -46,28 +46,55 @@ class TestTeacherSetData:
 
     def test_teacher_set_data_special_format(self, set_test_data):
         set_test_data["special_formats"] = [
-            TeacherSetSpecialFormat(
-                title="Cat puppet", description="A puppet", copies=1
-            )
+            {"title": "Cat puppet", "description": "A puppet", "copies": 1}
         ]
         teacher_set = TeacherSetData(**set_test_data)
         assert teacher_set.enhanced == "E"
         assert teacher_set.record_type == "o"
 
-    # @pytest.mark.parametrize(
-    #     "pub_dates,output", [(("20uu", None), ["20uu"]), ((None, None), [])]
-    # )
-    # def test_teacher_set_data_pub_dates(
-    #     self, set_test_data, parts_test_data, pub_dates, output
-    # ):
-    #     parts_test_data[0]["pub_date"] = pub_dates[0]
-    #     parts_test_data[1]["pub_date"] = pub_dates[1]
-    #     set_test_data["parts"] = [WorldcatSetPart(**i) for i in parts_test_data]
-    #     teacher_set = TeacherSetData(**set_test_data)
-    #     assert teacher_set.pub_dates == output
 
-    # def test_teacher_set_data_no_subjects(self, set_test_data, parts_test_data):
-    #     parts_test_data[0]["subjects"] = {}
-    #     set_test_data["parts"] = [WorldcatSetPart(**i) for i in parts_test_data]
-    #     teacher_set = TeacherSetData(**set_test_data)
-    #     assert teacher_set.subjects == []
+class TestTeacherSet:
+    def test_create_teacher_set_data(self, mock_responses, caplog, set_test_data):
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSet(set_data=set_data)
+        assert teacher_set.parts[0].author == "Sasek, M."
+        assert teacher_set.parts[0].author_dates == "1916-1980"
+        assert teacher_set.parts[0].description == "Fake description of book."
+        assert teacher_set.parts[0].pub_date == "2003"
+        assert len(teacher_set.parts[0].subjects) == 2
+        assert teacher_set.physical_description == "3 item(s)"
+        assert (
+            teacher_set.contents_note
+            == 'Set consists of 1 copy of "This is New York", 2 copies of "This is New York".'
+        )
+
+    def test_create_teacher_set_missing_data(
+        self, mock_worldcat_response_missing_data, caplog, set_test_data
+    ):
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSet(set_data=set_data)
+        assert teacher_set.parts[0].author is None
+        assert teacher_set.parts[0].author_dates is None
+        assert teacher_set.parts[0].description == ""
+        assert teacher_set.parts[0].pub_date == "20uu"
+        assert teacher_set.parts[0].subjects == []
+
+    def test_create_teacher_sets_no_pub_dates(
+        self, mock_worldcat_response_no_pub_dates, caplog, set_test_data
+    ):
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSet(set_data=set_data)
+        assert teacher_set.parts[0].pub_date is None
+
+    def test_create_teacher_special_format(self, mock_responses, caplog, set_test_data):
+        set_test_data["special_formats"] = [
+            {"title": "Cat puppet", "description": "A puppet", "copies": 1}
+        ]
+        set_data = TeacherSetData(**set_test_data)
+        teacher_set = TeacherSet(set_data=set_data)
+        assert teacher_set.parts[-1].title == "Cat puppet"
+        assert teacher_set.parts[-1].description == "A puppet"
+        assert (
+            teacher_set.contents_note
+            == 'Set consists of 1 copy of "This is New York", 2 copies of "This is New York", 1 Cat puppet(s).'
+        )
