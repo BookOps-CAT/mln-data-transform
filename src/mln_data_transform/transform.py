@@ -158,29 +158,3 @@ class WorldcatManager:
         )
         full_rec = self.get_full_record(oclc_number=oclc_number)
         return FullWorldCatResponse(isbn=isbn, wc_response=full_rec)
-
-    def get_worldcat_data_for_parts(
-        self, isbns: list[str]
-    ) -> list[FullWorldCatResponse]:
-        parts: list[FullWorldCatResponse] = []
-        logger.info(f"Record contains {len(isbns)} ISBN(s) to check.")
-        logger.info("Starting MetadataSession.")
-        with MetadataSession(
-            authorization=self.worldcat_token, timeout=(10, 10)
-        ) as session:
-            for isbn in isbns:
-                logger.info(f"ISBN {isbn}: retrieving brief bib record.")
-                brief_bib = session.brief_bibs_search(
-                    q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
-                )
-                oclc_number = self.get_oclc_number_from_isbn(response=brief_bib)
-                logger.info(
-                    f"ISBN {isbn}: retrieving full bib record "
-                    f"(OCLC number: {oclc_number})."
-                )
-                full_rec = self.get_full_record(
-                    oclc_number=oclc_number, session=session
-                )
-                full_resp = FullWorldCatResponse(isbn=isbn, wc_response=full_rec)
-                parts.append(full_resp)
-        return parts
