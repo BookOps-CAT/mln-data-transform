@@ -234,7 +234,6 @@ class LegacyItemData:
         self.barcode = barcode
         self.call_number = call_number.strip()
         self.item_id = item_id
-        # self.shelf_number = shelf_number
 
     @property
     def bib_call_number(self) -> str:
@@ -313,29 +312,3 @@ class LegacyTeacherSet:
             )
         )
         return fields
-
-    # @property
-    # def local_genre_term(self) -> list[TaxonomyGenre]:
-    #     genre_terms = []
-    #     for subject in self.subjects:
-    #         subject_str = " ".join([i[1] for i in subject.subfields])
-    #         for genre in TaxonomyGenre:
-    #             if subject_str in genre.value:
-    #                 genre_terms.append(genre)
-    #     for genre in TaxonomyGenre:
-    #         if genre.value in self.legacy_call_number:
-    #             genre_terms.append(genre)
-    #     self._local_genre_term = list(set(genre_terms))
-
-    # @property
-    # def local_topic_term(self) -> list[TaxonomyTopic]:
-    #     topic_terms = []
-    #     for subject in self.subjects:
-    #         subject_str = " ".join([i[1] for i in subject.subfields])
-    #         for topic in TaxonomyTopic:
-    #             if subject_str.casefold() in topic.value:
-    #                 topic_terms.append(topic)
-    #     for topic in TaxonomyTopic:
-    #         if topic.value in self.legacy_call_number.casefold():
-    #             topic_terms.append(topic)
-    #     self._local_topic_term = list(set(topic_terms))
