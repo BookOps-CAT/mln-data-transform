@@ -33,7 +33,12 @@ def mock_teacher_set(monkeypatch, mock_creds) -> None:
                         "subfields": [("a", "Fake genre."), ("2", "lcgft")],
                     },
                 ],
-            )
+                author_dates="1980-",
+                pub_date="20uu",
+            ),
+            WorldcatSetPart(
+                isbn="9780987654321", title="Baz", description="Another book", copies=1
+            ),
         ]
 
     def mock_read_csv(*args, **kwargs):
@@ -191,3 +196,21 @@ def mock_legacy_set(monkeypatch, mock_creds, caplog) -> None:
         property(mock_item_data),
     )
     monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
+
+
+@pytest.fixture
+def mock_legacy_set_no_subjects(monkeypatch, mock_legacy_set) -> None:
+    def mock_parts(*args, **kwargs):
+        return [
+            WorldcatSetPart(
+                isbn="9781234567890",
+                title="Foo",
+                author="Bar",
+                description="A book",
+                copies=2,
+            )
+        ]
+
+    monkeypatch.setattr(
+        "mln_data_transform.legacy.LegacyTeacherSet.parts", property(mock_parts)
+    )

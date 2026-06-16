@@ -52,6 +52,7 @@ class TestLegacyBibData:
             ("Game - ", 1),
             ("DVD - ", 1),
             ("Game (Board Game) - ", 1),
+            ("Foo, Bar", None),
         ],
     )
     def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, output):
@@ -81,6 +82,60 @@ class TestLegacyBibData:
         )
         assert legacy_bib.copy_count == output
 
+    @pytest.mark.parametrize(
+        "arg,enhanced,grade,set_type,subject",
+        [
+            ("Math B Assorted 1", None, "B", "TOPIC", "MAT"),
+            ("FRLA D Genre - Horror 1", None, "D", "TOPIC", "FRLA"),
+            ("Language Arts CHI YA Book Club 185", None, "E", "CLUB", "CHLA"),
+            (
+                "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1",
+                "E",
+                "C",
+                "CLUB",
+                "SOC",
+            ),
+            ("Arts A BIOG - Musicians (Jazz) 1", None, "A", "TOPIC", "ART"),
+            ("ELA D Horror Large Print 1", None, "D", "LPRINT", "ELA"),
+            (
+                "Language Arts ENG MG Book Club Graphic Novel 29",
+                None,
+                "D",
+                "CLUB",
+                "ELA",
+            ),
+            ("Language Arts ENG YA Audiobook 194", None, "E", "AUDIO", "ELA"),
+            ("Game C Catan 1", None, "C", "GAME", "GAME"),
+            ("ELA D Storytelling 1", None, "D", "STORY", "ELA"),
+            ("Language Arts SPA J 135", None, "C", "TOPIC", "SPLA"),
+            ("Language Arts POL J 99", None, "C", "TOPIC", "WorldLang"),
+        ],
+    )
+    def test_legacy_bib_data_call_number_patterns(
+        self, test_bib_data, arg, enhanced, grade, set_type, subject
+    ):
+        var_fields = [i for i in test_bib_data["varFields"] if i["marcTag"] != "091"]
+        var_fields.append(
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "091",
+                "fieldTag": "c",
+                "subfields": [{"tag": "a", "content": f"Teacher Set {arg}"}],
+            }
+        )
+        legacy_bib = LegacyBibData(
+            bib_id=test_bib_data["id"],
+            set_title=test_bib_data["title"],
+            var_fields=var_fields,
+            language=test_bib_data["lang"],
+        )
+        assert legacy_bib.enhanced == enhanced
+        assert legacy_bib.grade_level == grade
+        assert legacy_bib.set_type == set_type
+        assert legacy_bib.subject == subject
+
     def test_legacy_bib_data_call_number_pattern_error(self, test_bib_data):
         var_fields = [i for i in test_bib_data["varFields"] if i["marcTag"] != "091"]
         var_fields.append(
@@ -105,6 +160,40 @@ class TestLegacyBibData:
             str(exc.value)
             == "Call number 'call number' does not match pattern. Cannot extract components."
         )
+
+    @pytest.mark.parametrize(
+        "arg,output",
+        [
+            ("9780789308849 ", ["9780789308849"]),
+            ("978-0-78-930884-9 ", ["9780789308849"]),
+            ("9780789308849 9781234567890", ["9780789308849"]),
+            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
+            ("978-0-78-930884-X 068816241X", ["068816241X"]),
+            (" 0789308843", ["0789308843"]),
+            ("0-7893-0884-3", ["0789308843"]),
+            (" 068816241X ", ["068816241X"]),
+            ("0-7893-0884-3 97897897X9", ["0789308843"]),
+            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
+        ],
+    )
+    def test_legacy_bib_data_validate_isbns(self, test_bib_data, arg, output):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "944",
+                "fieldTag": "y",
+                "subfields": [{"tag": "a", "content": arg}],
+            }
+        ]
+        legacy_bib = LegacyBibData(
+            bib_id=test_bib_data["id"],
+            set_title=test_bib_data["title"],
+            var_fields=test_bib_data["varFields"],
+            language=test_bib_data["lang"],
+        )
+        assert legacy_bib.isbns == output
 
 
 class TestLegacyItemData:
@@ -154,19 +243,48 @@ class TestLegacyItemData:
         assert legacy_item.bib_call_number == f"Teacher Set {result}"
 
 
-class TestLegacyTeacherSetData:
-    def test_create_teacher_set_data(self, mock_responses, caplog):
+class TestLegacyTeacherSet:
+    def test_create_legacy_set_data(self, mock_responses, caplog):
         platform_manager = PlatformManager()
-        legacy_set = LegacyTeacherSetData(
+        legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert (
-            legacy_set.bib_data.call_number
+            legacy_set_data.bib_data.call_number
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
         )
-        assert len(legacy_set.item_data) == 1
+        assert len(legacy_set_data.item_data) == 1
+        assert legacy_set.parts[0].author == "Sasek, M."
+        assert legacy_set.parts[0].author_dates == "1916-1980"
+        assert legacy_set.parts[0].description == "Fake description of book."
+        assert legacy_set.parts[0].pub_date == "2003"
+        assert len(legacy_set.parts[0].subjects) == 2
+        assert (
+            legacy_set.contents_note
+            == 'Set consists of 10 copies of "This is New York".'
+        )
+        assert len(legacy_set.var_field_data) == 19
+        assert legacy_set.legacy_barcodes == {
+            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+        }
 
-    def test_create_teacher_set_missing_data(
+    def test_create_legacy_set_single_copy(
+        self, mock_platform_response_single_copy, caplog
+    ):
+        platform_manager = PlatformManager()
+        legacy_set_data = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
+        )
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
+        assert (
+            legacy_set.contents_note == 'Set consists of 1 copy of "This is New York".'
+        )
+        assert legacy_set.legacy_barcodes == {
+            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+        }
+
+    def test_create_legacy_set_missing_data(
         self, mock_worldcat_response_missing_data, caplog
     ):
         platform_manager = PlatformManager()
@@ -179,8 +297,16 @@ class TestLegacyTeacherSetData:
         assert legacy_set.parts[0].description == ""
         assert legacy_set.parts[0].pub_date == "20uu"
         assert legacy_set.parts[0].subjects == []
+        assert (
+            legacy_set.contents_note
+            == 'Set consists of 10 copies of "This is New York".'
+        )
+        assert len(legacy_set.var_field_data) == 19
+        assert legacy_set.legacy_barcodes == {
+            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+        }
 
-    def test_create_teacher_sets_no_pub_dates(
+    def test_create_legacy_set_no_pub_dates(
         self, mock_worldcat_response_no_pub_dates, caplog
     ):
         platform_manager = PlatformManager()
@@ -189,3 +315,11 @@ class TestLegacyTeacherSetData:
         )
         legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert legacy_set.parts[0].pub_date is None
+        assert (
+            legacy_set.contents_note
+            == 'Set consists of 10 copies of "This is New York".'
+        )
+        assert len(legacy_set.var_field_data) == 19
+        assert legacy_set.legacy_barcodes == {
+            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+        }

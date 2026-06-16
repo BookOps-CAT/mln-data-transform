@@ -307,19 +307,24 @@ def mock_worldcat_response_no_pub_dates(monkeypatch, mock_responses) -> None:
 
 
 @pytest.fixture
-def mock_legacy_mapping_data(monkeypatch) -> None:
-    def mock_read_csv(*args, **kwargs):
-        return pd.DataFrame(
-            data=[
-                {
-                    "SUBJECT": "ELA",
-                    "BARCODE": "33333402207449",
-                    "LOCATION": "1",
-                    "BIB_ID": "12345678",
-                    "ITEM_ID": "23456789",
-                    "CONTROL_NUMBER": "nn-mlnyc-0000001",
-                }
+def mock_platform_response_single_copy(monkeypatch, mock_responses) -> None:
+    def get_bib(*args, id, **kwargs) -> dict[str, Any]:
+        with open("tests/data/platform_bib.json", "r") as fh:
+            json_data = json.load(fh)
+            json_data["id"] = id
+            json_data["varFields"] = [
+                i for i in json_data["varFields"] if i["marcTag"] != "500"
             ]
-        )
+            json_data["varFields"].append(
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "500",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "1 copy of 1 title."}],
+                }
+            )
+            return MockJsonResponse({"data": json_data})
 
-    monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
+    monkeypatch.setattr(FakePlatformSession, "get_bib", get_bib)

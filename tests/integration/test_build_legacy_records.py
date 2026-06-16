@@ -8,23 +8,6 @@ from mln_data_transform.build import TeacherSetBuilder
 
 
 class TestTeacherSetBuilder:
-    def test_create_validate_legacy_set(self, mock_responses, today_str, caplog):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        legacy_set = builder.create_legacy_set(bib_id="12345678")
-        builder.validate_set(legacy_set)
-        assert len(caplog.records) == 8
-        # should be 2 x the number of components + 6
-        assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for 12345678.",
-            "Getting bib record from platform for 12345678.",
-            "Getting items from platform for 12345678.",
-            "1 item records found for bib b12345678a.",
-            "Validating set.",
-            "Record contains 1 ISBN(s) to query WorldCat.",
-            "ISBN 9780789308849: retrieving brief bib record.",
-            "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
-        ]
-
     def test_create_legacy_sets(self, mock_legacy_set, today_str):
         builder = TeacherSetBuilder(file="data/foo_bar.csv")
         legacy_set = builder.create_legacy_set(bib_id="12345678")
@@ -62,14 +45,42 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_teacher_set_from_sheet(self, mock_legacy_set, today_str, caplog):
+    def test_legacy_set_no_subjects(
+        self, mock_legacy_set_no_subjects, today_str, caplog
+    ):
         builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        for bib_id in builder.all_bib_ids:
-            legacy_set = builder.create_legacy_set(bib_id=bib_id)
-            set_data = builder.validate_set(legacy_set)
-            set_copies = builder.create_set_copies(set_data)
-            builder.validate_set_copies(set_copies)
-        assert len(builder.all_bib_ids) == 1
+        legacy_set = builder.create_legacy_set(bib_id="12345678")
+        set_data = builder.validate_set(legacy_set)
+        set_copies = builder.create_set_copies(set_data)
+        valid_set_copies = builder.validate_set_copies(set_copies)
+        bibs = [i.to_bib() for i in valid_set_copies]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert len(valid_set_copies[0].components) == 1
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Teacher Set. Copy 1 of 2", "Teacher Set. Copy 2 of 2"]
+        )
+        assert len(bibs) == 2
+        assert field_strings == [
+            "=001  ",
+            "=003  BookOps",
+            f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
+            "=245  00$aTeacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a2 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Foo".',
+            "=520  \\\\$3Foo$aA book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aSocial Studies",
+            "=690  \\7$aTopic$2bookops",
+            "=700  12$aBar$tFoo$x9781234567890",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar 1-1",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
 
 
 @pytest.fixture(scope="class")

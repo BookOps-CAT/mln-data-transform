@@ -150,25 +150,16 @@ class TeacherSetBib:
         """Summary description note field (REPEATABLE)"""
         notes = []
         for component in self.components:
-            if component[1]:
-                notes.append(
-                    Field(
-                        tag="520",
-                        indicators=Indicators(" ", " "),
-                        subfields=[
-                            Subfield(code="3", value=component[0]),
-                            Subfield(code="a", value=f"{component[1]}."),
-                        ],
-                    )
+            notes.append(
+                Field(
+                    tag="520",
+                    indicators=Indicators(" ", " "),
+                    subfields=[
+                        Subfield(code="3", value=component[0]),
+                        Subfield(code="a", value=f"{component[1]}."),
+                    ],
                 )
-            else:
-                notes.append(
-                    Field(
-                        tag="520",
-                        indicators=Indicators(" ", " "),
-                        subfields=[Subfield(code="3", value=f"{component[0]}.")],
-                    )
-                )
+            )
         return notes
 
     @property
@@ -349,15 +340,8 @@ class TeacherSetBib:
         return fields
 
     def add_var_fields(self, bib: Bib) -> None:
-        field_tags = [i.tag for i in bib.fields]
-        notes_fields = ["500", "520", "521", "526"]
         for field in self.var_fields:
             if field.tag == "901":
-                subfields_901 = [i.code for i in field.subfields]
-                if "n" in subfields_901 or "o" in subfields_901:
-                    bib.add_ordered_field(field)
-            elif field.tag not in field_tags and field.tag in notes_fields:
-                field.subfields.append(Subfield(code="x", value="legacy-data"))
                 bib.add_ordered_field(field)
 
     def to_bib(self) -> Bib:
