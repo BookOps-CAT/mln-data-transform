@@ -35,3 +35,7 @@ def is_valid_isbn(isbn_str: str) -> bool:
         return total % 10 == 0
 
     return False
+
+
+def normalize_isbn(isbn_str: str) -> str:
+    return isbn_str.replace("-", "").replace(" ", "")

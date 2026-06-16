@@ -12,7 +12,7 @@ from mln_data_transform.taxonomy import (
     SubjectStudyProgram,
 )
 from mln_data_transform.transform import PlatformManager, WorldcatManager
-from mln_data_transform.utils import is_valid_isbn
+from mln_data_transform.utils import is_valid_isbn, normalize_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,6 @@ class LegacyTeacherSetData:
         return LegacyBibData(
             bib_id=self.bib_id,
             language=bib_data["lang"]["code"],
-            fixed_fields=bib_data["fixedFields"],
             set_title=bib_data["title"],
             var_fields=bib_data["varFields"],
         )
@@ -68,8 +67,11 @@ class LegacyBibData:
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
     SUBJECT_MAPPING = {
         "Language Arts ENG": "ELA",
-        "Language Arts": "LA",
+        "Language Arts SPA": "SPLA",
+        "Language Arts FRE": "SPLA",
+        "Language Arts CHI": "CHLA",
         "Arts": "ART",
+        "Math": "MAT",
         "Games": "GAME",
         "Social Studies": "SOC",
         "Science": "SCI",
@@ -92,12 +94,10 @@ class LegacyBibData:
         self,
         bib_id: str,
         language: str,
-        fixed_fields: list[dict[str, Any]],
         set_title: str,
         var_fields: list[dict[str, Any]],
     ) -> None:
         self.bib_id = bib_id
-        self.fixed_fields = fixed_fields
         self.language = language
         self.set_title = set_title
         self.var_fields = var_fields
@@ -165,7 +165,7 @@ class LegacyBibData:
             subfields_944 = isbns[0]["subfields"]
             isbn_string = " ".join([i["content"] for i in subfields_944])
             isbn_list = isbn_string.split()
-            return [i for i in isbn_list if is_valid_isbn(i)]
+            return [normalize_isbn(i) for i in isbn_list if is_valid_isbn(i)]
         return []
 
     @property

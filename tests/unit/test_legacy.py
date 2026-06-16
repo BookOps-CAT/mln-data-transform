@@ -14,7 +14,6 @@ class TestLegacyBibData:
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
-            fixed_fields=test_bib_data["fixedFields"],
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
@@ -27,7 +26,6 @@ class TestLegacyBibData:
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
-            fixed_fields={},
             var_fields={},
             language=test_bib_data["lang"],
         )
@@ -78,7 +76,6 @@ class TestLegacyBibData:
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
-            fixed_fields=test_bib_data["fixedFields"],
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
@@ -99,7 +96,6 @@ class TestLegacyBibData:
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
-            fixed_fields=test_bib_data["fixedFields"],
             var_fields=var_fields,
             language=test_bib_data["lang"],
         )
