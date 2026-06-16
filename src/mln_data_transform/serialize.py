@@ -148,17 +148,28 @@ class TeacherSetBib:
     @property
     def field_520(self) -> list[Field]:
         """Summary description note field (REPEATABLE)"""
-        return [
-            Field(
-                tag="520",
-                indicators=Indicators(" ", " "),
-                subfields=[
-                    Subfield(code="3", value=i[0]),
-                    Subfield(code="a", value=i[1]),
-                ],
-            )
-            for i in self.components
-        ]
+        notes = []
+        for component in self.components:
+            if component[1]:
+                notes.append(
+                    Field(
+                        tag="520",
+                        indicators=Indicators(" ", " "),
+                        subfields=[
+                            Subfield(code="3", value=component[0]),
+                            Subfield(code="a", value=f"{component[1]}."),
+                        ],
+                    )
+                )
+            else:
+                notes.append(
+                    Field(
+                        tag="520",
+                        indicators=Indicators(" ", " "),
+                        subfields=[Subfield(code="3", value=f"{component[0]}.")],
+                    )
+                )
+        return notes
 
     @property
     def field_521(self) -> Field:

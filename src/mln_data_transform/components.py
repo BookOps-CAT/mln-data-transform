@@ -24,21 +24,6 @@ class SetBook:
 
 
 @dataclass(frozen=True)
-class SetPart:
-    """A book or other item included within a Teacher Set."""
-
-    copies: int
-    description: str
-    title: str
-
-    def entry_dict(self) -> dict[str, Any]:
-        return {}
-
-    def summary_component(self) -> tuple[str, str]:
-        return (self.title, f"{self.description.strip('.')}.", self.copies)
-
-
-@dataclass(frozen=True)
 class WorldcatSetPart:
     """A book included within a Teacher Set."""
 
@@ -70,11 +55,17 @@ class WorldcatSetPart:
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
 
     def summary_component(self) -> tuple[str, str]:
-        return (self.title, f"{self.description.strip('.')}.", self.copies)
+        return (self.title.strip("."), self.description.strip("."), self.copies)
 
 
 @dataclass(frozen=True)
-class TeacherSetSpecialFormat(SetPart):
+class TeacherSetSpecialFormat:
     """A special format item included within a Teacher Set."""
 
+    copies: int
+    description: str
+    title: str
     pub_date: str | None = None
+
+    def summary_component(self) -> tuple[str, str]:
+        return (self.title.strip("."), self.description.strip("."), self.copies)
