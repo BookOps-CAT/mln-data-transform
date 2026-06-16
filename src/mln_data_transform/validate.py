@@ -1,9 +1,13 @@
 import logging
-from typing import Any
+from typing import Any, Sequence
 
 from pydantic import BaseModel, ConfigDict, model_serializer
 
-from mln_data_transform.components import VarFieldData, WorldcatSetPart
+from mln_data_transform.components import (
+    TeacherSetSpecialFormat,
+    VarFieldData,
+    WorldcatSetPart,
+)
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.taxonomy import (
     GradeReadingLevel,
@@ -19,13 +23,14 @@ logger = logging.getLogger(__name__)
 class TeacherSetModel(BaseModel):
     model_config = ConfigDict(extra="allow")
 
+    contents_note: str
     copies_of_set: int
     enhanced: str | None
     grade_level: GradeReadingLevel
     language: str
     local_genre_term: list[TaxonomyGenre] | None
     local_topic_term: list[TaxonomyTopic] | None
-    parts: list[WorldcatSetPart]
+    parts: Sequence[WorldcatSetPart | TeacherSetSpecialFormat]
     physical_description: str
     record_type: str
     set_title: str
@@ -37,7 +42,6 @@ class TeacherSetModel(BaseModel):
 
 
 class TeacherSetCopyModel(TeacherSetModel):
-    contents_note: str
     copy_number: int
     subjects: list[VarFieldData]
     pub_dates: list[str]

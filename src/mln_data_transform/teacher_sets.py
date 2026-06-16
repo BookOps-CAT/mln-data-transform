@@ -80,6 +80,23 @@ class TeacherSet:
         self.set_type = self._set_data.set_type
         self.study_program_info = self._set_data.study_program_info
 
+    @property
+    def contents_note(self) -> str:
+        part_list = []
+        special_formats = []
+        for part in self.parts:
+            copies = str(part.copies)
+            title = part.title.strip(".")
+            if isinstance(part, TeacherSetSpecialFormat):
+                special_formats.append("".join([copies, f" {title}(s), "]))
+            elif part.copies > 1:
+                part_list.append("".join([copies, ' copies of "', title, '", ']))
+            else:
+                part_list.append("".join([copies, ' copy of "', title, '", ']))
+        if self._set_data.special_formats:
+            part_list.extend(special_formats)
+        return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
     @cached_property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []

@@ -20,17 +20,18 @@ class TeacherSetCopy:
 
     def __init__(
         self,
+        contents_note: str,
         copies_of_set: int,
         copy_number: int,
-        grade_level: str | GradeReadingLevel,
+        grade_level: GradeReadingLevel,
         language: str,
         parts: Sequence[WorldcatSetPart | TeacherSetSpecialFormat],
         physical_description: str,
         record_type: str,
         set_title: str,
-        set_type: str | SetTypeFormat,
+        set_type: SetTypeFormat,
         shelf_number: str,
-        study_program_info: str | SubjectStudyProgram,
+        study_program_info: SubjectStudyProgram,
         barcode: str | None = None,
         bib_id: str | None = None,
         enhanced: str | None = None,
@@ -41,6 +42,7 @@ class TeacherSetCopy:
     ) -> None:
         self.barcode = barcode
         self.bib_id = bib_id
+        self.contents_note = contents_note
         self.copy_number = copy_number
         self.copies_of_set = copies_of_set
         self.grade_level = grade_level
@@ -59,21 +61,6 @@ class TeacherSetCopy:
         self.shelf_number = shelf_number
         self.study_program_info = study_program_info
         self.var_field_data = var_field_data
-
-    @property
-    def contents_note(self) -> str:
-        part_list = []
-        for part in self.parts:
-            if not isinstance(part, WorldcatSetPart):
-                continue
-            elif part.copies > 1:
-                copy_part = " copies of "
-            else:
-                copy_part = " copy of "
-            part_list.append(
-                "".join([str(part.copies), copy_part, '"', part.title, '", '])
-            )
-        return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
     @property
     def pub_dates(self) -> list[str]:
