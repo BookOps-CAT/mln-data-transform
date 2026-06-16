@@ -104,7 +104,11 @@ class LegacyBibData:
         self.bib_id = bib_id
         self.language = language
         self.set_title = set_title
-        self.var_fields = var_fields
+        self.var_fields = [
+            i
+            for i in var_fields
+            if i["marcTag"] not in ["901", "904", "908", "909", "910", "949"]
+        ]
 
     @property
     def call_number(self) -> str:
@@ -283,6 +287,10 @@ class LegacyTeacherSet:
                 )
             )
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
+
+    @property
+    def legacy_barcodes(self) -> dict[str, str]:
+        return {i.barcode: i.call_number for i in self._set_data.item_data}
 
     @cached_property
     def parts(self) -> list[WorldcatSetPart]:
