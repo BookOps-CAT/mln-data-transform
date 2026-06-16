@@ -55,7 +55,7 @@ class TestTeacherSetBuilder:
         assert teacher_set.local_genre_term == ["Fiction"]
         assert teacher_set.local_topic_term == ["New York City"]
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC ART$fCLUB$pA$c[SHELF-NUMBER]",
@@ -101,7 +101,7 @@ class TestTeacherSetBuilder:
         )
         assert len(bibs) == 1
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
             "=091  \\\\$aMLNYC ART$fCLUB E$pA$c[SHELF-NUMBER]",
@@ -141,7 +141,7 @@ class TestTeacherSetBuilder:
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC ART$fCLUB$pA$c[SHELF-NUMBER]",
@@ -181,7 +181,7 @@ class TestTeacherSetBuilder:
         )
         assert len(bibs) == 2
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
@@ -220,7 +220,7 @@ class TestTeacherSetBuilder:
         )
         assert len(bibs) == 2
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
@@ -278,7 +278,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert len(bib_records) == 7
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
@@ -353,7 +353,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert len(bib_records) == 8
         assert field_strings == [
-            "=001  ",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             f"=008  {today_str}i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pC$c1072",

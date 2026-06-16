@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 from pydantic import ValidationError
 
+from mln_data_transform.control_numbers import ControlNumberGenerator
 from mln_data_transform.legacy import LegacyTeacherSet, LegacyTeacherSetData
 from mln_data_transform.model import TeacherSetCopy
 from mln_data_transform.serialize import TeacherSetBib
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 class TeacherSetBuilder:
     def __init__(self, file: str) -> None:
         self.file = file
+        self.ctrl_number_gen = ControlNumberGenerator("data/control_number_state.json")
 
     @cached_property
     def mapping_data(self) -> pd.DataFrame:
@@ -84,6 +86,7 @@ class TeacherSetBuilder:
         self, teacher_set_dict: dict[str, Any]
     ) -> list[TeacherSetCopy]:
         copies = []
+        teacher_set_dict["control_number"] = self.ctrl_number_gen.next_control_number()
         bib_id = teacher_set_dict.get("bib_id")
         logger.info(f"Creating {teacher_set_dict['copies_of_set']} copy/copies of set.")
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):

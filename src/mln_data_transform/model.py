@@ -21,6 +21,7 @@ class TeacherSetCopy:
     def __init__(
         self,
         contents_note: str,
+        control_number: str,
         copies_of_set: int,
         copy_number: int,
         grade_level: GradeReadingLevel,
@@ -42,6 +43,7 @@ class TeacherSetCopy:
     ) -> None:
         self.bib_id = bib_id
         self.contents_note = contents_note
+        self.control_number = control_number
         self.copy_number = copy_number
         self.copies_of_set = copies_of_set
         self.grade_level = grade_level

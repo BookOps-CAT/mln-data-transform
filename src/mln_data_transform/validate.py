@@ -43,6 +43,7 @@ class TeacherSetModel(BaseModel):
 
 
 class TeacherSetCopyModel(TeacherSetModel):
+    control_number: str
     copy_number: int
     subjects: list[VarFieldData]
     pub_dates: list[str]
@@ -56,6 +57,7 @@ class TeacherSetCopyModel(TeacherSetModel):
                 i.summary_component() for i in self.parts if i.summary_component()
             ],
             "contents_note": self.contents_note,
+            "control_number": self.control_number,
             "copy_number": self.copy_number,
             "grade_level": self.grade_level,
             "enhanced": self.enhanced,
