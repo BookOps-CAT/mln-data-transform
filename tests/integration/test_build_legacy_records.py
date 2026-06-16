@@ -27,7 +27,7 @@ class TestTeacherSetBuilder:
 
     def test_create_teacher_sets(self, mock_responses, today_str):
         builder = TeacherSetBuilder(file="tests/data/high_circ.csv")
-        legacy_set = builder.create_legacy_set(bib_id="19538471")
+        legacy_set = builder.create_legacy_set(bib_id="12345678")
         set_data = builder.validate_set(legacy_set)
         set_copies = builder.create_set_copies(set_data)
         valid_set_copies = builder.validate_set_copies(set_copies)
@@ -42,7 +42,7 @@ class TestTeacherSetBuilder:
             "=001  ",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
             "=245  00$aThis is New York by M. Sasek.$nCopy 1 of 1",
             "=300  \\\\$a10 item(s)",
             '=500  \\\\$aSet consists of 10 copies of "This is New York".',
@@ -54,7 +54,7 @@ class TestTeacherSetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=901  \\\\$n33333402207449",
+            "=901  \\\\$n33333987654321",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
@@ -70,9 +70,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_teacher_set_from_sheet(
-        self, mock_responses, today_str, mock_legacy_mapping_data, caplog
-    ):
+    def test_create_teacher_set_from_sheet(self, mock_responses, today_str, caplog):
         builder = TeacherSetBuilder(file="data/foo_bar.csv")
         for bib_id in builder.all_bib_ids:
             legacy_set = builder.create_legacy_set(bib_id=bib_id)
@@ -80,8 +78,8 @@ class TestTeacherSetBuilder:
             set_copies = builder.create_set_copies(set_data)
             builder.validate_set_copies(set_copies)
         assert len(builder.all_bib_ids) == 1
-        assert len(caplog.records) == 10
-        # should be 2 x the number of components + 8
+        assert len(caplog.records) == 11
+        # should be 2 x the number of components + 9
         assert [i.msg for i in caplog.records] == [
             "Creating base teacher set for 12345678.",
             "Getting bib record from platform for 12345678.",
@@ -91,8 +89,9 @@ class TestTeacherSetBuilder:
             "Record contains 1 ISBN(s) to query WorldCat.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: ocn123456789).",
-            "Creating copies of legacy set: 12345678.",
-            "Validating 1 set copies for 12345678.",
+            "Creating 1 copy/copies of set.",
+            "Creating copy 1 of legacy set: 12345678.",
+            "Validating 1 copy/copies of set.",
         ]
 
 

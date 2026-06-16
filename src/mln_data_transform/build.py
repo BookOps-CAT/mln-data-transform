@@ -85,9 +85,10 @@ class TeacherSetBuilder:
     ) -> list[TeacherSetCopy]:
         copies = []
         bib_id = teacher_set_dict.get("bib_id")
+        logger.info(f"Creating {teacher_set_dict['copies_of_set']} copy/copies of set.")
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):
             if bib_id:
-                logger.info(f"Creating copies of legacy set: {bib_id}.")
+                logger.info(f"Creating copy {copy_num + 1} of legacy set: {bib_id}.")
                 mapping = self.location_mapping(bib_id)
                 teacher_set_dict["var_field_data"].append(
                     {
@@ -99,13 +100,17 @@ class TeacherSetBuilder:
                 )
                 teacher_set_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
             else:
+                logger.info(
+                    f"Creating copy {copy_num + 1} of teacher set: "
+                    f"{teacher_set_dict['set_title']}."
+                )
                 teacher_set_dict["shelf_number"] = "[SHELF-NUMBER]"
             teacher_set_dict["copy_number"] = copy_num + 1
             print(teacher_set_dict)
             copies.append(TeacherSetCopy(**teacher_set_dict))
         return copies
 
-    def validate_set(self, set: LegacyTeacherSet | TeacherSet) -> TeacherSetCopy:
+    def validate_set(self, set: LegacyTeacherSet | TeacherSet) -> dict[str, Any]:
         logger.info("Validating set.")
         try:
             teacher_set = TeacherSetModel.model_validate(set, from_attributes=True)
@@ -119,10 +124,7 @@ class TeacherSetBuilder:
     ) -> list[TeacherSetCopy]:
         valid_bibs = []
         error_data = []
-        logger.info(
-            f"Validating {len(legacy_set_copies)} set copies for "
-            f"{legacy_set_copies[0].bib_id}."
-        )
+        logger.info(f"Validating {len(legacy_set_copies)} copy/copies of set.")
         for set in legacy_set_copies:
             try:
                 set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
@@ -130,7 +132,7 @@ class TeacherSetBuilder:
             except ValidationError as e:
                 logger.error(
                     f"Validation errors for bib {set.bib_id}, copy "
-                    f"{set.copy_number + 1} of {set.copies_of_set}: {e.json()}"
+                    f"{set.copy_number} of {set.copies_of_set}: {e.json()}"
                 )
                 error_data.append(json.loads(e.json()))
         if error_data:

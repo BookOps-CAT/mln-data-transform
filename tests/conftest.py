@@ -216,6 +216,29 @@ def mock_responses(monkeypatch, mock_creds) -> None:
     def fake_metadata_session(*args, **kwargs) -> FakeMetadataSession:
         return FakeMetadataSession()
 
+    def mock_read_csv(*args, **kwargs):
+        return pd.DataFrame(
+            data=[
+                {
+                    "SUBJECT": "ELA",
+                    "BARCODE": "33333987654321",
+                    "LOCATION": "1",
+                    "BIB_ID": "12345678",
+                    "ITEM_ID": "12345678",
+                    "CONTROL_NUMBER": "nn-mlnyc-0000001",
+                },
+                {
+                    "SUBJECT": "ELA",
+                    "BARCODE": "33333123456789",
+                    "LOCATION": "2",
+                    "BIB_ID": "12345678",
+                    "ITEM_ID": "23456789",
+                    "CONTROL_NUMBER": "nn-mlnyc-0000001",
+                },
+            ]
+        )
+
+    monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
     monkeypatch.setattr("mln_data_transform.transform.PlatformToken", fake_token)
     monkeypatch.setattr(
         "mln_data_transform.transform.PlatformSession", fake_platform_session
