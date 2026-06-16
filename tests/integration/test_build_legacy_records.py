@@ -54,7 +54,7 @@ class TestTeacherSetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            # "=901  \\\\$n33333402207449$oTeacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
+            "=901  \\\\$n33333402207449",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",

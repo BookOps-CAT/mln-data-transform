@@ -166,8 +166,6 @@ class TestLegacyTeacherSetData:
         )
         assert len(legacy_set.item_data) == 1
 
-
-class TestLegacyTeacherSet:
     def test_create_teacher_set_missing_data(
         self, mock_worldcat_response_missing_data, caplog
     ):
