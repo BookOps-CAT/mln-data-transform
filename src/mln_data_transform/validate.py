@@ -38,6 +38,7 @@ class TeacherSetModel(BaseModel):
     study_program_info: SubjectStudyProgram
 
     bib_id: str | None = None
+    legacy_barcodes: dict[str, str] | None = None
     var_field_data: list[VarFieldData] | None = None
 
 
@@ -81,19 +82,14 @@ class TeacherSetCopyModel(TeacherSetModel):
             )
             for i in data["subjects"]
         ]
-        data["var_field_data"] = [
-            VarFieldData(
-                tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
-            )
-            for i in data["var_field_data"]
-        ]
-        if data.get("barcode"):
-            data["var_field_data"].append(
+        if data.get("var_field_data"):
+            data["var_field_data"] = [
                 VarFieldData(
-                    tag="901",
-                    ind1=" ",
-                    ind2=" ",
-                    subfields=[("n", data["barcode"]), ("o", data["shelf_number"])],
+                    tag=i["tag"],
+                    ind1=i["ind1"],
+                    ind2=i["ind2"],
+                    subfields=i["subfields"],
                 )
-            )
+                for i in data["var_field_data"]
+            ]
         return TeacherSetBib(**data)

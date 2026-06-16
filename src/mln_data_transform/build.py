@@ -11,7 +11,7 @@ from mln_data_transform.legacy import LegacyTeacherSet, LegacyTeacherSetData
 from mln_data_transform.model import TeacherSetCopy
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
-from mln_data_transform.transform import PlatformManager, WorldcatManager
+from mln_data_transform.transform import PlatformManager
 from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,9 @@ class TeacherSetBuilder:
         study_program_info: str,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
+        special_formats: list[dict[str, str]] | None = None,
     ) -> TeacherSet:
+        logger.info(f"Creating base teacher set for new set: '{set_title}'.")
         set_data = TeacherSetData(
             copies_of_set=copies_of_set,
             grade_level=grade_level,
@@ -74,10 +76,9 @@ class TeacherSetBuilder:
             study_program_info=study_program_info,
             local_genre_term=local_genre_term,
             local_topic_term=local_topic_term,
+            special_formats=special_formats,
         )
-        with WorldcatManager() as manager:
-            teacher_set = TeacherSet(set_data=set_data, worldcat_manager=manager)
-            return teacher_set
+        return TeacherSet(set_data=set_data)
 
     def create_set_copies(
         self, teacher_set_dict: dict[str, Any]
@@ -97,6 +98,8 @@ class TeacherSetBuilder:
                     }
                 )
                 teacher_set_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
+            else:
+                teacher_set_dict["shelf_number"] = "[SHELF-NUMBER]"
             teacher_set_dict["copy_number"] = copy_num + 1
             print(teacher_set_dict)
             copies.append(TeacherSetCopy(**teacher_set_dict))

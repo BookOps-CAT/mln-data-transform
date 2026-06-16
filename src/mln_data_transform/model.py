@@ -32,15 +32,14 @@ class TeacherSetCopy:
         set_type: SetTypeFormat,
         shelf_number: str,
         study_program_info: SubjectStudyProgram,
-        barcode: str | None = None,
         bib_id: str | None = None,
         enhanced: str | None = None,
+        legacy_barcodes: list[tuple[str, str]] = None,
         legacy_call_number: str | None = None,
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
         var_field_data: list[VarFieldData] | None = None,
     ) -> None:
-        self.barcode = barcode
         self.bib_id = bib_id
         self.contents_note = contents_note
         self.copy_number = copy_number
@@ -48,6 +47,7 @@ class TeacherSetCopy:
         self.grade_level = grade_level
         self.enhanced = enhanced
         self.language = language
+        self.legacy_barcodes = legacy_barcodes
         self.legacy_call_number = legacy_call_number
         self.local_genre_term = local_genre_term
         self.local_topic_term = local_topic_term
