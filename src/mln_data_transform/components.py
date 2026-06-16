@@ -67,5 +67,8 @@ class TeacherSetSpecialFormat:
     title: str
     pub_date: str | None = None
 
+    def entry_dict(self) -> dict[str, Any]:
+        return {}
+
     def summary_component(self) -> tuple[str, str]:
         return (self.title.strip("."), self.description.strip("."), self.copies)

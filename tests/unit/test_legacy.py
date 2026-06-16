@@ -18,7 +18,7 @@ class TestLegacyBibData:
             language=test_bib_data["lang"],
         )
         assert legacy_bib.isbns == ["9780789308849"]
-        assert legacy_bib.physical_description == "10 items"
+        assert legacy_bib.physical_description == "10 item(s)"
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_count == 10
 

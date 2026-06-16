@@ -102,4 +102,4 @@ class TeacherSet:
 
     @property
     def physical_description(self) -> str:
-        return f"{sum([i.copies for i in self.parts])} items"
+        return f"{sum([i.copies for i in self.parts])} item(s)"

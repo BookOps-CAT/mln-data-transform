@@ -183,7 +183,7 @@ class LegacyBibData:
         if field_300:
             subfields_300 = field_300[0]["subfields"]
             return " ".join([i["content"] for i in subfields_300]).replace(
-                "v.", "items"
+                "v.", "item(s)"
             )
         return None
 
@@ -320,12 +320,4 @@ class LegacyTeacherSet:
                         subfields=subfields,
                     )
                 )
-        fields.append(
-            VarFieldData(
-                tag="901",
-                ind1=" ",
-                ind2=" ",
-                subfields=[("n", self.legacy_call_number)],
-            )
-        )
         return fields

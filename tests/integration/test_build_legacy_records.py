@@ -44,7 +44,7 @@ class TestTeacherSetBuilder:
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c358",
             "=245  00$aThis is New York by M. Sasek.$nCopy 1 of 1",
-            "=300  \\\\$a10 items",
+            "=300  \\\\$a10 item(s)",
             '=500  \\\\$aSet consists of 10 copies of "This is New York".',
             "=520  \\\\$3This is New York$aFake description of book.",
             "=521  2\\$aPre-K",
