@@ -46,6 +46,37 @@ class TeacherSetBuilder:
         bib_df = df[df["BIB_ID"] == bib_id].reset_index()
         return bib_df.to_dict("index")
 
+    def build_legacy_set(self, bib_id: str) -> dict[str, Any]:
+        legacy_set = self.create_legacy_set(bib_id=bib_id)
+        return self.validate_set(legacy_set)
+
+    def build_teacher_set(
+        self,
+        copies_of_set: int,
+        grade_level: str,
+        language: str,
+        parts: list[dict[str, str]],
+        set_title: str,
+        set_type: str,
+        study_program_info: str,
+        local_genre_term: list[str] | None = None,
+        local_topic_term: list[str] | None = None,
+        special_formats: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        teacher_set = self.create_teacher_set(
+            copies_of_set=copies_of_set,
+            grade_level=grade_level,
+            language=language,
+            parts=parts,
+            set_title=set_title,
+            set_type=set_type,
+            study_program_info=study_program_info,
+            local_genre_term=local_genre_term,
+            local_topic_term=local_topic_term,
+            special_formats=special_formats,
+        )
+        return self.validate_set(teacher_set)
+
     def create_legacy_set(self, bib_id: str) -> LegacyTeacherSet:
         logger.info(f"Creating base teacher set for {bib_id}.")
         platform_manager = PlatformManager()
@@ -53,6 +84,19 @@ class TeacherSetBuilder:
             bib_id=bib_id, platform_manager=platform_manager
         )
         return LegacyTeacherSet(set_data=set_data)
+
+    def build_set_copies(self, set_data: dict[str, Any]) -> dict[str, Any]:
+        control_number = self.ctrl_number_gen.next_control_number()
+        error_data = []
+        try:
+            set_copies = self.create_set_copies(
+                teacher_set_dict=set_data, control_number=control_number
+            )
+            valid_set_copies = self.validate_set_copies(set_copies)
+            self.ctrl_number_gen.save_state()
+            return valid_set_copies
+        except ValidationError as e:
+            error_data.append(json.loads(e.json()))
 
     def create_teacher_set(
         self,
@@ -83,10 +127,10 @@ class TeacherSetBuilder:
         return TeacherSet(set_data=set_data)
 
     def create_set_copies(
-        self, teacher_set_dict: dict[str, Any]
+        self, teacher_set_dict: dict[str, Any], control_number: str
     ) -> list[TeacherSetCopy]:
         copies = []
-        teacher_set_dict["control_number"] = self.ctrl_number_gen.next_control_number()
+        teacher_set_dict["control_number"] = control_number
         bib_id = teacher_set_dict.get("bib_id")
         logger.info(f"Creating {teacher_set_dict['copies_of_set']} copy/copies of set.")
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):
@@ -130,20 +174,10 @@ class TeacherSetBuilder:
         self, legacy_set_copies: list[TeacherSetCopy]
     ) -> list[TeacherSetCopy]:
         valid_bibs = []
-        error_data = []
         logger.info(f"Validating {len(legacy_set_copies)} copy/copies of set.")
         for set in legacy_set_copies:
-            try:
-                set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
-                valid_bibs.append(set_copy.to_set_bib())
-            except ValidationError as e:
-                logger.error(
-                    f"Validation errors for bib {set.bib_id}, copy "
-                    f"{set.copy_number} of {set.copies_of_set}: {e.json()}"
-                )
-                error_data.append(json.loads(e.json()))
-        if error_data:
-            self.write_errors_to_file(error_data)
+            set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
+            valid_bibs.append(set_copy.to_set_bib())
         return valid_bibs
 
     def write_errors_to_file(self, errors: list[dict[str, Any]]) -> None:

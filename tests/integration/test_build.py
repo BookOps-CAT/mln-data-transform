@@ -1,4 +1,5 @@
 import os
+import pathlib
 from typing import Any, Generator
 
 import pytest
@@ -25,15 +26,26 @@ def set_test_data() -> dict[str, Any]:
     }
 
 
+@pytest.fixture
+def mock_control_number_file(monkeypatch) -> dict[str, Any]:
+    def mock_path(*args, **kwargs):
+        pass
+
+    def mock_numbers(*args, **kwargs):
+        return '{"used_numbers", ["1", "2"]}'
+
+    monkeypatch.setattr(pathlib.Path, "write_text", mock_path)
+    monkeypatch.setattr(pathlib.Path, "read_text", mock_numbers)
+
+
 class TestTeacherSetBuilder:
+    BUILDER = TeacherSetBuilder(file="data/foo_bar.csv")
+
     def test_create_teacher_sets(
-        self, set_test_data, today_str, mock_responses, caplog
+        self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
     ):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        teacher_set = builder.create_teacher_set(**set_test_data)
-        set_data = builder.validate_set(teacher_set)
-        set_copies = builder.create_set_copies(set_data)
-        valid_set_copies = builder.validate_set_copies(set_copies)
+        teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
+        valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(caplog.records) == 10
@@ -52,8 +64,8 @@ class TestTeacherSetBuilder:
             "Validating 1 copy/copies of set.",
         ]
         assert bibs[0].leader == "00000nac  2200000 a 4500"
-        assert teacher_set.local_genre_term == ["Fiction"]
-        assert teacher_set.local_topic_term == ["New York City"]
+        assert teacher_set["local_genre_term"] == ["Fiction"]
+        assert teacher_set["local_topic_term"] == ["New York City"]
         assert field_strings == [
             "=001  nn-mlnyc-0000001",
             "=003  BookOps",
@@ -83,25 +95,25 @@ class TestTeacherSetBuilder:
         ]
 
     def test_create_teacher_sets_enhanced(
-        self, set_test_data, today_str, mock_responses, caplog
+        self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
     ):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
         set_test_data["special_formats"] = [
             {"title": "Cat puppet", "description": "A puppet", "copies": 1}
         ]
-        teacher_set = builder.create_teacher_set(**set_test_data)
-        set_data = builder.validate_set(teacher_set)
-        set_copies = builder.create_set_copies(set_data)
-        valid_set_copies = builder.validate_set_copies(set_copies)
+        teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
+        valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 3
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Foo Bar Teacher Set. Copy 1 of 1"]
         )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000002"]
+        )
         assert len(bibs) == 1
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  nn-mlnyc-0000002",
             "=003  BookOps",
             f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
             "=091  \\\\$aMLNYC ART$fCLUB E$pA$c[SHELF-NUMBER]",
@@ -131,17 +143,14 @@ class TestTeacherSetBuilder:
         ]
 
     def test_create_teacher_sets_mocked_parts(
-        self, mock_teacher_set, today_str, set_test_data
+        self, mock_teacher_set, today_str, set_test_data, mock_control_number_file
     ):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        teacher_set = builder.create_teacher_set(**set_test_data)
-        set_data = builder.validate_set(teacher_set)
-        set_copies = builder.create_set_copies(set_data)
-        valid_set_copies = builder.validate_set_copies(set_copies)
+        teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
+        valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  nn-mlnyc-0000003",
             "=003  BookOps",
             f"=008  {today_str}i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC ART$fCLUB$pA$c[SHELF-NUMBER]",
@@ -167,21 +176,23 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Baz$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_legacy_sets(self, mock_legacy_set, today_str):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        legacy_set = builder.create_legacy_set(bib_id="12345678")
-        set_data = builder.validate_set(legacy_set)
-        set_copies = builder.create_set_copies(set_data)
-        valid_set_copies = builder.validate_set_copies(set_copies)
+    def test_create_legacy_sets(
+        self, mock_legacy_set, today_str, mock_control_number_file
+    ):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 1
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Teacher Set. Copy 1 of 2", "Teacher Set. Copy 2 of 2"]
         )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000004", "nn-mlnyc-0000004"]
+        )
         assert len(bibs) == 2
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  nn-mlnyc-0000004",
             "=003  BookOps",
             f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
@@ -205,22 +216,22 @@ class TestTeacherSetBuilder:
         ]
 
     def test_legacy_set_no_subjects(
-        self, mock_legacy_set_no_subjects, today_str, caplog
+        self, mock_legacy_set_no_subjects, today_str, caplog, mock_control_number_file
     ):
-        builder = TeacherSetBuilder(file="data/foo_bar.csv")
-        legacy_set = builder.create_legacy_set(bib_id="12345678")
-        set_data = builder.validate_set(legacy_set)
-        set_copies = builder.create_set_copies(set_data)
-        valid_set_copies = builder.validate_set_copies(set_copies)
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 1
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Teacher Set. Copy 1 of 2", "Teacher Set. Copy 2 of 2"]
         )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000005", "nn-mlnyc-0000005"]
+        )
         assert len(bibs) == 2
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  nn-mlnyc-0000005",
             "=003  BookOps",
             f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
