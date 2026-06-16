@@ -1,3 +1,4 @@
+import copy
 import datetime
 import json
 import logging
@@ -49,8 +50,7 @@ class TeacherSetBuilder:
         set_data = LegacyTeacherSetData(
             bib_id=bib_id, platform_manager=platform_manager
         )
-        legacy_set = LegacyTeacherSet(set_data=set_data)
-        return legacy_set
+        return LegacyTeacherSet(set_data=set_data)
 
     def create_teacher_set(
         self,
@@ -87,27 +87,31 @@ class TeacherSetBuilder:
         bib_id = teacher_set_dict.get("bib_id")
         logger.info(f"Creating {teacher_set_dict['copies_of_set']} copy/copies of set.")
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):
+            set_copy_dict = copy.deepcopy(teacher_set_dict)
             if bib_id:
                 logger.info(f"Creating copy {copy_num + 1} of legacy set: {bib_id}.")
                 mapping = self.location_mapping(bib_id)
-                teacher_set_dict["var_field_data"].append(
+                barcode = mapping[copy_num]["BARCODE"]
+                set_copy_dict["var_field_data"].append(
                     {
                         "tag": "901",
                         "ind1": " ",
                         "ind2": " ",
-                        "subfields": [("n", mapping[copy_num]["BARCODE"])],
+                        "subfields": [
+                            ("n", barcode),
+                            ("o", set_copy_dict["legacy_barcodes"][barcode]),
+                        ],
                     }
                 )
-                teacher_set_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
+                set_copy_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
             else:
                 logger.info(
                     f"Creating copy {copy_num + 1} of teacher set: "
-                    f"{teacher_set_dict['set_title']}."
+                    f"{set_copy_dict['set_title']}."
                 )
-                teacher_set_dict["shelf_number"] = "[SHELF-NUMBER]"
-            teacher_set_dict["copy_number"] = copy_num + 1
-            print(teacher_set_dict)
-            copies.append(TeacherSetCopy(**teacher_set_dict))
+                set_copy_dict["shelf_number"] = "[SHELF-NUMBER]"
+            set_copy_dict["copy_number"] = copy_num + 1
+            copies.append(TeacherSetCopy(**set_copy_dict))
         return copies
 
     def validate_set(self, set: LegacyTeacherSet | TeacherSet) -> dict[str, Any]:
