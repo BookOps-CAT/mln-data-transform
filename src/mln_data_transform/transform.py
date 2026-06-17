@@ -62,15 +62,15 @@ class FullWorldCatResponse:
             return ""
 
     @property
-    def title(self) -> str:
-        return self.record["245"]["a"].strip(" :/")
-
-    @property
     def pub_date(self) -> str | None:
         pub_date = self.record.pubyear
         if isinstance(pub_date, str):
             return pub_date.strip("[].")
         return pub_date
+
+    @property
+    def title(self) -> str:
+        return self.record["245"]["a"].strip(" :/.")
 
     @property
     def subjects(self) -> list[dict[str, Any]]:
@@ -92,6 +92,17 @@ class FullWorldCatResponse:
                 )
         return subject_list
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "author_name": self.author_name,
+            "author_dates": self.author_dates,
+            "description": self.description,
+            "isbn": self.isbn,
+            "pub_date": self.pub_date,
+            "subjects": self.subjects,
+            "title": self.title,
+        }
+
 
 class PlatformManager:
     def __init__(self) -> None:
@@ -112,7 +123,7 @@ class PlatformManager:
         with PlatformSession(authorization=self.platform_token) as session:
             response = session.get_bib_items(id=bib_id)
             data = response.json()["data"]
-            logger.info(f"{len(data)} item records found for bib b{bib_id}a.")
+            logger.info(f"{len(data)} item record(s) found for bib {bib_id}.")
             return data
 
 
@@ -134,7 +145,7 @@ class WorldcatManager:
     def __exit__(self, *args, **kwargs) -> None:
         self.session.close()
 
-    def get_oclc_number_from_isbn(self, response: Response) -> str:
+    def parse_brief_bib(self, response: Response) -> str:
         parsed_responses = [
             BriefBibResponse(i) for i in response.json()["briefRecords"]
         ]
@@ -147,12 +158,15 @@ class WorldcatManager:
         )
         return Record(data=full_bib_response.content)  # type: ignore
 
-    def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
-        logger.info(f"ISBN {isbn}: retrieving brief bib record.")
+    def get_oclc_number_from_isbn(self, isbn: str) -> str:
         brief_bib = self.session.brief_bibs_search(
             q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
         )
-        oclc_number = self.get_oclc_number_from_isbn(response=brief_bib)
+        return self.parse_brief_bib(response=brief_bib)
+
+    def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
+        logger.info(f"ISBN {isbn}: retrieving brief bib record.")
+        oclc_number = self.get_oclc_number_from_isbn(isbn=isbn)
         logger.info(
             f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
         )

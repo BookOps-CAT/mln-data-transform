@@ -10,47 +10,13 @@ from mln_data_transform.taxonomy import (
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
+    TaxonomyGenre,
+    TaxonomyTopic,
 )
 from mln_data_transform.transform import PlatformManager, WorldcatManager
 from mln_data_transform.utils import is_valid_isbn, normalize_isbn
 
 logger = logging.getLogger(__name__)
-
-
-class LegacyTeacherSetData:
-    def __init__(self, bib_id: str, platform_manager: PlatformManager) -> None:
-        self.platform_manager = platform_manager
-        self.bib_id = bib_id
-        self.parts = [
-            SetBook(isbn=i, copies=self.bib_data.copy_count)
-            for i in self.bib_data.isbns
-        ]
-
-    @cached_property
-    def bib_data(self) -> LegacyBibData:
-        bib_data = self.platform_manager.get_platform_bib(self.bib_id)
-        return LegacyBibData(
-            bib_id=self.bib_id,
-            language=bib_data["lang"]["code"],
-            set_title=bib_data["title"],
-            var_fields=bib_data["varFields"],
-        )
-
-    @property
-    def copies_of_set(self) -> int:
-        return len(self.item_data)
-
-    @cached_property
-    def item_data(self) -> list[LegacyItemData]:
-        item_data = self.platform_manager.get_platform_bib_items(self.bib_id)
-        item_list = []
-        for item in item_data:
-            barcode = item["barcode"]
-            legacy_item = LegacyItemData(
-                call_number=item["callNumber"], item_id=item["id"], barcode=barcode
-            )
-            item_list.append(legacy_item)
-        return item_list
 
 
 class LegacyBibData:
@@ -250,8 +216,56 @@ class LegacyItemData:
             return self.call_number[:-2]
 
 
+class LegacyTeacherSetData:
+    def __init__(self, bib_id: str, platform_manager: PlatformManager) -> None:
+        self.platform_manager = platform_manager
+        self.bib_id = bib_id
+        self.parts = [
+            SetBook(isbn=i, copies=self.bib_data.copy_count)
+            for i in self.bib_data.isbns
+        ]
+
+    @cached_property
+    def bib_data(self) -> LegacyBibData:
+        bib_data = self.platform_manager.get_platform_bib(self.bib_id)
+        return LegacyBibData(
+            bib_id=self.bib_id,
+            language=bib_data["lang"]["code"],
+            set_title=bib_data["title"],
+            var_fields=bib_data["varFields"],
+        )
+
+    @property
+    def copies_of_set(self) -> int:
+        return len(self.item_data)
+
+    @cached_property
+    def item_data(self) -> list[LegacyItemData]:
+        item_data = self.platform_manager.get_platform_bib_items(self.bib_id)
+        item_list = []
+        for item in item_data:
+            barcode = item["barcode"]
+            legacy_item = LegacyItemData(
+                call_number=item["callNumber"], item_id=item["id"], barcode=barcode
+            )
+            item_list.append(legacy_item)
+        return item_list
+
+    def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
+        parts = []
+        data_parts = self.parts
+        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        with WorldcatManager() as manager:
+            for part in data_parts:
+                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
+                parts.append(worldcat_part.to_dict())
+        return parts
+
+
 class LegacyTeacherSet:
-    def __init__(self, set_data: LegacyTeacherSetData) -> None:
+    def __init__(
+        self, set_data: LegacyTeacherSetData, worldcat_parts: list[dict[str, Any]]
+    ) -> None:
         self._set_data = set_data
         self.bib_id = self._set_data.bib_id
         self.legacy_call_number = self._set_data.bib_data.call_number.strip()
@@ -260,8 +274,6 @@ class LegacyTeacherSet:
         self.enhanced = self._set_data.bib_data.enhanced
         self.grade_level = GradeReadingLevel[self._set_data.bib_data.grade_level]
         self.language = self._set_data.bib_data.language
-        self.local_genre_term = None
-        self.local_topic_term = None
         self.physical_description = (
             self._set_data.bib_data.physical_description
             if self._set_data.bib_data.physical_description
@@ -272,6 +284,7 @@ class LegacyTeacherSet:
         self.set_type = SetTypeFormat[self._set_data.bib_data.set_type]
         self.study_program_info = SubjectStudyProgram[self._set_data.bib_data.subject]
         self.var_fields = self._set_data.bib_data.var_fields
+        self.worldcat_parts = worldcat_parts
 
     @property
     def contents_note(self) -> str:
@@ -292,27 +305,58 @@ class LegacyTeacherSet:
     def legacy_barcodes(self) -> dict[str, str]:
         return {i.barcode: i.call_number for i in self._set_data.item_data}
 
-    @cached_property
+    @property
+    def local_genre_term(self) -> list[TaxonomyGenre]:
+        genre_terms = []
+        for subject in self.subject_strings:
+            for genre in TaxonomyGenre:
+                if subject.casefold() in genre.value:
+                    genre_terms.append(genre)
+        for genre in TaxonomyGenre:
+            if genre.value in self.legacy_call_number:
+                genre_terms.append(genre)
+        return list(set(genre_terms))
+
+    @property
+    def local_topic_term(self) -> list[TaxonomyTopic]:
+        topic_terms = []
+        for subject in self.subject_strings:
+            for topic in TaxonomyTopic:
+                if subject.casefold() in topic.value:
+                    topic_terms.append(topic)
+        for topic in TaxonomyTopic:
+            if topic.value in self.legacy_call_number.casefold():
+                topic_terms.append(topic)
+        return list(set(topic_terms))
+
+    @property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        data_parts = self._set_data.parts
-        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
-        with WorldcatManager() as manager:
-            for part in data_parts:
-                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
-                parts.append(
-                    WorldcatSetPart(
-                        isbn=part.isbn,
-                        title=worldcat_part.title,
-                        author=worldcat_part.author_name,
-                        author_dates=worldcat_part.author_dates,
-                        pub_date=worldcat_part.pub_date,
-                        description=worldcat_part.description,
-                        copies=part.copies,
-                        subjects=worldcat_part.subjects,
-                    )
+        parts_dict = {i.isbn: i.copies for i in self._set_data.parts}
+        for worldcat_part in self.worldcat_parts:
+            parts.append(
+                WorldcatSetPart(
+                    isbn=worldcat_part["isbn"],
+                    title=worldcat_part["title"],
+                    author=worldcat_part["author_name"],
+                    author_dates=worldcat_part["author_dates"],
+                    pub_date=worldcat_part["pub_date"],
+                    description=worldcat_part["description"],
+                    copies=parts_dict[worldcat_part["isbn"]],
+                    subjects=worldcat_part["subjects"],
                 )
+            )
         return parts
+
+    @property
+    def subject_strings(self) -> list[str]:
+        subjects = []
+        for part in self.parts:
+            if part.subjects:
+                part_subjects = part.subjects
+                for subject in part_subjects:
+                    subjects.append(" ".join([i[1] for i in subject["subfields"]]))
+        return subjects
 
     @property
     def var_field_data(self) -> list[VarFieldData]:

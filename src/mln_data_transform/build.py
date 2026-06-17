@@ -29,7 +29,7 @@ class TeacherSetBuilder:
         df = pd.read_csv(
             self.file,
             sep="|",
-            usecols=["SUBJECT", "BARCODE", "LOCATION", "BIB_ID"],
+            usecols=["BARCODE", "LOCATION", "BIB_ID"],
             header=0,
             dtype=str,
         )
@@ -47,7 +47,13 @@ class TeacherSetBuilder:
         return bib_df.to_dict("index")
 
     def build_legacy_set(self, bib_id: str) -> dict[str, Any]:
-        legacy_set = self.create_legacy_set(bib_id=bib_id)
+        logger.info(f"Creating base teacher set for legacy set: Bib ID {bib_id}.")
+        platform_manager = PlatformManager()
+        set_data = LegacyTeacherSetData(
+            bib_id=bib_id, platform_manager=platform_manager
+        )
+        worldcat_parts = set_data.get_worldcat_data_for_parts()
+        legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(legacy_set)
 
     def build_teacher_set(
@@ -63,7 +69,8 @@ class TeacherSetBuilder:
         local_topic_term: list[str] | None = None,
         special_formats: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
-        teacher_set = self.create_teacher_set(
+        logger.info(f"Creating base teacher set for new set: '{set_title}'.")
+        set_data = TeacherSetData(
             copies_of_set=copies_of_set,
             grade_level=grade_level,
             language=language,
@@ -75,15 +82,9 @@ class TeacherSetBuilder:
             local_topic_term=local_topic_term,
             special_formats=special_formats,
         )
+        worldcat_parts = set_data.get_worldcat_data_for_parts()
+        teacher_set = TeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(teacher_set)
-
-    def create_legacy_set(self, bib_id: str) -> LegacyTeacherSet:
-        logger.info(f"Creating base teacher set for {bib_id}.")
-        platform_manager = PlatformManager()
-        set_data = LegacyTeacherSetData(
-            bib_id=bib_id, platform_manager=platform_manager
-        )
-        return LegacyTeacherSet(set_data=set_data)
 
     def build_set_copies(self, set_data: dict[str, Any]) -> dict[str, Any]:
         control_number = self.ctrl_number_gen.next_control_number()
@@ -98,34 +99,6 @@ class TeacherSetBuilder:
         except ValidationError as e:
             error_data.append(json.loads(e.json()))
 
-    def create_teacher_set(
-        self,
-        copies_of_set: int,
-        grade_level: str,
-        language: str,
-        parts: list[dict[str, str]],
-        set_title: str,
-        set_type: str,
-        study_program_info: str,
-        local_genre_term: list[str] | None = None,
-        local_topic_term: list[str] | None = None,
-        special_formats: list[dict[str, str]] | None = None,
-    ) -> TeacherSet:
-        logger.info(f"Creating base teacher set for new set: '{set_title}'.")
-        set_data = TeacherSetData(
-            copies_of_set=copies_of_set,
-            grade_level=grade_level,
-            language=language,
-            parts=parts,
-            set_title=set_title,
-            set_type=set_type,
-            study_program_info=study_program_info,
-            local_genre_term=local_genre_term,
-            local_topic_term=local_topic_term,
-            special_formats=special_formats,
-        )
-        return TeacherSet(set_data=set_data)
-
     def create_set_copies(
         self, teacher_set_dict: dict[str, Any], control_number: str
     ) -> list[TeacherSetCopy]:
@@ -136,7 +109,9 @@ class TeacherSetBuilder:
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):
             set_copy_dict = copy.deepcopy(teacher_set_dict)
             if bib_id:
-                logger.info(f"Creating copy {copy_num + 1} of legacy set: {bib_id}.")
+                logger.info(
+                    f"Creating copy {copy_num + 1} of legacy set: Bib ID {bib_id}."
+                )
                 mapping = self.location_mapping(bib_id)
                 barcode = mapping[copy_num]["BARCODE"]
                 set_copy_dict["var_field_data"].append(
@@ -168,7 +143,7 @@ class TeacherSetBuilder:
             return teacher_set.model_dump()
         except ValidationError as e:
             logger.error(f"Validation errors for set: {e.json()}.")
-            self.write_errors_to_file(json.loads(e.json()))
+            # self.write_errors_to_file(json.loads(e.json()))
 
     def validate_set_copies(
         self, legacy_set_copies: list[TeacherSetCopy]

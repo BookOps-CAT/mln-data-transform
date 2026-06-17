@@ -1,64 +1,15 @@
 {
   "id": "19538471",
-  "nyplSource": "sierra-nypl",
   "title": "This is New York by M. Sasek.",
-  "author": "",
-  "publishYear": null,
-  "nyplType": "bib",
-  "controlNumber": "",
-  "standardNumbers": [],
-  "updatedDate": "2025-01-09T20:56:56",
-  "createdDate": "2012-02-15T20:48:00",
-  "deletedDate": null,
-  "catalogDate": "2012-02-06T00:00:00",
-  "deleted": false,
-  "suppressed": false,
-  "locations": [{ "code": "ed", "name": "LSC Educator Collection" }],
   "lang": { "code": "eng", "name": "English" },
-  "materialType": { "code": "8  ", "value": "TEACHER SET" },
-  "bibLevel": { "code": "m", "value": "MONOGRAPH" },
-  "country": { "code": "xx ", "name": "Unknown or undetermined" },
-  "normTitle": "this is new york by m sasek",
-  "normAuthor": "",
-  "fixedFields": {
-    "24": { "label": "Language", "value": "eng", "display": "English" },
-    "25": { "label": "Skip", "value": "0", "display": null },
-    "26": { "label": "Location", "value": "ed   ", "display": "LSC Educator Collection" },
-    "27": { "label": "", "value": "0", "display": null },
-    "28": { "label": "Cat. Date", "value": "2012-02-06", "display": null },
-    "29": { "label": "Bib Level", "value": "m", "display": "MONOGRAPH" },
-    "30": { "label": "Material Type", "value": "8  ", "display": "TEACHER SET" },
-    "31": { "label": "Bib Code 3", "value": "-", "display": null },
-    "80": { "label": "Record Type", "value": "b", "display": null },
-    "81": { "label": "Record Number", "value": "19538471", "display": null },
-    "83": { "label": "Created Date", "value": "2012-02-15T20:48:00Z", "display": null },
-    "84": { "label": "Updated Date", "value": "2025-01-09T20:56:56Z", "display": null },
-    "85": { "label": "No. of Revisions", "value": "113", "display": null },
-    "86": { "label": "Agency", "value": "1", "display": null },
-    "89": { "label": "Country", "value": "xx ", "display": "Unknown or undetermined" },
-    "98": { "label": "", "value": "2025-01-09T20:53:28Z", "display": null },
-    "107": { "label": "MARC Type", "value": " ", "display": null }
-  },
   "varFields": [
-    {
-      "ind1": "1",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "700",
-      "fieldTag": "b",
-      "subfields": [
-        { "tag": "a", "content": "Sasek, M." },
-        { "tag": "q", "content": "(Miroslav)," },
-        { "tag": "d", "content": "1916-1980." }
-      ]
-    },
     {
       "ind1": " ",
       "ind2": " ",
       "content": null,
       "marcTag": "091",
       "fieldTag": "c",
-      "subfields": [{ "tag": "a", "content": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1" }]
+      "subfields": [{ "tag": "a", "content": "Teacher Set SOC A Foo Bar Book Club 1" }]
     },
     {
       "ind1": " ",
@@ -199,88 +150,12 @@
       "subfields": [{ "tag": "a", "content": "This is New York by M. Sasek." }]
     },
     {
-      "ind1": "3",
-      "ind2": "0",
-      "content": null,
-      "marcTag": "246",
-      "fieldTag": "u",
-      "subfields": [{ "tag": "a", "content": "This is New York by M. Sasek. Gr. K-1 (Teacher Set)." }]
-    },
-    {
-      "ind1": "3",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "246",
-      "fieldTag": "u",
-      "subfields": [{ "tag": "a", "content": "Social Studies: This is New York by M. Sasek. Gr. K-1 (Teacher Set)." }]
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": "120508nuuuuuuuu       j      000 1 eng dnam a ",
-      "marcTag": "008",
-      "fieldTag": "y",
-      "subfields": null
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "901",
-      "fieldTag": "y",
-      "subfields": [
-        { "tag": "a", "content": "nsn" },
-        { "tag": "b", "content": "CMA" },
-        { "tag": "c", "content": "CATBL" }
-      ]
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "901",
-      "fieldTag": "y",
-      "subfields": [
-        { "tag": "a", "content": "ed" },
-        { "tag": "b", "content": "LOG DOE" },
-        { "tag": "n", "content": "Changed call no., 7/28/14" }
-      ]
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "901",
-      "fieldTag": "y",
-      "subfields": [
-        { "tag": "a", "content": "xc" },
-        { "tag": "b", "content": "LOG DOE" },
-        { "tag": "n", "content": "Changed for book club set, 7/23/15" }
-      ]
-    },
-    {
       "ind1": " ",
       "ind2": " ",
       "content": null,
       "marcTag": "944",
       "fieldTag": "y",
-      "subfields": [{ "tag": "a", "content": "9780789308849 " }]
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "910",
-      "fieldTag": "y",
-      "subfields": [{ "tag": "a", "content": "BL" }]
-    },
-    {
-      "ind1": " ",
-      "ind2": " ",
-      "content": null,
-      "marcTag": "909",
-      "fieldTag": "y",
-      "subfields": [{ "tag": "a", "content": "OCLC Holdings Update Project Exclusion 2022" }]
+      "subfields": [{ "tag": "a", "content": "9781234567897 9780987654328 " }]
     },
     {
       "ind1": null,
@@ -290,6 +165,5 @@
       "fieldTag": "_",
       "subfields": null
     }
-  ],
-  "items": "i311874964,i331764027,i331764039,i331764040,i332361093,i332361391,i332361627"
+  ]
 }

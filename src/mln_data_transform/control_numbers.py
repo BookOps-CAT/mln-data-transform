@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class ControlNumberGenerator:
@@ -17,6 +20,7 @@ class ControlNumberGenerator:
         if not self.state_path.exists():
             return
         data = json.loads(self.state_path.read_text())
+        logger.info(data)
         self.used_numbers = set(data.get("used_numbers", []))
         if self.used_numbers:
             self.next_number = max(self.used_numbers) + 1

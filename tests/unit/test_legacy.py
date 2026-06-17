@@ -17,7 +17,7 @@ class TestLegacyBibData:
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.isbns == ["9780789308849"]
+        assert legacy_bib.isbns == ["9781234567897", "9780987654328"]
         assert legacy_bib.physical_description == "10 item(s)"
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_count == 10
@@ -197,10 +197,10 @@ class TestLegacyBibData:
 
 
 class TestLegacyItemData:
-    def test_legacy_item_data(self, test_item_data):
+    def test_legacy_item_data(self):
         legacy_item = LegacyItemData(
-            item_id=test_item_data["id"],
-            call_number=test_item_data["callNumber"],
+            item_id="i123456789",
+            call_number="Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
             barcode="33333123456789",
         )
         assert (
@@ -243,85 +243,92 @@ class TestLegacyItemData:
         assert legacy_item.bib_call_number == f"Teacher Set {result}"
 
 
-class TestLegacyTeacherSet:
-    def test_legacy_set_data(self, mock_responses, caplog):
+class TestLegacyTeacherSetData:
+    def test_legacy_set_data(
+        self, stub_metadata_session, stub_platform_session, caplog
+    ):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
         assert (
             legacy_set_data.bib_data.call_number
-            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
+            == "Teacher Set SOC A Foo Bar Book Club 1"
         )
-        assert len(legacy_set_data.item_data) == 1
+        assert len(legacy_set_data.item_data) == 2
 
-    def test_legacy_set(self, mock_responses, caplog):
+    def test_legacy_set_data_get_parts(
+        self, stub_metadata_session, stub_platform_session, caplog
+    ):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
-        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
-        assert legacy_set.parts[0].author == "Sasek, M."
-        assert legacy_set.parts[0].author_dates == "1916-1980"
+        worldcat_parts = legacy_set_data.get_worldcat_data_for_parts()
+        assert len(worldcat_parts) == 2
+        assert worldcat_parts[0]["author_name"] == "Bar, Foo"
+        assert worldcat_parts[0]["author_dates"] == "1980-"
+        assert worldcat_parts[0]["description"] == "Fake description of book."
+        assert worldcat_parts[0]["isbn"] == "9781234567897"
+        assert worldcat_parts[0]["pub_date"] == "2000"
+        assert worldcat_parts[0]["subjects"] == [
+            {
+                "tag": "651",
+                "ind1": " ",
+                "ind2": "0",
+                "subfields": [("a", "New York (N.Y.)")],
+            },
+            {
+                "tag": "655",
+                "ind1": " ",
+                "ind2": "7",
+                "subfields": [("a", "Comics (Graphic works)."), ("2", "lcgft")],
+            },
+        ]
+        assert worldcat_parts[0]["title"] == "Fake book 1"
+
+
+class TestLegacyTeacherSet:
+    def test_legacy_set(self, stub_platform_session, caplog, mock_worldcat_response):
+        platform_manager = PlatformManager()
+        legacy_set_data = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
+        )
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.parts[0].author == "Bar, Foo"
+        assert legacy_set.parts[0].author_dates == "1980-"
         assert legacy_set.parts[0].description == "Fake description of book."
-        assert legacy_set.parts[0].pub_date == "2003"
+        assert legacy_set.parts[0].pub_date == "2000"
         assert len(legacy_set.parts[0].subjects) == 2
         assert (
             legacy_set.contents_note
-            == 'Set consists of 10 copies of "This is New York".'
+            == 'Set consists of 10 copies of "Fake book 1", 10 copies of "Fake book 2".'
         )
-        assert len(legacy_set.var_field_data) == 19
+        assert len(legacy_set.var_field_data) == 16
         assert legacy_set.legacy_barcodes == {
-            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
+            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
         }
         assert legacy_set.local_genre_term == []
         assert legacy_set.local_topic_term == []
 
-    def test_legacy_set_single_copy(self, mock_platform_response_single_copy, caplog):
+    def test_legacy_set_single_copy(
+        self, stub_platform_session_single_copy, caplog, mock_worldcat_response
+    ):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
-        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
-        assert (
-            legacy_set.contents_note == 'Set consists of 1 copy of "This is New York".'
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
         )
-        assert legacy_set.legacy_barcodes == {
-            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
-        }
-
-    def test_legacy_set_missing_data(self, mock_worldcat_response_missing_data, caplog):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
-        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
-        assert legacy_set.parts[0].author is None
-        assert legacy_set.parts[0].author_dates is None
-        assert legacy_set.parts[0].description == ""
-        assert legacy_set.parts[0].pub_date == "20uu"
-        assert legacy_set.parts[0].subjects == []
         assert (
             legacy_set.contents_note
-            == 'Set consists of 10 copies of "This is New York".'
+            == 'Set consists of 1 copy of "Fake book 1", 1 copy of "Fake book 2".'
         )
-        assert len(legacy_set.var_field_data) == 19
         assert legacy_set.legacy_barcodes == {
-            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
-        }
-
-    def test_legacy_set_no_pub_dates(self, mock_worldcat_response_no_pub_dates, caplog):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
-        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
-        assert legacy_set.parts[0].pub_date is None
-        assert (
-            legacy_set.contents_note
-            == 'Set consists of 10 copies of "This is New York".'
-        )
-        assert len(legacy_set.var_field_data) == 19
-        assert legacy_set.legacy_barcodes == {
-            "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
+            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
         }

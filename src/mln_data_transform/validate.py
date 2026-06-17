@@ -28,8 +28,8 @@ class TeacherSetModel(BaseModel):
     enhanced: str | None
     grade_level: GradeReadingLevel
     language: str
-    local_genre_term: list[TaxonomyGenre] | None
-    local_topic_term: list[TaxonomyTopic] | None
+    local_genre_term: list[TaxonomyGenre]
+    local_topic_term: list[TaxonomyTopic]
     parts: Sequence[WorldcatSetPart | TeacherSetSpecialFormat]
     physical_description: str
     record_type: str

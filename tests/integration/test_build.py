@@ -1,6 +1,5 @@
 import os
-import pathlib
-from typing import Any, Generator
+from typing import Generator
 
 import pytest
 from dotenv import load_dotenv
@@ -8,94 +7,56 @@ from dotenv import load_dotenv
 from mln_data_transform.build import TeacherSetBuilder
 
 
-@pytest.fixture
-def set_test_data() -> dict[str, Any]:
-    return {
-        "copies_of_set": 1,
-        "grade_level": "Pre-K",
-        "language": "eng",
-        "set_title": "Foo Bar Teacher Set",
-        "parts": [
-            {"isbn": "9781234567890", "copies": 1},
-            {"copies": 2, "isbn": "9780987654321"},
-        ],
-        "set_type": "Book Club",
-        "study_program_info": "Arts & Music",
-        "local_genre_term": ["Fiction"],
-        "local_topic_term": ["New York City"],
-    }
-
-
-@pytest.fixture
-def mock_control_number_file(monkeypatch) -> dict[str, Any]:
-    def mock_path(*args, **kwargs):
-        pass
-
-    def mock_numbers(*args, **kwargs):
-        return '{"used_numbers", ["1", "2"]}'
-
-    monkeypatch.setattr(pathlib.Path, "write_text", mock_path)
-    monkeypatch.setattr(pathlib.Path, "read_text", mock_numbers)
-
-
 class TestTeacherSetBuilder:
     BUILDER = TeacherSetBuilder(file="data/foo_bar.csv")
 
-    def test_build_teacher_sets(
-        self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
-    ):
+    def test_build_teacher_sets(self, set_test_data, today_str, mock_set, caplog):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
-        assert len(caplog.records) == 10
-        # should be 2 x the number of components + 6
-        assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for new set: 'Foo Bar Teacher Set'.",
-            "Validating set.",
-            "Record contains 2 ISBN(s) to query WorldCat.",
-            "ISBN 9781234567890: retrieving brief bib record.",
-            "ISBN 9781234567890: retrieving full bib record (OCLC number: ocn123456789).",
-            "ISBN 9780987654321: retrieving brief bib record.",
-            "ISBN 9780987654321: retrieving full bib record (OCLC number: "
-            "ocn123456789).",
-            "Creating 1 copy/copies of set.",
-            "Creating copy 1 of teacher set: Foo Bar Teacher Set.",
-            "Validating 1 copy/copies of set.",
-        ]
-        assert bibs[0].leader == "00000nac  2200000 a 4500"
+        assert len(valid_set_copies[0].components) == 2
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
+        )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
+        )
         assert teacher_set["local_genre_term"] == ["Fiction"]
         assert teacher_set["local_topic_term"] == ["New York City"]
+        assert len(bibs) == 2
+        assert len(field_strings) == 26
         assert field_strings == [
             "=001  nn-mlnyc-0000001",
             "=003  BookOps",
-            f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-            "=091  \\\\$aMLNYC ART$fCLUB$pA$c[SHELF-NUMBER]",
-            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
-            "=300  \\\\$a3 item(s)",
-            '=500  \\\\$aSet consists of 1 copy of "This is New York", 2 copies of "This is New York".',
-            "=520  \\\\$3This is New York$aFake description of book.",
-            "=520  \\\\$3This is New York$aFake description of book.",
+            f"=008  {today_str}i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
-            "=526  8\\$aArts & Music",
+            "=526  8\\$aSocial Studies",
             "=651  \\0$aNew York (N.Y.)",
-            "=655  \\7$aFake genre.$2lcgft",
+            "=655  \\7$aHistorical fiction.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
-            "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9781234567890",
-            "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780987654321",
+            "=700  12$aBar, Foo$d1980-$tFake book 1$f2000$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_enhanced(
-        self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
+        self, set_test_data, today_str, mock_set, caplog
     ):
         set_test_data["special_formats"] = [
             {"title": "Cat puppet", "description": "A puppet", "copies": 1}
@@ -106,150 +67,303 @@ class TestTeacherSetBuilder:
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 3
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
-            ["Foo Bar Teacher Set. Copy 1 of 1"]
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000002"]
+            ["nn-mlnyc-0000002", "nn-mlnyc-0000002"]
         )
-        assert len(bibs) == 1
+        assert len(bibs) == 2
+        assert len(field_strings) == 28
         assert field_strings == [
             "=001  nn-mlnyc-0000002",
             "=003  BookOps",
-            f"=008  {today_str}i20032003xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
-            "=091  \\\\$aMLNYC ART$fCLUB E$pA$c[SHELF-NUMBER]",
-            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
-            "=300  \\\\$a4 item(s)",
-            '=500  \\\\$aSet consists of 1 copy of "This is New York", 2 copies of "This is New York", 1 Cat puppet(s).',
-            "=520  \\\\$3This is New York$aFake description of book.",
-            "=520  \\\\$3This is New York$aFake description of book.",
+            f"=008  {today_str}i20002000xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB E$pA$c[SHELF-NUMBER]",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a5 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2", 1 Cat puppet(s).',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=520  \\\\$3Cat puppet$aA puppet.",
             "=521  2\\$aPre-K",
-            "=526  8\\$aArts & Music",
+            "=526  8\\$aSocial Studies",
             "=651  \\0$aNew York (N.Y.)",
-            "=655  \\7$aFake genre.$2lcgft",
+            "=655  \\7$aHistorical fiction.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
-            "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9781234567890",
-            "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780987654321",
+            "=700  12$aBar, Foo$d1980-$tFake book 1$f2000$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_build_teacher_sets_mocked_parts(
-        self, mock_teacher_set, today_str, set_test_data, mock_control_number_file
+    def test_teacher_set_missing_info(
+        self, set_test_data, today_str, mock_set_missing_info, caplog
     ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
-        valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
+        assert len(valid_set_copies[0].components) == 2
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
+        )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000003", "nn-mlnyc-0000003"]
+        )
+        assert len(bibs) == 2
+        assert len(field_strings) == 24
         assert field_strings == [
             "=001  nn-mlnyc-0000003",
             "=003  BookOps",
             f"=008  {today_str}i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-            "=091  \\\\$aMLNYC ART$fCLUB$pA$c[SHELF-NUMBER]",
-            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 1",
-            "=300  \\\\$a2 item(s)",
-            '=500  \\\\$aSet consists of 1 copy of "Foo", 1 copy of "Baz".',
-            "=520  \\\\$3Foo$aA book.",
-            "=520  \\\\$3Baz$aAnother book.",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
-            "=526  8\\$aArts & Music",
-            "=650  \\0$aFake subject.",
-            "=655  \\7$aFake genre.$2lcgft",
+            "=526  8\\$aSocial Studies",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
-            "=700  12$aBar$d1980-$tFoo$f20uu$x9781234567890",
-            "=730  02$aBaz$x9780987654321",
+            "=730  02$aFake book 1$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Baz$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_build_legacy_sets(
-        self, mock_legacy_set, today_str, mock_control_number_file
+    def test_teacher_set_no_dates(
+        self, set_test_data, today_str, mock_set_no_dates, caplog
     ):
-        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
-        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
+        teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
-        assert len(valid_set_copies[0].components) == 1
+        assert len(valid_set_copies[0].components) == 2
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
-            ["Teacher Set. Copy 1 of 2", "Teacher Set. Copy 2 of 2"]
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
             ["nn-mlnyc-0000004", "nn-mlnyc-0000004"]
         )
         assert len(bibs) == 2
+        assert len(field_strings) == 24
         assert field_strings == [
             "=001  nn-mlnyc-0000004",
             "=003  BookOps",
             f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-            "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
-            "=245  00$aTeacher Set.$nCopy 1 of 2",
-            "=300  \\\\$a2 item(s)",
-            '=500  \\\\$aSet consists of 2 copies of "Foo".',
-            "=520  \\\\$3Foo$aA book.",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=650  \\0$aFake subject.",
-            "=655  \\7$aFake genre.$2lcgft",
-            "=690  \\7$aTopic$2bookops",
-            "=700  12$aBar$tFoo$x9781234567890",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=730  02$aFake book 1$x9781234567897",
+            "=730  02$aFake book 2$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar 1-1",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_legacy_set_no_subjects(
-        self, mock_legacy_set_no_subjects, today_str, caplog, mock_control_number_file
-    ):
+    def test_build_legacy_sets(self, mock_set, today_str):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
-        assert len(valid_set_copies[0].components) == 1
+        assert len(valid_set_copies[0].components) == 2
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
-            ["Teacher Set. Copy 1 of 2", "Teacher Set. Copy 2 of 2"]
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
             ["nn-mlnyc-0000005", "nn-mlnyc-0000005"]
         )
+        assert legacy_set["local_genre_term"] == []
+        assert legacy_set["local_topic_term"] == []
         assert len(bibs) == 2
+        assert len(field_strings) == 25
         assert field_strings == [
             "=001  nn-mlnyc-0000005",
             "=003  BookOps",
-            f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
-            "=091  \\\\$aMLNYC SOC$fTOPIC$pA$c1",
-            "=245  00$aTeacher Set.$nCopy 1 of 2",
-            "=300  \\\\$a2 item(s)",
-            '=500  \\\\$aSet consists of 2 copies of "Foo".',
-            "=520  \\\\$3Foo$aA book.",
+            f"=008  {today_str}i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=690  \\7$aTopic$2bookops",
-            "=700  12$aBar$tFoo$x9781234567890",
+            "=651  \\0$aNew York (N.Y.)",
+            "=655  \\7$aHistorical fiction.$2lcgft",
+            "=690  \\7$aBook Club$2bookops",
+            "=700  12$aBar, Foo$d1980-$tFake book 1$f2000$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
-            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar 1-1",
+            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar Book Club 1-1",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Foo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
+
+    def test_legacy_set_missing_info(self, mock_set_missing_info, today_str, caplog):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
+        bibs = [i.to_bib() for i in valid_set_copies]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert len(valid_set_copies[0].components) == 2
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
+        )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000006", "nn-mlnyc-0000006"]
+        )
+        assert len(bibs) == 2
+        assert len(field_strings) == 23
+        assert field_strings == [
+            "=001  nn-mlnyc-0000006",
+            "=003  BookOps",
+            f"=008  {today_str}i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aSocial Studies",
+            "=690  \\7$aBook Club$2bookops",
+            "=730  02$aFake book 1$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar Book Club 1-1",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
+
+    def test_legacy_set_no_dates(self, mock_set_no_dates, today_str, caplog):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
+        bibs = [i.to_bib() for i in valid_set_copies]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert len(valid_set_copies[0].components) == 2
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
+        )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000007", "nn-mlnyc-0000007"]
+        )
+        assert len(bibs) == 2
+        assert len(field_strings) == 23
+        assert field_strings == [
+            "=001  nn-mlnyc-0000007",
+            "=003  BookOps",
+            f"=008  {today_str}nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aSocial Studies",
+            "=690  \\7$aBook Club$2bookops",
+            "=730  02$aFake book 1$x9781234567897",
+            "=730  02$aFake book 2$x9780987654328",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar Book Club 1-1",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
+
+
+class TestTeacherSetBuilderLogging:
+    BUILDER = TeacherSetBuilder(file="data/foo_bar.csv")
+
+    def test_build_teacher_sets(
+        self, set_test_data, mock_metadata_session, caplog, mock_location_mapping
+    ):
+        teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
+        self.BUILDER.build_set_copies(teacher_set)
+        assert len(caplog.records) == 11
+        assert [i.msg for i in caplog.records] == [
+            "Creating base teacher set for new set: 'Foo Bar Teacher Set'.",
+            "Record contains 2 ISBN(s) to query WorldCat.",
+            "ISBN 9781234567897: retrieving brief bib record.",
+            "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
+            "ISBN 9780987654328: retrieving brief bib record.",
+            "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
+            "Validating set.",
+            "Creating 2 copy/copies of set.",
+            "Creating copy 1 of teacher set: Foo Bar Teacher Set.",
+            "Creating copy 2 of teacher set: Foo Bar Teacher Set.",
+            "Validating 2 copy/copies of set.",
+        ]
+
+    def test_build_legacy_sets(
+        self,
+        mock_metadata_session,
+        mock_platform_session,
+        caplog,
+        mock_location_mapping,
+    ):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+        self.BUILDER.build_set_copies(set_data=legacy_set)
+        assert len(caplog.records) == 14
+        assert [i.msg for i in caplog.records] == [
+            "Creating base teacher set for legacy set: Bib ID 12345678.",
+            "Getting bib record from platform for 12345678.",
+            "Record contains 2 ISBN(s) to query WorldCat.",
+            "ISBN 9781234567897: retrieving brief bib record.",
+            "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
+            "ISBN 9780987654328: retrieving brief bib record.",
+            "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
+            "Getting items from platform for 12345678.",
+            "2 item record(s) found for bib 12345678.",
+            "Validating set.",
+            "Creating 2 copy/copies of set.",
+            "Creating copy 1 of legacy set: Bib ID 12345678.",
+            "Creating copy 2 of legacy set: Bib ID 12345678.",
+            "Validating 2 copy/copies of set.",
         ]
 
 
@@ -323,22 +437,22 @@ class TestLiveTeacherSetBuilder:
         ]
         assert len(caplog.records) == 17
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for 19538471.",
+            "Creating base teacher set for legacy set: Bib ID 19538471.",
             "Getting bib record from platform for 19538471.",
-            "Getting items from platform for 19538471.",
-            "7 item records found for bib b19538471a.",
-            "Validating set.",
             "Record contains 1 ISBN(s) to query WorldCat.",
             "ISBN 9780789308849: retrieving brief bib record.",
             "ISBN 9780789308849: retrieving full bib record (OCLC number: 52510777).",
+            "Getting items from platform for 19538471.",
+            "7 item record(s) found for bib 19538471.",
+            "Validating set.",
             "Creating 7 copy/copies of set.",
-            "Creating copy 1 of legacy set: 19538471.",
-            "Creating copy 2 of legacy set: 19538471.",
-            "Creating copy 3 of legacy set: 19538471.",
-            "Creating copy 4 of legacy set: 19538471.",
-            "Creating copy 5 of legacy set: 19538471.",
-            "Creating copy 6 of legacy set: 19538471.",
-            "Creating copy 7 of legacy set: 19538471.",
+            "Creating copy 1 of legacy set: Bib ID 19538471.",
+            "Creating copy 2 of legacy set: Bib ID 19538471.",
+            "Creating copy 3 of legacy set: Bib ID 19538471.",
+            "Creating copy 4 of legacy set: Bib ID 19538471.",
+            "Creating copy 5 of legacy set: Bib ID 19538471.",
+            "Creating copy 6 of legacy set: Bib ID 19538471.",
+            "Creating copy 7 of legacy set: Bib ID 19538471.",
             "Validating 7 copy/copies of set.",
         ]
 
@@ -395,9 +509,9 @@ class TestLiveTeacherSetBuilder:
             "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
+            "=651  \\0$aChina$xHistory$vJuvenile literature.",
+            "=651  \\0$aGreece$xSocial life and customs$vJuvenile literature.",
             "=655  \\7$aLiterature.$2lcgft",
-            "=655  \\7$aHistory.$0(OCoLC)fst01411628$2lcgft",
-            "=655  \\7$aJuvenile works.$0(OCoLC)fst01411637$2lcgft",
             "=690  \\7$aTopic$2bookops",
             "=700  12$aHamen, Susan E.$tAncient Rome$f2015$x9781624035425",
             "=700  12$aHead, Tom$tAncient Mesopotamia$f2015$x9781624035418",
@@ -423,11 +537,8 @@ class TestLiveTeacherSetBuilder:
         ]
         assert len(caplog.records) == 32
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for 20895133.",
+            "Creating base teacher set for legacy set: Bib ID 20895133.",
             "Getting bib record from platform for 20895133.",
-            "Getting items from platform for 20895133.",
-            "8 item records found for bib b20895133a.",
-            "Validating set.",
             "Record contains 8 ISBN(s) to query WorldCat.",
             "ISBN 9781624035425: retrieving brief bib record.",
             "ISBN 9781624035425: retrieving full bib record (OCLC number: 911497614).",
@@ -442,17 +553,20 @@ class TestLiveTeacherSetBuilder:
             "ISBN 9781624035371: retrieving brief bib record.",
             "ISBN 9781624035371: retrieving full bib record (OCLC number: 910879363).",
             "ISBN 9781624035364: retrieving brief bib record.",
-            "ISBN 9781624035364: retrieving full bib record (OCLC number: 891122570).",
+            "ISBN 9781624035364: retrieving full bib record (OCLC number: 908256277).",
             "ISBN 9781624035357: retrieving brief bib record.",
             "ISBN 9781624035357: retrieving full bib record (OCLC number: 891122602).",
+            "Getting items from platform for 20895133.",
+            "8 item record(s) found for bib 20895133.",
+            "Validating set.",
             "Creating 8 copy/copies of set.",
-            "Creating copy 1 of legacy set: 20895133.",
-            "Creating copy 2 of legacy set: 20895133.",
-            "Creating copy 3 of legacy set: 20895133.",
-            "Creating copy 4 of legacy set: 20895133.",
-            "Creating copy 5 of legacy set: 20895133.",
-            "Creating copy 6 of legacy set: 20895133.",
-            "Creating copy 7 of legacy set: 20895133.",
-            "Creating copy 8 of legacy set: 20895133.",
+            "Creating copy 1 of legacy set: Bib ID 20895133.",
+            "Creating copy 2 of legacy set: Bib ID 20895133.",
+            "Creating copy 3 of legacy set: Bib ID 20895133.",
+            "Creating copy 4 of legacy set: Bib ID 20895133.",
+            "Creating copy 5 of legacy set: Bib ID 20895133.",
+            "Creating copy 6 of legacy set: Bib ID 20895133.",
+            "Creating copy 7 of legacy set: Bib ID 20895133.",
+            "Creating copy 8 of legacy set: Bib ID 20895133.",
             "Validating 8 copy/copies of set.",
         ]

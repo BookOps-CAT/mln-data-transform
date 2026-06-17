@@ -1,5 +1,5 @@
 import logging
-from functools import cached_property
+from typing import Any
 
 from mln_data_transform.components import (
     SetBook,
@@ -65,9 +65,21 @@ class TeacherSetData:
             return "o"
         return "a"
 
+    def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
+        parts = []
+        data_parts = self.parts
+        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        with WorldcatManager() as manager:
+            for part in data_parts:
+                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
+                parts.append(worldcat_part.to_dict())
+        return parts
+
 
 class TeacherSet:
-    def __init__(self, set_data: TeacherSetData) -> None:
+    def __init__(
+        self, set_data: TeacherSetData, worldcat_parts: list[WorldcatSetPart]
+    ) -> None:
         self._set_data = set_data
 
         self.copies_of_set = self._set_data.copies_of_set
@@ -80,6 +92,7 @@ class TeacherSet:
         self.set_title = self._set_data.set_title
         self.set_type = self._set_data.set_type
         self.study_program_info = self._set_data.study_program_info
+        self.worldcat_parts = worldcat_parts
 
     @property
     def contents_note(self) -> str:
@@ -98,26 +111,23 @@ class TeacherSet:
             part_list.extend(special_formats)
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
-    @cached_property
+    @property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        data_parts = self._set_data.parts
-        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
-        with WorldcatManager() as manager:
-            for part in data_parts:
-                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
-                parts.append(
-                    WorldcatSetPart(
-                        isbn=part.isbn,
-                        title=worldcat_part.title,
-                        author=worldcat_part.author_name,
-                        author_dates=worldcat_part.author_dates,
-                        pub_date=worldcat_part.pub_date,
-                        description=worldcat_part.description,
-                        copies=part.copies,
-                        subjects=worldcat_part.subjects,
-                    )
+        parts_dict = {i.isbn: i.copies for i in self._set_data.parts}
+        for worldcat_part in self.worldcat_parts:
+            parts.append(
+                WorldcatSetPart(
+                    isbn=worldcat_part["isbn"],
+                    title=worldcat_part["title"],
+                    author=worldcat_part["author_name"],
+                    author_dates=worldcat_part["author_dates"],
+                    pub_date=worldcat_part["pub_date"],
+                    description=worldcat_part["description"],
+                    copies=parts_dict[worldcat_part["isbn"]],
+                    subjects=worldcat_part["subjects"],
                 )
+            )
         if self._set_data.special_formats:
             parts.extend(self._set_data.special_formats)
         return parts
