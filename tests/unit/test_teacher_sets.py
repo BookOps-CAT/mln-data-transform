@@ -54,7 +54,16 @@ class TestTeacherSetData:
 
 
 class TestTeacherSet:
-    def test_create_teacher_set_data(self, mock_responses, caplog, set_test_data):
+    def test_teacher_set_data(self, mock_responses, caplog, set_test_data):
+        set_data = TeacherSetData(**set_test_data)
+        assert set_data.local_genre_term[0].value == "Fiction"
+        assert set_data.local_topic_term[0].value == "New York City"
+        assert set_data.set_type.name == "CLUB"
+        assert set_data.set_type.value == "Book Club"
+        assert set_data.study_program_info.name == "ART"
+        assert set_data.study_program_info.value == "Arts & Music"
+
+    def test_teacher_set(self, mock_responses, caplog, set_test_data):
         set_data = TeacherSetData(**set_test_data)
         teacher_set = TeacherSet(set_data=set_data)
         assert teacher_set.parts[0].author == "Sasek, M."
@@ -68,7 +77,7 @@ class TestTeacherSet:
             == 'Set consists of 1 copy of "This is New York", 2 copies of "This is New York".'
         )
 
-    def test_create_teacher_set_missing_data(
+    def test_teacher_set_missing_data(
         self, mock_worldcat_response_missing_data, caplog, set_test_data
     ):
         set_data = TeacherSetData(**set_test_data)
@@ -79,14 +88,14 @@ class TestTeacherSet:
         assert teacher_set.parts[0].pub_date == "20uu"
         assert teacher_set.parts[0].subjects == []
 
-    def test_create_teacher_sets_no_pub_dates(
+    def test_teacher_sets_no_pub_dates(
         self, mock_worldcat_response_no_pub_dates, caplog, set_test_data
     ):
         set_data = TeacherSetData(**set_test_data)
         teacher_set = TeacherSet(set_data=set_data)
         assert teacher_set.parts[0].pub_date is None
 
-    def test_create_teacher_special_format(self, mock_responses, caplog, set_test_data):
+    def test_teacher_special_format(self, mock_responses, caplog, set_test_data):
         set_test_data["special_formats"] = [
             {"title": "Cat puppet", "description": "A puppet", "copies": 1}
         ]

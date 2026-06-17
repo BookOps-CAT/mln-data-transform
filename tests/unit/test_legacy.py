@@ -244,17 +244,23 @@ class TestLegacyItemData:
 
 
 class TestLegacyTeacherSet:
-    def test_create_legacy_set_data(self, mock_responses, caplog):
+    def test_legacy_set_data(self, mock_responses, caplog):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
         )
-        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert (
             legacy_set_data.bib_data.call_number
             == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
         )
         assert len(legacy_set_data.item_data) == 1
+
+    def test_legacy_set(self, mock_responses, caplog):
+        platform_manager = PlatformManager()
+        legacy_set_data = LegacyTeacherSetData(
+            bib_id="12345", platform_manager=platform_manager
+        )
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data)
         assert legacy_set.parts[0].author == "Sasek, M."
         assert legacy_set.parts[0].author_dates == "1916-1980"
         assert legacy_set.parts[0].description == "Fake description of book."
@@ -268,10 +274,10 @@ class TestLegacyTeacherSet:
         assert legacy_set.legacy_barcodes == {
             "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
         }
+        assert legacy_set.local_genre_term == []
+        assert legacy_set.local_topic_term == []
 
-    def test_create_legacy_set_single_copy(
-        self, mock_platform_response_single_copy, caplog
-    ):
+    def test_legacy_set_single_copy(self, mock_platform_response_single_copy, caplog):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
@@ -284,9 +290,7 @@ class TestLegacyTeacherSet:
             "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
         }
 
-    def test_create_legacy_set_missing_data(
-        self, mock_worldcat_response_missing_data, caplog
-    ):
+    def test_legacy_set_missing_data(self, mock_worldcat_response_missing_data, caplog):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager
@@ -306,9 +310,7 @@ class TestLegacyTeacherSet:
             "33333402207449": "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
         }
 
-    def test_create_legacy_set_no_pub_dates(
-        self, mock_worldcat_response_no_pub_dates, caplog
-    ):
+    def test_legacy_set_no_pub_dates(self, mock_worldcat_response_no_pub_dates, caplog):
         platform_manager = PlatformManager()
         legacy_set_data = LegacyTeacherSetData(
             bib_id="12345", platform_manager=platform_manager

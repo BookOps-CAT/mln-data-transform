@@ -41,7 +41,7 @@ def mock_control_number_file(monkeypatch) -> dict[str, Any]:
 class TestTeacherSetBuilder:
     BUILDER = TeacherSetBuilder(file="data/foo_bar.csv")
 
-    def test_create_teacher_sets(
+    def test_build_teacher_sets(
         self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
     ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
@@ -94,7 +94,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_teacher_sets_enhanced(
+    def test_build_teacher_sets_enhanced(
         self, set_test_data, today_str, mock_responses, caplog, mock_control_number_file
     ):
         set_test_data["special_formats"] = [
@@ -142,7 +142,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_teacher_sets_mocked_parts(
+    def test_build_teacher_sets_mocked_parts(
         self, mock_teacher_set, today_str, set_test_data, mock_control_number_file
     ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
@@ -176,7 +176,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Baz$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_create_legacy_sets(
+    def test_build_legacy_sets(
         self, mock_legacy_set, today_str, mock_control_number_file
     ):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
@@ -268,11 +268,11 @@ def live_creds() -> Generator[None, None, None]:
 class TestLiveTeacherSetBuilder:
     BUILDER = TeacherSetBuilder(file="tests/data/high_circ.csv")
 
-    def test_legacy_set_builder_this_is_ny(self, today_str, caplog, live_creds):
-        teacher_set = self.BUILDER.create_legacy_set(bib_id="19538471")
-        valid_set_bib = self.BUILDER.validate_set(teacher_set)
-        set_copies = self.BUILDER.create_set_copies(valid_set_bib)
-        valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
+    def test_legacy_set_builder_this_is_ny(
+        self, today_str, caplog, live_creds, mock_control_number_file
+    ):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="19538471")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
         assert len(valid_set_copies[0].components) == 1
@@ -342,11 +342,11 @@ class TestLiveTeacherSetBuilder:
             "Validating 7 copy/copies of set.",
         ]
 
-    def test_legacy_set_builder_ancient_civ(self, today_str, caplog, live_creds):
-        teacher_set = self.BUILDER.create_legacy_set(bib_id="20895133")
-        valid_set_bib = self.BUILDER.validate_set(teacher_set)
-        set_copies = self.BUILDER.create_set_copies(valid_set_bib)
-        valid_set_copies = self.BUILDER.validate_set_copies(set_copies)
+    def test_legacy_set_builder_ancient_civ(
+        self, today_str, caplog, live_creds, mock_control_number_file
+    ):
+        legacy_set = self.BUILDER.build_legacy_set(bib_id="20895133")
+        valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bib_records = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bib_records[0].fields]
         assert len(valid_set_copies[0].components) == 8
@@ -364,7 +364,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert len(bib_records) == 8
         assert field_strings == [
-            "=001  nn-mlnyc-0000001",
+            "=001  nn-mlnyc-0000002",
             "=003  BookOps",
             f"=008  {today_str}i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fTOPIC$pC$c1072",
@@ -391,6 +391,7 @@ class TestLiveTeacherSetBuilder:
             "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
             "=651  \\0$aIndia$xCivilization$yTo 1200$vJuvenile literature.",
             "=651  \\0$aGreece$xCivilization$yTo 146 B.C.$vJuvenile literature.",
+            "=651  \\0$aEgypt$xHistory$vJuvenile literature.",
             "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
             "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
@@ -403,7 +404,7 @@ class TestLiveTeacherSetBuilder:
             "=700  12$aEdwards, Sue Bradford$tAncient Maya$f2015$x9781624035401",
             "=700  12$aRowell, Rebecca$tAncient India$f2015$x9781624035395",
             "=700  12$aBailey, Diane$d1966-$tAncient Greece$f2015$x9781624035388",
-            "=700  12$aAmstutz, Lisa J.$tAncient Egypt$f2015$x9781624035371",
+            "=700  12$aAmstutz, L. J.$tAncient Egypt$f2015$x9781624035371",
             "=700  12$aAtkins, Marcie Flinchum$tAncient China$f2015$x9781624035364",
             "=700  12$aKenney, Karen Latchana$tAncient Aztecs$f2015$x9781624035357",
             "=901  \\\\$amlnyc-bot$bCATBL",
@@ -439,7 +440,7 @@ class TestLiveTeacherSetBuilder:
             "ISBN 9781624035388: retrieving brief bib record.",
             "ISBN 9781624035388: retrieving full bib record (OCLC number: 914136830).",
             "ISBN 9781624035371: retrieving brief bib record.",
-            "ISBN 9781624035371: retrieving full bib record (OCLC number: 914136829).",
+            "ISBN 9781624035371: retrieving full bib record (OCLC number: 910879363).",
             "ISBN 9781624035364: retrieving brief bib record.",
             "ISBN 9781624035364: retrieving full bib record (OCLC number: 891122570).",
             "ISBN 9781624035357: retrieving brief bib record.",
