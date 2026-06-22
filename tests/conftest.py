@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import logging.config
@@ -6,11 +5,9 @@ import os
 from typing import Any
 
 import pytest
-from bookops_nypl_platform import PlatformToken
-from bookops_worldcat import WorldcatAccessToken
+from bookops_nypl_platform import PlatformSession, PlatformToken
+from bookops_worldcat import MetadataSession, WorldcatAccessToken
 from pymarc import Field, Indicators, Record, Subfield
-
-from mln_data_transform.transform import PlatformManager, WorldcatManager
 
 
 @pytest.fixture()
@@ -53,6 +50,50 @@ def setup_logging(caplog) -> None:
 
 
 @pytest.fixture
+def set_test_data() -> dict[str, Any]:
+    return {
+        "copies_of_set": 2,
+        "grade_level": "Pre-K",
+        "language": "eng",
+        "set_title": "Foo Bar Teacher Set",
+        "parts": [
+            {"isbn": "9781234567897", "copies": 2},
+            {"copies": 2, "isbn": "9780987654328"},
+        ],
+        "set_type": "Book Club",
+        "study_program_info": "Social Studies",
+        "local_genre_term": ["Fiction"],
+        "local_topic_term": ["New York City"],
+    }
+
+
+@pytest.fixture
+def legacy_set_test_data(test_bib_data) -> dict[str, Any]:
+    return {
+        "bib_id": "12345",
+        "copies_of_set": 2,
+        "grade_level": "A",
+        "enhanced": None,
+        "record_type": "a",
+        "language": "eng",
+        "legacy_barcodes": {
+            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
+            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
+        },
+        "call_number": "Teacher Set SOC A Foo Bar Book Club 1",
+        "physical_description": "4 item(s)",
+        "set_title": "Foo Bar Teacher Set",
+        "set_type": "CLUB",
+        "study_program_info": "SOC",
+        "var_fields": test_bib_data["varFields"],
+        "set_parts": [
+            {"isbn": "9781234567897", "copies": 2},
+            {"copies": 2, "isbn": "9780987654328"},
+        ],
+    }
+
+
+@pytest.fixture
 def test_bib_data() -> dict[str, Any]:
     with open("tests/data/platform_bib.json", "r") as fh:
         json_data = json.load(fh)
@@ -60,118 +101,94 @@ def test_bib_data() -> dict[str, Any]:
 
 
 @pytest.fixture
-def today_str() -> str:
-    return datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
+def test_item_data() -> dict[str, Any]:
+    return [
+        {
+            "id": "31187496",
+            "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-1   ",
+            "barcode": "33333987654321",
+        },
+        {
+            "id": "31187496",
+            "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-2   ",
+            "barcode": "33333123456789",
+        },
+    ]
 
 
 @pytest.fixture
-def stub_metadata_session(monkeypatch, mock_creds) -> None:
-    def fake_token(*args, **kwargs) -> None:
-        pass
-
-    def fake_bib(*args, **kwargs) -> dict[str, Any]:
-        record = Record()
-        record.add_field(
-            Field(
-                tag="100",
-                indicators=Indicators("1", " "),
-                subfields=[
-                    Subfield(code="a", value="Bar, Foo"),
-                    Subfield(code="d", value="1980-"),
-                ],
-            )
+def stub_bib() -> Record:
+    record = Record()
+    record.add_field(
+        Field(
+            tag="100",
+            indicators=Indicators("1", " "),
+            subfields=[
+                Subfield(code="a", value="Bar, Foo"),
+                Subfield(code="d", value="1980-"),
+            ],
         )
-        record.add_field(
-            Field(
-                tag="245",
-                indicators=Indicators("0", "0"),
-                subfields=[
-                    Subfield(code="a", value="Fake book 1 :"),
-                    Subfield(code="b", value="fake subtitle /"),
-                    Subfield(code="c", value="by Foo Bar."),
-                ],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="245",
+            indicators=Indicators("0", "0"),
+            subfields=[Subfield(code="a", value="Fake book 1.")],
         )
-        record.add_field(
-            Field(
-                tag="264",
-                indicators=Indicators(" ", "1"),
-                subfields=[
-                    Subfield(code="a", value="New York :"),
-                    Subfield(code="b", value="Universe,"),
-                    Subfield(code="c", value="2000."),
-                ],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="264",
+            indicators=Indicators(" ", "1"),
+            subfields=[
+                Subfield(code="a", value="New York :"),
+                Subfield(code="b", value="Universe,"),
+                Subfield(code="c", value="2000."),
+            ],
         )
-        record.add_field(
-            Field(
-                tag="520",
-                indicators=Indicators(" ", " "),
-                subfields=[Subfield(code="a", value="Fake description of book.")],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="520",
+            indicators=Indicators(" ", " "),
+            subfields=[Subfield(code="a", value="Fake description of book.")],
         )
-        record.add_field(
-            Field(
-                tag="650",
-                indicators=Indicators(" ", "7"),
-                subfields=[
-                    Subfield(code="a", value="Fake fast term."),
-                    Subfield(code="2", value="fast"),
-                ],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="650",
+            indicators=Indicators(" ", "7"),
+            subfields=[
+                Subfield(code="a", value="Fake fast term."),
+                Subfield(code="2", value="fast"),
+            ],
         )
-        record.add_field(
-            Field(
-                tag="651",
-                indicators=Indicators(" ", "0"),
-                subfields=[Subfield(code="a", value="New York (N.Y.)")],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="650",
+            indicators=Indicators(" ", "4"),
+            subfields=[Subfield(code="a", value="NYC")],
         )
-        record.add_field(
-            Field(
-                tag="655",
-                indicators=Indicators(" ", "7"),
-                subfields=[
-                    Subfield(code="a", value="Comics (Graphic works)."),
-                    Subfield(code="2", value="lcgft"),
-                ],
-            )
+    )
+    record.add_field(
+        Field(
+            tag="651",
+            indicators=Indicators(" ", "0"),
+            subfields=[Subfield(code="a", value="New York (N.Y.)")],
         )
-        return record
-
-    def fake_brief_bib(*args, **kwargs) -> str:
-        return "ocn123456789"
-
-    monkeypatch.setattr(WorldcatManager, "get_full_record", fake_bib)
-    monkeypatch.setattr(WorldcatManager, "get_oclc_number_from_isbn", fake_brief_bib)
-    monkeypatch.setattr(WorldcatAccessToken, "_request_token", fake_token)
-
-
-@pytest.fixture
-def stub_platform_session(monkeypatch, mock_creds, test_bib_data) -> None:
-    def token(*args, **kwargs) -> None:
-        pass
-
-    def bib_data(*args, **kwargs) -> dict[str, Any]:
-        return test_bib_data
-
-    def item_data(*args, **kwargs):
-        return [
-            {
-                "id": "31187496",
-                "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-1   ",
-                "barcode": "33333987654321",
-            },
-            {
-                "id": "31187496",
-                "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-2   ",
-                "barcode": "33333123456789",
-            },
-        ]
-
-    monkeypatch.setattr(PlatformToken, "_get_token", token)
-    monkeypatch.setattr(PlatformManager, "get_platform_bib", bib_data)
-    monkeypatch.setattr(PlatformManager, "get_platform_bib_items", item_data)
+    )
+    record.add_field(
+        Field(
+            tag="655",
+            indicators=Indicators(" ", "7"),
+            subfields=[
+                Subfield(code="a", value="Comics (Graphic works)."),
+                Subfield(code="2", value="lcgft"),
+            ],
+        )
+    )
+    return record
 
 
 @pytest.fixture()
@@ -226,30 +243,6 @@ def mock_worldcat_response_no_pub_dates() -> None:
     ]
 
 
-@pytest.fixture
-def stub_platform_session_single_copy(
-    monkeypatch, stub_platform_session, test_bib_data
-) -> None:
-    def fake_platform_bib_data(*args, **kwargs) -> dict[str, Any]:
-        bib_data = test_bib_data
-        bib_data["varFields"] = [
-            i for i in bib_data["varFields"] if i["marcTag"] != "500"
-        ]
-        bib_data["varFields"].append(
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "500",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "1 copy of 1 title."}],
-            }
-        )
-        return bib_data
-
-    monkeypatch.setattr(PlatformManager, "get_platform_bib", fake_platform_bib_data)
-
-
 class MockJsonResponse:
     def __init__(self, data: dict[str, Any]) -> None:
         self.data = data
@@ -267,176 +260,38 @@ class MockMarcResponse:
         return self.data
 
 
-class FakeSession:
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __enter__(self, *args, **kwargs) -> "FakeSession":
-        return self
-
-    def __exit__(self, *args, **kwargs) -> None:
-        pass
-
-    def close(self, *args, **kwargs) -> None:
-        pass
-
-
-class FakePlatformSession(FakeSession):
-    def get_bib(self, id: str) -> dict[str, Any]:
-        with open("tests/data/platform_bib.json", "r") as fh:
-            json_data = json.load(fh)
-            json_data["id"] = id
-            return MockJsonResponse({"data": json_data})
-
-    def get_bib_items(self, id: str) -> dict[str, Any]:
-        item_data = [
-            {
-                "id": "31187496",
-                "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-1   ",
-                "barcode": "33333987654321",
-            },
-            {
-                "id": "31187496",
-                "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-2   ",
-                "barcode": "33333123456789",
-            },
-        ]
-        return MockJsonResponse({"data": item_data})
-
-
-class FakeMetadataSession(FakeSession):
-    def bib_get(self, *args, **kwargs) -> dict[str, Any]:
-        record = Record()
-        record.add_field(
-            Field(
-                tag="100",
-                indicators=Indicators("1", " "),
-                subfields=[
-                    Subfield(code="a", value="Bar, Foo"),
-                    Subfield(code="d", value="1980-"),
-                ],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="245",
-                indicators=Indicators("0", "0"),
-                subfields=[
-                    Subfield(code="a", value="Fake book 1 :"),
-                    Subfield(code="b", value="fake subtitle /"),
-                    Subfield(code="c", value="by Foo Bar."),
-                ],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="264",
-                indicators=Indicators(" ", "1"),
-                subfields=[
-                    Subfield(code="a", value="New York :"),
-                    Subfield(code="b", value="Universe,"),
-                    Subfield(code="c", value="2000."),
-                ],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="520",
-                indicators=Indicators(" ", " "),
-                subfields=[Subfield(code="a", value="Fake description of book.")],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="651",
-                indicators=Indicators(" ", "0"),
-                subfields=[Subfield(code="a", value="New York (N.Y.)")],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="655",
-                indicators=Indicators(" ", "7"),
-                subfields=[
-                    Subfield(code="a", value="Comics (Graphic works)."),
-                    Subfield(code="2", value="lcgft"),
-                ],
-            )
-        )
-        return MockMarcResponse(record.as_marc())
-
-    def brief_bibs_search(self, *args, **kwargs) -> dict[str, Any]:
-        records = [
-            {"oclcNumber": "ocn123456789", "catalogingInfo": {"levelOfCataloging": i}}
-            for i in [" ", "7", "M"]
-        ]
-        records.append({"oclcNumber": "123"})
-        return MockJsonResponse({"briefRecords": records})
-
-
 @pytest.fixture
-def mock_platform_session(monkeypatch, mock_creds) -> None:
+def mock_session_managers(
+    monkeypatch, mock_creds, stub_bib, test_bib_data, test_item_data
+) -> None:
+    def get_platform_bib(*args, **kwargs):
+        return MockJsonResponse({"data": test_bib_data})
+
+    def get_platform_items(*args, **kwargs):
+        return MockJsonResponse({"data": test_item_data})
+
+    def get_worldcat_bib(*args, **kwargs):
+        return MockMarcResponse(stub_bib.as_marc())
+
+    def get_worldcat_brief_bib(*args, **kwargs):
+        return MockJsonResponse(
+            {
+                "briefRecords": [
+                    {
+                        "oclcNumber": "ocn123456789",
+                        "catalogingInfo": {"levelOfCataloging": " "},
+                    }
+                ]
+            }
+        )
+
     def fake_token(*args, **kwargs) -> None:
         pass
 
-    def fake_platform_session(*args, **kwargs) -> FakePlatformSession:
-        return FakePlatformSession()
-
-    monkeypatch.setattr("mln_data_transform.transform.PlatformToken", fake_token)
-    monkeypatch.setattr(
-        "mln_data_transform.transform.PlatformSession", fake_platform_session
-    )
-
-
-@pytest.fixture
-def mock_metadata_session(monkeypatch, mock_creds) -> None:
-    def fake_token(*args, **kwargs) -> None:
-        pass
-
-    def fake_metadata_session(*args, **kwargs) -> FakeMetadataSession:
-        return FakeMetadataSession()
-
-    monkeypatch.setattr("mln_data_transform.transform.WorldcatAccessToken", fake_token)
-    monkeypatch.setattr(
-        "mln_data_transform.transform.MetadataSession", fake_metadata_session
-    )
-
-
-@pytest.fixture
-def mock_metadata_session_missing_data(monkeypatch, mock_metadata_session) -> None:
-    def fake_marc_record(self, *args, **kwargs) -> dict[str, Any]:
-        record = Record()
-        record.add_field(
-            Field(
-                tag="245",
-                indicators=Indicators("0", "0"),
-                subfields=[Subfield(code="a", value="Fake book 1.")],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="264",
-                indicators=Indicators(" ", "1"),
-                subfields=[Subfield(code="a", value="New York.")],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="650",
-                indicators=Indicators(" ", "4"),
-                subfields=[Subfield(code="a", value="NYC")],
-            )
-        )
-        record.add_field(
-            Field(
-                tag="650",
-                indicators=Indicators(" ", "7"),
-                subfields=[
-                    Subfield(code="a", value="Fake fast term."),
-                    Subfield(code="2", value="fast"),
-                ],
-            )
-        )
-        return MockMarcResponse(record.as_marc())
-
-    monkeypatch.setattr(FakeMetadataSession, "bib_get", fake_marc_record)
+    monkeypatch.setattr(WorldcatAccessToken, "_request_token", fake_token)
+    monkeypatch.setattr(PlatformToken, "_get_token", fake_token)
+    monkeypatch.setattr(PlatformSession, "_update_authorization", fake_token)
+    monkeypatch.setattr(MetadataSession, "brief_bibs_search", get_worldcat_brief_bib)
+    monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib)
+    monkeypatch.setattr(PlatformSession, "get_bib", get_platform_bib)
+    monkeypatch.setattr(PlatformSession, "get_bib_items", get_platform_items)

@@ -1,3 +1,4 @@
+import datetime
 import pathlib
 from typing import Any
 
@@ -8,6 +9,7 @@ from bookops_nypl_platform import PlatformToken
 from mln_data_transform.legacy import (
     LegacyBibData,
     LegacyItemData,
+    LegacySetStub,
     LegacyTeacherSetData,
 )
 from mln_data_transform.teacher_sets import TeacherSetData
@@ -23,6 +25,7 @@ def mock_control_number_file(monkeypatch) -> dict[str, Any]:
 
     monkeypatch.setattr(pathlib.Path, "write_text", mock_path)
     monkeypatch.setattr(pathlib.Path, "read_text", mock_numbers)
+    monkeypatch.setattr(datetime, "datetime", MockDatetimeNow)
 
 
 @pytest.fixture
@@ -36,24 +39,6 @@ def mock_location_mapping(monkeypatch, mock_control_number_file):
         )
 
     monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
-
-
-@pytest.fixture
-def set_test_data() -> dict[str, Any]:
-    return {
-        "copies_of_set": 2,
-        "grade_level": "Pre-K",
-        "language": "eng",
-        "set_title": "Foo Bar Teacher Set",
-        "parts": [
-            {"isbn": "9781234567897", "copies": 2},
-            {"copies": 2, "isbn": "9780987654328"},
-        ],
-        "set_type": "Book Club",
-        "study_program_info": "Social Studies",
-        "local_genre_term": ["Fiction"],
-        "local_topic_term": ["New York City"],
-    }
 
 
 @pytest.fixture
@@ -91,6 +76,12 @@ def mock_worldcat_parts(*args, **kwargs):
             "title": "Fake book 2",
         },
     ]
+
+
+class MockDatetimeNow(datetime.datetime):
+    @classmethod
+    def today(cls, tzinfo=datetime.timezone.utc) -> "MockDatetimeNow":
+        return cls(2000, 1, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
 
 @pytest.fixture
@@ -193,8 +184,9 @@ def mock_set(
     monkeypatch.setattr(TeacherSetData, "get_worldcat_data_for_parts", mock_parts)
     monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
     monkeypatch.setattr(PlatformToken, "_get_token", fake_token)
-    monkeypatch.setattr(LegacyTeacherSetData, "bib_data", property(mock_bib_data))
-    monkeypatch.setattr(LegacyTeacherSetData, "item_data", property(mock_item_data))
+    monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
+    monkeypatch.setattr(LegacySetStub, "get_item_data", mock_item_data)
+    monkeypatch.setattr(datetime, "datetime", MockDatetimeNow)
 
 
 @pytest.fixture

@@ -6,7 +6,6 @@ from mln_data_transform.legacy import (
     LegacyTeacherSet,
     LegacyTeacherSetData,
 )
-from mln_data_transform.transform import PlatformManager
 
 
 class TestLegacyBibData:
@@ -20,7 +19,7 @@ class TestLegacyBibData:
         assert legacy_bib.isbns == ["9781234567897", "9780987654328"]
         assert legacy_bib.physical_description == "10 item(s)"
         assert legacy_bib.record_type == "a"
-        assert legacy_bib.copy_count == 10
+        assert legacy_bib.copy_count == 2
 
     def test_legacy_bib_data_missing_fields(self, test_bib_data):
         legacy_bib = LegacyBibData(
@@ -243,57 +242,9 @@ class TestLegacyItemData:
         assert legacy_item.bib_call_number == f"Teacher Set {result}"
 
 
-class TestLegacyTeacherSetData:
-    def test_legacy_set_data(
-        self, stub_metadata_session, stub_platform_session, caplog
-    ):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
-        assert (
-            legacy_set_data.bib_data.call_number
-            == "Teacher Set SOC A Foo Bar Book Club 1"
-        )
-        assert len(legacy_set_data.item_data) == 2
-
-    def test_legacy_set_data_get_parts(
-        self, stub_metadata_session, stub_platform_session, caplog
-    ):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
-        worldcat_parts = legacy_set_data.get_worldcat_data_for_parts()
-        assert len(worldcat_parts) == 2
-        assert worldcat_parts[0]["author_name"] == "Bar, Foo"
-        assert worldcat_parts[0]["author_dates"] == "1980-"
-        assert worldcat_parts[0]["description"] == "Fake description of book."
-        assert worldcat_parts[0]["isbn"] == "9781234567897"
-        assert worldcat_parts[0]["pub_date"] == "2000"
-        assert worldcat_parts[0]["subjects"] == [
-            {
-                "tag": "651",
-                "ind1": " ",
-                "ind2": "0",
-                "subfields": [("a", "New York (N.Y.)")],
-            },
-            {
-                "tag": "655",
-                "ind1": " ",
-                "ind2": "7",
-                "subfields": [("a", "Comics (Graphic works)."), ("2", "lcgft")],
-            },
-        ]
-        assert worldcat_parts[0]["title"] == "Fake book 1"
-
-
 class TestLegacyTeacherSet:
-    def test_legacy_set(self, stub_platform_session, caplog, mock_worldcat_response):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
+    def test_legacy_set(self, legacy_set_test_data, caplog, mock_worldcat_response):
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
         legacy_set = LegacyTeacherSet(
             set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
         )
@@ -304,23 +255,22 @@ class TestLegacyTeacherSet:
         assert len(legacy_set.parts[0].subjects) == 2
         assert (
             legacy_set.contents_note
-            == 'Set consists of 10 copies of "Fake book 1", 10 copies of "Fake book 2".'
+            == 'Set consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".'
         )
         assert len(legacy_set.var_field_data) == 16
         assert legacy_set.legacy_barcodes == {
             "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
             "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
         }
-        assert legacy_set.local_genre_term == []
-        assert legacy_set.local_topic_term == []
+        assert legacy_set.local_genre_term == ["Comics & Graphic Novels"]
+        assert legacy_set.local_topic_term == ["New York City"]
 
     def test_legacy_set_single_copy(
-        self, stub_platform_session_single_copy, caplog, mock_worldcat_response
+        self, legacy_set_test_data, caplog, mock_worldcat_response
     ):
-        platform_manager = PlatformManager()
-        legacy_set_data = LegacyTeacherSetData(
-            bib_id="12345", platform_manager=platform_manager
-        )
+        legacy_set_test_data["set_parts"][0]["copies"] = 1
+        legacy_set_test_data["set_parts"][1]["copies"] = 1
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
         legacy_set = LegacyTeacherSet(
             set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
         )

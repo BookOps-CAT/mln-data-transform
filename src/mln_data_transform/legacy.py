@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import difflib
 import logging
 import re
-from functools import cached_property
 from typing import Any
 
 from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
@@ -216,18 +216,13 @@ class LegacyItemData:
             return self.call_number[:-2]
 
 
-class LegacyTeacherSetData:
-    def __init__(self, bib_id: str, platform_manager: PlatformManager) -> None:
-        self.platform_manager = platform_manager
+class LegacySetStub:
+    def __init__(self, bib_id: str) -> None:
         self.bib_id = bib_id
-        self.parts = [
-            SetBook(isbn=i, copies=self.bib_data.copy_count)
-            for i in self.bib_data.isbns
-        ]
 
-    @cached_property
-    def bib_data(self) -> LegacyBibData:
-        bib_data = self.platform_manager.get_platform_bib(self.bib_id)
+    def get_bib_data(self) -> LegacyBibData:
+        manager = PlatformManager()
+        bib_data = manager.get_platform_bib(self.bib_id)
         return LegacyBibData(
             bib_id=self.bib_id,
             language=bib_data["lang"]["code"],
@@ -235,14 +230,10 @@ class LegacyTeacherSetData:
             var_fields=bib_data["varFields"],
         )
 
-    @property
-    def copies_of_set(self) -> int:
-        return len(self.item_data)
-
-    @cached_property
-    def item_data(self) -> list[LegacyItemData]:
-        item_data = self.platform_manager.get_platform_bib_items(self.bib_id)
+    def get_item_data(self) -> list[LegacyItemData]:
         item_list = []
+        manager = PlatformManager()
+        item_data = manager.get_platform_bib_items(self.bib_id)
         for item in item_data:
             barcode = item["barcode"]
             legacy_item = LegacyItemData(
@@ -251,12 +242,84 @@ class LegacyTeacherSetData:
             item_list.append(legacy_item)
         return item_list
 
+
+class LegacyTeacherSetData:
+    def __init__(
+        self,
+        bib_id: LegacyBibData,
+        copies_of_set: int,
+        enhanced: str | None,
+        grade_level: str,
+        language: str,
+        legacy_barcodes: dict[str, str],
+        set_parts: list[dict[str, str]],
+        physical_description: str,
+        call_number: str,
+        record_type: str,
+        set_title: str,
+        set_type: str,
+        study_program_info: str,
+        var_fields: list[VarFieldData],
+    ) -> None:
+        self.bib_id = bib_id
+        self.copies_of_set = copies_of_set
+        self.enhanced = enhanced
+        self.grade_level = grade_level
+        self.language = language
+        self.legacy_barcodes = legacy_barcodes
+        self.call_number = call_number
+        self.physical_description = physical_description
+        self.record_type = record_type
+        self.set_parts = [SetBook(**i) for i in set_parts]
+        self.set_title = set_title
+        self.set_type = set_type
+        self.study_program_info = study_program_info
+        self.var_fields = var_fields
+
+    @classmethod
+    def from_bib_item_data(
+        cls, bib_data: LegacyBibData, item_data: LegacyItemData
+    ) -> "LegacyTeacherSetData":
+        return LegacyTeacherSetData(
+            bib_id=bib_data.bib_id,
+            copies_of_set=len(item_data),
+            enhanced=bib_data.enhanced,
+            grade_level=bib_data.grade_level,
+            language=bib_data.language,
+            legacy_barcodes={i.barcode: i.call_number for i in item_data},
+            call_number=bib_data.call_number.strip(),
+            physical_description=bib_data.physical_description,
+            record_type=bib_data.record_type,
+            set_parts=[
+                {"isbn": i, "copies": bib_data.copy_count} for i in bib_data.isbns
+            ],
+            set_title=bib_data.set_title,
+            set_type=bib_data.set_type,
+            study_program_info=bib_data.subject,
+            var_fields=bib_data.var_fields,
+        )
+
+    @property
+    def var_field_data(self) -> list[VarFieldData]:
+        fields = []
+        for field in self.var_fields:
+            if field.get("subfields"):
+                subfields = [(i["tag"], i["content"]) for i in field["subfields"]]
+                fields.append(
+                    VarFieldData(
+                        tag=field["marcTag"],
+                        ind1=field["ind1"],
+                        ind2=field["ind2"],
+                        subfields=subfields,
+                    )
+                )
+        return fields
+
     def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
         parts = []
-        data_parts = self.parts
-        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        logger.info(f"Record contains {len(self.set_parts)} ISBN(s) to query WorldCat.")
         with WorldcatManager() as manager:
-            for part in data_parts:
+            for part in self.set_parts:
                 worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
                 parts.append(worldcat_part.to_dict())
         return parts
@@ -266,24 +329,24 @@ class LegacyTeacherSet:
     def __init__(
         self, set_data: LegacyTeacherSetData, worldcat_parts: list[dict[str, Any]]
     ) -> None:
-        self._set_data = set_data
-        self.bib_id = self._set_data.bib_id
-        self.legacy_call_number = self._set_data.bib_data.call_number.strip()
-
-        self.copies_of_set = self._set_data.copies_of_set
-        self.enhanced = self._set_data.bib_data.enhanced
-        self.grade_level = GradeReadingLevel[self._set_data.bib_data.grade_level]
-        self.language = self._set_data.bib_data.language
+        self.bib_id = set_data.bib_id
+        self.call_number = set_data.call_number
+        self.legacy_barcodes = set_data.legacy_barcodes
+        self.copies_of_set = set_data.copies_of_set
+        self.enhanced = set_data.enhanced
+        self.grade_level = GradeReadingLevel[set_data.grade_level]
+        self.language = set_data.language
         self.physical_description = (
-            self._set_data.bib_data.physical_description
-            if self._set_data.bib_data.physical_description
+            set_data.physical_description
+            if set_data.physical_description
             else f"{sum([i.copies for i in self.parts])} items"
         )
-        self.record_type = self._set_data.bib_data.record_type
-        self.set_title = self._set_data.bib_data.set_title
-        self.set_type = SetTypeFormat[self._set_data.bib_data.set_type]
-        self.study_program_info = SubjectStudyProgram[self._set_data.bib_data.subject]
-        self.var_fields = self._set_data.bib_data.var_fields
+        self.record_type = set_data.record_type
+        self.set_parts = set_data.set_parts
+        self.set_title = set_data.set_title
+        self.set_type = SetTypeFormat[set_data.set_type]
+        self.study_program_info = SubjectStudyProgram[set_data.study_program_info]
+        self.var_field_data = set_data.var_field_data
         self.worldcat_parts = worldcat_parts
 
     @property
@@ -302,37 +365,43 @@ class LegacyTeacherSet:
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
     @property
-    def legacy_barcodes(self) -> dict[str, str]:
-        return {i.barcode: i.call_number for i in self._set_data.item_data}
-
-    @property
     def local_genre_term(self) -> list[TaxonomyGenre]:
         genre_terms = []
+        choices = [
+            i.value for i in TaxonomyGenre if i.value not in ["Fiction", "Nonfiction"]
+        ]
         for subject in self.subject_strings:
-            for genre in TaxonomyGenre:
-                if subject.casefold() in genre.value:
-                    genre_terms.append(genre)
-        for genre in TaxonomyGenre:
-            if genre.value in self.legacy_call_number:
+            close_matches = difflib.get_close_matches(subject, choices)
+            for genre in close_matches:
                 genre_terms.append(genre)
-        return list(set(genre_terms))
+            if "nonfiction".casefold() not in subject and (
+                "fiction".casefold() in subject or "literature".casefold() in subject
+            ):
+                genre_terms.append("Fiction")
+            elif "nonfiction".casefold() in subject:
+                genre_terms.append("Nonfiction")
+        call_num_matches = difflib.get_close_matches(self.call_number, choices)
+        for genre in call_num_matches:
+            genre_terms.append(genre)
+        return list(set([TaxonomyGenre(i) for i in genre_terms]))
 
     @property
     def local_topic_term(self) -> list[TaxonomyTopic]:
         topic_terms = []
+        choices = [i.value for i in TaxonomyTopic]
         for subject in self.subject_strings:
-            for topic in TaxonomyTopic:
-                if subject.casefold() in topic.value:
-                    topic_terms.append(topic)
-        for topic in TaxonomyTopic:
-            if topic.value in self.legacy_call_number.casefold():
+            close_matches = difflib.get_close_matches(subject, choices)
+            for topic in close_matches:
                 topic_terms.append(topic)
-        return list(set(topic_terms))
+        call_num_matches = difflib.get_close_matches(self.call_number, choices)
+        for topic in call_num_matches:
+            topic_terms.append(topic)
+        return list(set([TaxonomyTopic(i) for i in topic_terms]))
 
     @property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        parts_dict = {i.isbn: i.copies for i in self._set_data.parts}
+        parts_dict = {i.isbn: i.copies for i in self.set_parts}
         for worldcat_part in self.worldcat_parts:
             parts.append(
                 WorldcatSetPart(
@@ -355,21 +424,7 @@ class LegacyTeacherSet:
             if part.subjects:
                 part_subjects = part.subjects
                 for subject in part_subjects:
-                    subjects.append(" ".join([i[1] for i in subject["subfields"]]))
-        return subjects
-
-    @property
-    def var_field_data(self) -> list[VarFieldData]:
-        fields = []
-        for field in self.var_fields:
-            if field.get("subfields"):
-                subfields = [(i["tag"], i["content"]) for i in field["subfields"]]
-                fields.append(
-                    VarFieldData(
-                        tag=field["marcTag"],
-                        ind1=field["ind1"],
-                        ind2=field["ind2"],
-                        subfields=subfields,
+                    subjects.append(
+                        " ".join([i[1] for i in subject["subfields"] if i[0].isalpha()])
                     )
-                )
-        return fields
+        return subjects

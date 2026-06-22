@@ -9,11 +9,14 @@ import pandas as pd
 from pydantic import ValidationError
 
 from mln_data_transform.control_numbers import ControlNumberGenerator
-from mln_data_transform.legacy import LegacyTeacherSet, LegacyTeacherSetData
+from mln_data_transform.legacy import (
+    LegacySetStub,
+    LegacyTeacherSet,
+    LegacyTeacherSetData,
+)
 from mln_data_transform.model import TeacherSetCopy
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
-from mln_data_transform.transform import PlatformManager
 from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
 
 logger = logging.getLogger(__name__)
@@ -48,9 +51,11 @@ class TeacherSetBuilder:
 
     def build_legacy_set(self, bib_id: str) -> dict[str, Any]:
         logger.info(f"Creating base teacher set for legacy set: Bib ID {bib_id}.")
-        platform_manager = PlatformManager()
-        set_data = LegacyTeacherSetData(
-            bib_id=bib_id, platform_manager=platform_manager
+        set_stub = LegacySetStub(bib_id=bib_id)
+        bib_data = set_stub.get_bib_data()
+        item_data = set_stub.get_item_data()
+        set_data = LegacyTeacherSetData.from_bib_item_data(
+            bib_data=bib_data, item_data=item_data
         )
         worldcat_parts = set_data.get_worldcat_data_for_parts()
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
@@ -143,7 +148,6 @@ class TeacherSetBuilder:
             return teacher_set.model_dump()
         except ValidationError as e:
             logger.error(f"Validation errors for set: {e.json()}.")
-            # self.write_errors_to_file(json.loads(e.json()))
 
     def validate_set_copies(
         self, legacy_set_copies: list[TeacherSetCopy]
