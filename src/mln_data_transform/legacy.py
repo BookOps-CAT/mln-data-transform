@@ -94,7 +94,7 @@ class LegacyBibData:
         return components
 
     @property
-    def copy_count(self) -> int | None:
+    def copy_count(self) -> int:
         fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
         fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
         for content in fields_5xx:
@@ -109,7 +109,7 @@ class LegacyBibData:
             matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
             if matched:
                 return 1
-        return None
+        return 1
 
     @property
     def enhanced(self) -> str | None:

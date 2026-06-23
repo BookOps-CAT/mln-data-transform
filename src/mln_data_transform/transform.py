@@ -76,10 +76,10 @@ class FullWorldCatResponse:
     def subjects(self) -> list[dict[str, Any]]:
         subject_list = []
         for subject in self.subject_fields:
-            if subject.indicator2 not in ["0", "7"]:
+            if subject.indicator2 not in ["0", "1", "7"]:
                 continue
             subject_subfields = [(i.code, i.value) for i in subject.subfields]
-            if subject.indicator2 == "0" or (
+            if subject.indicator2 in ["0", "1"] or (
                 subject.indicator2 == "7" and ("2", "lcgft") in subject_subfields
             ):
                 subject_list.append(

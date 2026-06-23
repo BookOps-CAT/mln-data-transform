@@ -51,7 +51,7 @@ class TestLegacyBibData:
             ("Game - ", 1),
             ("DVD - ", 1),
             ("Game (Board Game) - ", 1),
-            ("Foo, Bar", None),
+            ("Foo, Bar", 1),
         ],
     )
     def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, output):
