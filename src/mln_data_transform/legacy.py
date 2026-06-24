@@ -223,6 +223,7 @@ class LegacySetStub:
     def get_bib_data(self) -> LegacyBibData:
         manager = PlatformManager()
         bib_data = manager.get_platform_bib(self.bib_id)
+        logger.debug(f"({self.bib_id}) Bib record retrieved from platform.")
         return LegacyBibData(
             bib_id=self.bib_id,
             language=bib_data["lang"]["code"],
@@ -234,6 +235,9 @@ class LegacySetStub:
         item_list = []
         manager = PlatformManager()
         item_data = manager.get_platform_bib_items(self.bib_id)
+        logger.debug(
+            f"({self.bib_id}) {len(item_data)} item record(s) retrieved from platform."
+        )
         for item in item_data:
             barcode = item["barcode"]
             legacy_item = LegacyItemData(
@@ -317,7 +321,6 @@ class LegacyTeacherSetData:
 
     def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
         parts = []
-        logger.info(f"Record contains {len(self.set_parts)} ISBN(s) to query WorldCat.")
         with WorldcatManager() as manager:
             for part in self.set_parts:
                 worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)

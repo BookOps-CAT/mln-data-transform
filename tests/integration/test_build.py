@@ -371,12 +371,11 @@ class TestTeacherSetBuilderLogging:
     ):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 6
+        assert len(caplog.records) == 5
         assert [i.msg for i in caplog.records] == [
             "(12345678) Building teacher set from legacy data.",
             "(12345678) Retrieved bib and 2 item record(s) from platform.",
             "(12345678) Record contains 2 ISBN(s) to query WorldCat.",
-            "Record contains 2 ISBN(s) to query WorldCat.",
             "(12345678) Data retrieved from WorldCat for 2 set components.",
             "(12345678) Created 2 valid copy/copies of set.",
         ]
@@ -406,14 +405,15 @@ class TestTeacherSetBuilderLogging:
         caplog.set_level("DEBUG")
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 13
+        assert len(caplog.records) == 14
         assert [i.msg for i in caplog.records] == [
             "(12345678) Building teacher set from legacy data.",
             "(12345678) Getting bib record from platform.",
+            "(12345678) Bib record retrieved from platform.",
             "(12345678) Getting item records from platform.",
+            "(12345678) 2 item record(s) retrieved from platform.",
             "(12345678) Retrieved bib and 2 item record(s) from platform.",
             "(12345678) Record contains 2 ISBN(s) to query WorldCat.",
-            "Record contains 2 ISBN(s) to query WorldCat.",
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
