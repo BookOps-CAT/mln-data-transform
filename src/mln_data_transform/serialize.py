@@ -328,7 +328,7 @@ class TeacherSetBib:
     def to_bib(self) -> Bib:
         bib = Bib()
         bib.library = "nypl"
-        bib.leader = f"00000n{self.record_type}c  2200000 a 4500"
+        bib.leader = f"00000n{self.record_type}c a2200000 a 4500"
         bib.add_ordered_field(self.field_001)
         bib.add_ordered_field(self.field_003)
         bib.add_ordered_field(self.field_008)
