@@ -300,12 +300,22 @@ def mock_session_managers(
 
 
 @pytest.fixture
-def mock_session_managers_no_description(
-    monkeypatch, mock_session_managers, stub_bib
+def mock_session_managers_missing_data(
+    monkeypatch, mock_session_managers, stub_bib, test_item_data
 ) -> None:
     def get_worldcat_bib_no_description(*args, **kwargs):
         bib = stub_bib
         bib.remove_fields("520")
         return MockMarcResponse(bib.as_marc())
 
+    def get_platform_items(*args, **kwargs):
+        test_item_data[0]["varFields"] = [
+            {
+                "fieldTag": "x",
+                "content": "Below 75%. Missing 6/10 vol, 4 vol in INC-238",
+            }
+        ]
+        return MockJsonResponse({"data": test_item_data})
+
     monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib_no_description)
+    monkeypatch.setattr(PlatformSession, "get_bib_items", get_platform_items)

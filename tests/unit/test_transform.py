@@ -165,7 +165,7 @@ class TestWorldcatManager:
         ]
 
     def test_get_worldcat_data_for_part_no_description(
-        self, mock_session_managers_no_description, caplog
+        self, mock_session_managers_missing_data, caplog
     ):
         caplog.set_level("DEBUG")
         with WorldcatManager() as worldcat_manager:
