@@ -54,20 +54,11 @@ class TeacherSetBuilder:
         set_stub = LegacySetStub(bib_id=bib_id)
         bib_data = set_stub.get_bib_data()
         item_data = set_stub.get_item_data()
-        logger.info(
-            f"({bib_id}) Retrieved bib and "
-            f"{len(item_data)} item record(s) from platform."
-        )
-        set_data = LegacyTeacherSetData.from_bib_item_data(
-            bib_data=bib_data, item_data=item_data
-        )
+        set_data = LegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
         worldcat_parts = set_data.get_worldcat_data_for_parts()
-        logger.info(
-            f"({bib_id}) Data retrieved from WorldCat for "
-            f"{len(worldcat_parts)} set component(s)."
-        )
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
-        return self.validate_set(legacy_set)
+        validated_set = self.validate_set(legacy_set)
+        return validated_set
 
     def build_teacher_set(
         self,
@@ -96,11 +87,9 @@ class TeacherSetBuilder:
             special_formats=special_formats,
         )
         worldcat_parts = set_data.get_worldcat_data_for_parts()
-        logger.info(
-            f"Data retrieved from WorldCat for {len(worldcat_parts)} set component(s)."
-        )
         teacher_set = TeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
-        return self.validate_set(teacher_set)
+        validated_set = self.validate_set(teacher_set)
+        return validated_set
 
     def build_set_copies(self, set_data: dict[str, Any]) -> dict[str, Any]:
         control_number = self.ctrl_number_gen.next_control_number()
@@ -145,7 +134,9 @@ class TeacherSetBuilder:
                         ],
                     }
                 )
-                set_copy_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
+                set_copy_dict["shelf_number"] = mapping[copy_num].get(
+                    "LOCATION", "[SHELF-NUMBER]"
+                )
             else:
                 set_copy_dict["shelf_number"] = "[SHELF-NUMBER]"
             set_copy_dict["copy_number"] = copy_num + 1

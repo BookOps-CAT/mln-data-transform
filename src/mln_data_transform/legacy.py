@@ -27,12 +27,8 @@ class LegacyBibData:
     COPY_INFO_PATTERN = re.compile(
         r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
     )  # noqa: E501
-    SECONDARY_COPY_INFO_PATTERN = re.compile(
-        r"(?:(\d\s+)?((game)|(topic\s+[Ss]et)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}",  # noqa: E501
-        re.IGNORECASE,
-    )
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
-        r"((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
+        r"(?:(\d\s+)?((game)|(topic\s+[Ss]et)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
         re.IGNORECASE,
     )
     CALL_NUMBER_PATTERN = re.compile(
@@ -112,9 +108,9 @@ class LegacyBibData:
 
         for content in fields_5xx:
             matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
-            if matched:
+            if matched and "+" not in content:
                 return 1
-        return 1
+        raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
 
     @property
     def enhanced(self) -> str | None:
@@ -152,10 +148,10 @@ class LegacyBibData:
             isbn_string = " ".join([i["content"] for i in subfields_944])
             isbn_list = isbn_string.split()
             normalized_isbns = [
-                normalize_isbn(i) for i in isbn_list if is_valid_isbn(i)
+                normalize_isbn(i.strip(".")) for i in isbn_list if is_valid_isbn(i)
             ]
             if len(normalized_isbns) < len(isbn_list):
-                logger.warning(
+                raise ValueError(
                     f"({self.bib_id}) Record contains {len(isbn_list)} ISBN(s). "
                     f"{len(normalized_isbns)}/{len(isbn_list)} are valid."
                 )
@@ -284,7 +280,8 @@ class LegacySetStub:
         manager = PlatformManager()
         item_data = manager.get_platform_bib_items(self.bib_id)
         logger.debug(
-            f"({self.bib_id}) {len(item_data)} item record(s) retrieved from platform."
+            f"({self.bib_id}) Retrieved bib and "
+            f"{len(item_data)} item record(s) from platform."
         )
         for item in item_data:
             incomplete_fields = [
@@ -298,6 +295,12 @@ class LegacySetStub:
                 incomplete=incomplete,
             )
             item_list.append(legacy_item)
+        incomplete_sets = [i.barcode for i in item_list if i.incomplete is True]
+        if incomplete_sets:
+            logger.warning(
+                f"({self.bib_id}) {len(incomplete_sets)} of {len(item_list)} set "
+                f"copies have <75% of items: {incomplete_sets}."
+            )
         return item_list
 
 
@@ -336,7 +339,7 @@ class LegacyTeacherSetData:
 
     @classmethod
     def from_bib_item_data(
-        cls, bib_data: LegacyBibData, item_data: LegacyItemData
+        cls, bib_data: LegacyBibData, item_data: list[LegacyItemData]
     ) -> "LegacyTeacherSetData":
         return LegacyTeacherSetData(
             bib_id=bib_data.bib_id,

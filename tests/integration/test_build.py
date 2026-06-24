@@ -342,10 +342,9 @@ class TestTeacherSetBuilderLogging:
     ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         self.BUILDER.build_set_copies(teacher_set)
-        assert len(caplog.records) == 3
+        assert len(caplog.records) == 2
         assert [i.msg for i in caplog.records] == [
             "Building teacher set from new data: 'Foo Bar Teacher Set'.",
-            "Data retrieved from WorldCat for 2 set component(s).",
             "(nn-mlnyc-0000001) Created 2 valid copy/copies of set.",
         ]
 
@@ -354,11 +353,9 @@ class TestTeacherSetBuilderLogging:
     ):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 4
+        assert len(caplog.records) == 2
         assert [i.msg for i in caplog.records] == [
             "(12345678) Building teacher set from legacy data.",
-            "(12345678) Retrieved bib and 2 item record(s) from platform.",
-            "(12345678) Data retrieved from WorldCat for 2 set component(s).",
             "(12345678) Created 2 valid copy/copies of set.",
         ]
 
@@ -368,14 +365,13 @@ class TestTeacherSetBuilderLogging:
         caplog.set_level("DEBUG")
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         self.BUILDER.build_set_copies(teacher_set)
-        assert len(caplog.records) == 8
+        assert len(caplog.records) == 7
         assert [i.msg for i in caplog.records] == [
             "Building teacher set from new data: 'Foo Bar Teacher Set'.",
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
             "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
-            "Data retrieved from WorldCat for 2 set component(s).",
             "(nn-mlnyc-0000003) Creating 2 copy/copies of set.",
             "(nn-mlnyc-0000003) Created 2 valid copy/copies of set.",
         ]
@@ -386,19 +382,17 @@ class TestTeacherSetBuilderLogging:
         caplog.set_level("DEBUG")
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 13
+        assert len(caplog.records) == 11
         assert [i.msg for i in caplog.records] == [
             "(12345678) Building teacher set from legacy data.",
             "(12345678) Getting bib record from platform.",
             "(12345678) Bib record retrieved from platform.",
             "(12345678) Getting item records from platform.",
-            "(12345678) 2 item record(s) retrieved from platform.",
             "(12345678) Retrieved bib and 2 item record(s) from platform.",
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
             "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
-            "(12345678) Data retrieved from WorldCat for 2 set component(s).",
             "(12345678) Creating 2 copy/copies of set.",
             "(12345678) Created 2 valid copy/copies of set.",
         ]
@@ -848,11 +842,9 @@ class TestLiveTeacherSetBuilder:
                 "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
-        assert len(caplog.records) == 4
+        assert len(caplog.records) == 2
         assert [i.msg for i in caplog.records] == [
             "(20895133) Building teacher set from legacy data.",
-            "(20895133) Retrieved bib and 8 item record(s) from platform.",
-            "(20895133) Data retrieved from WorldCat for 8 set component(s).",
             "(20895133) Created 8 valid copy/copies of set.",
         ]
 
@@ -1206,10 +1198,9 @@ class TestLiveTeacherSetBuilder:
                 "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
-        assert len(caplog.records) == 4
+        assert len(caplog.records) == 3
         assert [i.msg for i in caplog.records] == [
             "(19538471) Building teacher set from legacy data.",
-            "(19538471) Retrieved bib and 7 item record(s) from platform.",
-            "(19538471) Data retrieved from WorldCat for 1 set component(s).",
+            "(19538471) 1 of 7 set copies have <75% of items: ['33333402207449'].",
             "(19538471) Created 7 valid copy/copies of set.",
         ]

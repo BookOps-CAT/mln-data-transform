@@ -114,9 +114,7 @@ TOPIC_REGEX_MAP = {
         r"animals?|mammals?|reptiles?|birds?", re.IGNORECASE
     ),
     TaxonomyTopic.asian_americans: re.compile(r"asian americans?", re.IGNORECASE),
-    TaxonomyTopic.astronomy: re.compile(
-        r"astronomy|space(?! and time)|stars?|planets?", re.IGNORECASE
-    ),
+    TaxonomyTopic.astronomy: re.compile(r"astronomy|space(?! and time)", re.IGNORECASE),
     TaxonomyTopic.autism: re.compile(r"autism", re.IGNORECASE),
     TaxonomyTopic.behavior: re.compile(r"^behavior|^helping behavior", re.IGNORECASE),
     TaxonomyTopic.bullying: re.compile(r"bull((ying)|(ies))", re.IGNORECASE),

@@ -53,7 +53,6 @@ class TestLegacyBibData:
             ("Game - ", 1),
             ("DVD - ", 1),
             ("Game (Board Game) - ", 1),
-            ("Foo, Bar", 1),
         ],
     )
     def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, output):
@@ -82,6 +81,35 @@ class TestLegacyBibData:
             language=test_bib_data["lang"],
         )
         assert legacy_bib.copy_count == output
+
+    def test_legacy_bib_data_pattern_matching_invalid(self, test_bib_data):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "500",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "Teacher set"}],
+            },
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "520",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "Foo, Bar Baz - Qux. "}],
+            },
+        ]
+        with pytest.raises(ValueError) as exc:
+            legacy_bib = LegacyBibData(
+                bib_id=test_bib_data["id"],
+                set_title=test_bib_data["title"],
+                var_fields=test_bib_data["varFields"],
+                language=test_bib_data["lang"],
+            )
+            legacy_bib.copy_count
+        assert str(exc.value) == "Copy info pattern does not match for 19538471."
 
     @pytest.mark.parametrize(
         "arg,enhanced,grade,set_type,subject",
@@ -202,14 +230,9 @@ class TestLegacyBibData:
         [
             ("9780789308849 ", ["9780789308849"]),
             ("978-0-78-930884-9 ", ["9780789308849"]),
-            ("9780789308849 9781234567890", ["9780789308849"]),
-            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
-            ("978-0-78-930884-X 068816241X", ["068816241X"]),
             (" 0789308843", ["0789308843"]),
             ("0-7893-0884-3", ["0789308843"]),
             (" 068816241X ", ["068816241X"]),
-            ("0-7893-0884-3 97897897X9", ["0789308843"]),
-            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
         ],
     )
     def test_legacy_bib_data_validate_isbns(self, test_bib_data, arg, output):
@@ -230,6 +253,37 @@ class TestLegacyBibData:
             language=test_bib_data["lang"],
         )
         assert legacy_bib.isbns == output
+
+    @pytest.mark.parametrize(
+        "arg,output",
+        [
+            ("9780789308849 9781234567890", ["9780789308849"]),
+            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
+            ("978-0-78-930884-X 068816241X", ["068816241X"]),
+            ("0-7893-0884-3 97897897X9", ["0789308843"]),
+            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
+        ],
+    )
+    def test_legacy_bib_data_invalid_isbns(self, test_bib_data, arg, output):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "944",
+                "fieldTag": "y",
+                "subfields": [{"tag": "a", "content": arg}],
+            }
+        ]
+        with pytest.raises(ValueError) as exc:
+            legacy_bib = LegacyBibData(
+                bib_id=test_bib_data["id"],
+                set_title=test_bib_data["title"],
+                var_fields=test_bib_data["varFields"],
+                language=test_bib_data["lang"],
+            )
+            legacy_bib.isbns
+        assert str(exc.value) == "(19538471) Record contains 2 ISBN(s). 1/2 are valid."
 
 
 class TestLegacyItemData:
