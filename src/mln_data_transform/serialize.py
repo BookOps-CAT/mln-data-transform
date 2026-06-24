@@ -181,25 +181,6 @@ class TeacherSetBib:
         )
 
     @property
-    def field_6xx(self) -> list[Field]:
-        """Subject fields (REPEATBLE)"""
-        subject_list = []
-        subject_set = set()
-        if not self.subjects:
-            return []
-        for subject in self.subjects:
-            subject_field = Field(
-                tag=subject.tag,
-                indicators=Indicators(subject.ind1, subject.ind2),
-                subfields=[Subfield(code=i[0], value=i[1]) for i in subject.subfields],
-            )
-            subject_str = subject_field.format_field()
-            if subject_str not in subject_set:
-                subject_set.add(subject_str)
-                subject_list.append(subject_field)
-        return subject_list
-
-    @property
     def field_690(self) -> Field:
         """Local set type field"""
         return Field(
@@ -359,8 +340,6 @@ class TeacherSetBib:
             bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_521)
         bib.add_ordered_field(self.field_526)
-        for field in self.field_6xx:
-            bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_690)
         for field in self.field_691:
             bib.add_ordered_field(field)

@@ -16,6 +16,20 @@ class TestTeacherSetBuilder:
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 2
+        assert teacher_set["parts"][0]["subjects"] == [
+            {
+                "tag": "651",
+                "ind1": " ",
+                "ind2": "0",
+                "subfields": [("a", "New York (N.Y.)")],
+            },
+            {
+                "tag": "655",
+                "ind1": " ",
+                "ind2": "7",
+                "subfields": [("a", "Historical fiction."), ("2", "lcgft")],
+            },
+        ]
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
@@ -25,7 +39,7 @@ class TestTeacherSetBuilder:
         assert teacher_set["local_genre_term"] == ["Fiction"]
         assert teacher_set["local_topic_term"] == ["New York City"]
         assert len(bibs) == 2
-        assert len(field_strings) == 26
+        assert len(field_strings) == 24
         assert field_strings == [
             "=001  nn-mlnyc-0000001",
             "=003  BookOps",
@@ -38,8 +52,6 @@ class TestTeacherSetBuilder:
             "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=651  \\0$aNew York (N.Y.)",
-            "=655  \\7$aHistorical fiction.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
@@ -64,6 +76,20 @@ class TestTeacherSetBuilder:
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 3
+        assert teacher_set["parts"][0]["subjects"] == [
+            {
+                "tag": "651",
+                "ind1": " ",
+                "ind2": "0",
+                "subfields": [("a", "New York (N.Y.)")],
+            },
+            {
+                "tag": "655",
+                "ind1": " ",
+                "ind2": "7",
+                "subfields": [("a", "Historical fiction."), ("2", "lcgft")],
+            },
+        ]
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
@@ -71,7 +97,7 @@ class TestTeacherSetBuilder:
             ["nn-mlnyc-0000002", "nn-mlnyc-0000002"]
         )
         assert len(bibs) == 2
-        assert len(field_strings) == 28
+        assert len(field_strings) == 26
         assert field_strings == [
             "=001  nn-mlnyc-0000002",
             "=003  BookOps",
@@ -85,8 +111,6 @@ class TestTeacherSetBuilder:
             "=520  \\\\$3Cat puppet$aA puppet.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=651  \\0$aNew York (N.Y.)",
-            "=655  \\7$aHistorical fiction.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
@@ -193,6 +217,20 @@ class TestTeacherSetBuilder:
         bibs = [i.to_bib() for i in valid_set_copies]
         field_strings = [str(i) for i in bibs[0].fields]
         assert len(valid_set_copies[0].components) == 2
+        assert legacy_set["parts"][0]["subjects"] == [
+            {
+                "tag": "651",
+                "ind1": " ",
+                "ind2": "0",
+                "subfields": [("a", "New York (N.Y.)")],
+            },
+            {
+                "tag": "655",
+                "ind1": " ",
+                "ind2": "7",
+                "subfields": [("a", "Historical fiction."), ("2", "lcgft")],
+            },
+        ]
         assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
@@ -202,7 +240,7 @@ class TestTeacherSetBuilder:
         assert legacy_set["local_genre_term"] == ["Fiction"]
         assert legacy_set["local_topic_term"] == ["New York City"]
         assert len(bibs) == 2
-        assert len(field_strings) == 27
+        assert len(field_strings) == 25
         assert field_strings == [
             "=001  nn-mlnyc-0000005",
             "=003  BookOps",
@@ -215,8 +253,6 @@ class TestTeacherSetBuilder:
             "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=651  \\0$aNew York (N.Y.)",
-            "=655  \\7$aHistorical fiction.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=691  \\7$aNew York City$2bookops",
             "=695  \\7$aFiction$2bookops",
@@ -407,10 +443,10 @@ class TestLiveTeacherSetBuilder:
             "=520  \\\\$3This is New York$aA pictorial tour of Manhattan Island presenting drawings of its neighborhoods, transportation and traffic, buildings, and the city's activities, from the local shoeshine stall to Wall Street.",
             "=521  2\\$aPre-K",
             "=526  8\\$aSocial Studies",
-            "=651  \\0$aNew York (N.Y.)$xDescription and travel$vJuvenile literature.",
-            "=655  \\0$aPicture books for children.$5NZ-WeK",
-            "=655  \\7$aLiterature.$2lcgft",
-            "=655  \\7$aIllustrated works.$2lcgft",
+            #  "=651  \\0$aNew York (N.Y.)$xDescription and travel$vJuvenile literature.",
+            #  "=655  \\0$aPicture books for children.$5NZ-WeK",
+            #  "=655  \\7$aLiterature.$2lcgft",
+            #  "=655  \\7$aIllustrated works.$2lcgft",
             "=690  \\7$aBook Club$2bookops",
             "=695  \\7$aFiction$2bookops",
             "=700  12$aSasek, M.$d1916-1980$tThis is New York$f2003$x9780789308849",
@@ -490,24 +526,24 @@ class TestLiveTeacherSetBuilder:
             "=520  \\\\$3Ancient Aztecs$a\"In Ancient Aztecs, readers discover the history and impressive accomplishments of the Aztec civilization, including their military power and feats of engineering. Engaging text provides details on the civilization's history, development, daily life, culture, art, technology, warfare, social organization, and more.\"--Publisher's web site.",
             "=521  2\\$a3-5",
             "=526  8\\$aSocial Studies",
-            "=650  \\0$aMayas$vJuvenile literature.",
-            "=650  \\0$aAztecs$vJuvenile literature.",
-            "=651  \\0$aRome$xCivilization.",
-            "=651  \\0$aRome$xHistory.",
-            "=651  \\0$aRome$xSocial life and customs.",
-            "=651  \\0$aIraq$xHistory$yTo 634$vJuvenile literature.",
-            "=651  \\0$aIraq$xCivilization$yTo 634$vJuvenile literature.",
-            "=651  \\0$aMexico$xCivilization$vJuvenile literature.",
-            "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
-            "=651  \\0$aIndia$xCivilization$yTo 1200$vJuvenile literature.",
-            "=651  \\0$aGreece$xCivilization$yTo 146 B.C.$vJuvenile literature.",
-            "=651  \\0$aEgypt$xHistory$vJuvenile literature.",
-            "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
-            "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
-            "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
-            "=651  \\0$aChina$xHistory$vJuvenile literature.",
-            "=651  \\0$aGreece$xSocial life and customs$vJuvenile literature.",
-            "=655  \\7$aLiterature.$2lcgft",
+            #  "=650  \\0$aMayas$vJuvenile literature.",
+            #  "=650  \\0$aAztecs$vJuvenile literature.",
+            #  "=651  \\0$aRome$xCivilization.",
+            #  "=651  \\0$aRome$xHistory.",
+            #  "=651  \\0$aRome$xSocial life and customs.",
+            #  "=651  \\0$aIraq$xHistory$yTo 634$vJuvenile literature.",
+            #  "=651  \\0$aIraq$xCivilization$yTo 634$vJuvenile literature.",
+            #  "=651  \\0$aMexico$xCivilization$vJuvenile literature.",
+            #  "=651  \\0$aCentral America$xCivilization$vJuvenile literature.",
+            #  "=651  \\0$aIndia$xCivilization$yTo 1200$vJuvenile literature.",
+            #  "=651  \\0$aGreece$xCivilization$yTo 146 B.C.$vJuvenile literature.",
+            #  "=651  \\0$aEgypt$xHistory$vJuvenile literature.",
+            #  "=651  \\0$aEgypt$xCivilization$yTo 332 B.C.$vJuvenile literature.",
+            #  "=651  \\0$aChina$xCivilization$yTo 221 B.C.$vJuvenile literature.",
+            #  "=651  \\0$aChina$xCivilization$y221 B.C.-960 A.D.$vJuvenile literature.",
+            #  "=651  \\0$aChina$xHistory$vJuvenile literature.",
+            #  "=651  \\0$aGreece$xSocial life and customs$vJuvenile literature.",
+            #  "=655  \\7$aLiterature.$2lcgft",
             "=690  \\7$aTopic$2bookops",
             "=691  \\7$aAncient Civilization$2bookops",
             "=695  \\7$aFiction$2bookops",
