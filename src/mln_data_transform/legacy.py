@@ -26,13 +26,16 @@ class LegacyBibData:
         r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
     )  # noqa: E501
     SECONDARY_COPY_INFO_PATTERN = re.compile(
-        r"(?:(\d\s+)?(([Gg]ame)|([Tt]opic\s+[Ss]et)|([Bb]ook\s+[Cc]lub\s+[Ss]et))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}"  # noqa: E501
+        r"(?:(\d\s+)?((game)|(topic\s+[Ss]et)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}",  # noqa: E501
+        re.IGNORECASE,
     )
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
-        r"(((([Bb]oard)|([Vv]ideo)|([Tt]abletop))(\s[Gg]ame))|([Gg]ame)|([Dd][Vv][Dd]))(?:\s*\([A-z\s]+\))?(\s*-\s*)"  # noqa: E501
+        r"((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
+        re.IGNORECASE,
     )
     CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
+        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
+        re.IGNORECASE,
     )
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
     SUBJECT_MAPPING = {
