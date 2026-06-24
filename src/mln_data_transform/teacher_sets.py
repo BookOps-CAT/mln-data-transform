@@ -14,6 +14,7 @@ from mln_data_transform.taxonomy import (
     TaxonomyTopic,
 )
 from mln_data_transform.transform import WorldcatManager
+from mln_data_transform.utils import is_valid_isbn, normalize_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +68,12 @@ class TeacherSetData:
 
     def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
         parts = []
-        data_parts = self.parts
-        logger.info(f"Record contains {len(data_parts)} ISBN(s) to query WorldCat.")
+        normalized_isbns = [
+            normalize_isbn(i.isbn) for i in self.parts if is_valid_isbn(i.isbn)
+        ]
         with WorldcatManager() as manager:
-            for part in data_parts:
-                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
+            for isbn in normalized_isbns:
+                worldcat_part = manager.get_worldcat_data_for_part(isbn=isbn)
                 parts.append(worldcat_part.to_dict())
         return parts
 

@@ -113,17 +113,16 @@ class PlatformManager:
         )
 
     def get_platform_bib(self, bib_id: str) -> dict[str, Any]:
-        logger.info(f"Getting bib record from platform for {bib_id}.")
+        logger.debug(f"({bib_id}) Getting bib record from platform.")
         with PlatformSession(authorization=self.platform_token) as session:
             response = session.get_bib(id=bib_id)
             return response.json()["data"]
 
     def get_platform_bib_items(self, bib_id: str) -> list[dict[str, Any]]:
-        logger.info(f"Getting items from platform for {bib_id}.")
+        logger.debug(f"({bib_id}) Getting item records from platform.")
         with PlatformSession(authorization=self.platform_token) as session:
             response = session.get_bib_items(id=bib_id)
             data = response.json()["data"]
-            logger.info(f"{len(data)} item record(s) found for bib {bib_id}.")
             return data
 
 
@@ -165,9 +164,9 @@ class WorldcatManager:
         return self.parse_brief_bib(response=brief_bib)
 
     def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
-        logger.info(f"ISBN {isbn}: retrieving brief bib record.")
+        logger.debug(f"ISBN {isbn}: retrieving brief bib record.")
         oclc_number = self.get_oclc_number_from_isbn(isbn=isbn)
-        logger.info(
+        logger.debug(
             f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
         )
         full_rec = self.get_full_record(oclc_number=oclc_number)
