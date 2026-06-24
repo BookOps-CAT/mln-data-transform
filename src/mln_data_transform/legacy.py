@@ -149,7 +149,15 @@ class LegacyBibData:
             subfields_944 = isbns[0]["subfields"]
             isbn_string = " ".join([i["content"] for i in subfields_944])
             isbn_list = isbn_string.split()
-            return [normalize_isbn(i) for i in isbn_list if is_valid_isbn(i)]
+            normalized_isbns = [
+                normalize_isbn(i) for i in isbn_list if is_valid_isbn(i)
+            ]
+            if len(normalized_isbns) < len(isbn_list):
+                logger.warning(
+                    f"({self.bib_id}) Record contains {len(isbn_list)} ISBN(s). "
+                    f"{len(normalized_isbns)}/{len(isbn_list)} are valid."
+                )
+            return normalized_isbns
         return []
 
     @property
