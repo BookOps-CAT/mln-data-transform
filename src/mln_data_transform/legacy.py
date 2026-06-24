@@ -83,7 +83,7 @@ class LegacyBibData:
     def call_number(self) -> str:
         field_091 = [i for i in self.var_fields if i["marcTag"] == "091"]
         subfields_091 = field_091[0]["subfields"]
-        return " ".join([i["content"] for i in subfields_091])
+        return " ".join([i["content"] for i in subfields_091]).strip()
 
     @property
     def call_number_components(self) -> re.Match:
@@ -129,6 +129,13 @@ class LegacyBibData:
         If language is present in call number converts legacy grade level (eg. 'YA')
         to current grade level formatting formatting.
         """
+        grade_level = [i for i in self.var_fields if i["marcTag"] == "521"]
+        if grade_level:
+            subfields_521 = grade_level[0]["subfields"]
+            grade_level_string = " ".join([i["content"].strip() for i in subfields_521])
+            matches = self.map_to_closest_enum(grade_level_string)
+            if matches:
+                return matches
         grade_level = self.call_number_components["grade_level"]
         if self.lang:
             return self.GRADE_LEVEL_MAPPING[grade_level]
@@ -200,6 +207,31 @@ class LegacyBibData:
             return "WorldLang"
         else:
             return subject.upper()
+
+    def map_to_closest_enum(self, grade_str: str) -> str:
+        """Applies explicit overrides, then falls back to Euclidean distance."""
+        clean_str = grade_str.strip(".")
+        if clean_str == "1-12":
+            return "E"
+        if clean_str.startswith(("0", "Pre")):
+            return "A"
+        if clean_str.startswith("K") or clean_str.endswith(("-2", "-3")):
+            return "B"
+        match = re.match(r"^(\d{1,2})\-(\d{1,2})$", clean_str)
+        start, end = match.groups()
+        start = int(start)
+        end = int(end)
+        best_match = None
+        min_distance = float("inf")
+        bounds = {"C": (3, 5), "D": (6, 8), "E": (9, 12)}
+        for enum_val, (enum_start, enum_end) in bounds.items():
+            distance = (start - enum_start) ** 2 + (end - enum_end) ** 2
+
+            if distance < min_distance:
+                min_distance = distance
+                best_match = enum_val
+
+        return best_match
 
 
 class LegacyItemData:

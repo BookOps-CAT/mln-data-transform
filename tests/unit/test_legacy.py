@@ -113,7 +113,9 @@ class TestLegacyBibData:
     def test_legacy_bib_data_call_number_patterns(
         self, test_bib_data, arg, enhanced, grade, set_type, subject
     ):
-        var_fields = [i for i in test_bib_data["varFields"] if i["marcTag"] != "091"]
+        var_fields = [
+            i for i in test_bib_data["varFields"] if i["marcTag"] not in ["091", "521"]
+        ]
         var_fields.append(
             {
                 "ind1": " ",
@@ -134,6 +136,39 @@ class TestLegacyBibData:
         assert legacy_bib.grade_level == grade
         assert legacy_bib.set_type == set_type
         assert legacy_bib.subject == subject
+
+    @pytest.mark.parametrize(
+        "grade,output",
+        [
+            ("1-12", "E"),
+            ("0-3", "A"),
+            ("1-3", "B"),
+            ("K-3", "B"),
+            ("0-5", "A"),
+            ("Pre-K-3", "A"),
+            ("9-12.", "E"),
+            ("6-11", "D"),
+        ],
+    )
+    def test_legacy_bib_data_grade_level(self, test_bib_data, grade, output):
+        var_fields = [i for i in test_bib_data["varFields"] if i["marcTag"] != "521"]
+        var_fields.append(
+            {
+                "ind1": "2",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "521",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": grade}],
+            }
+        )
+        legacy_bib = LegacyBibData(
+            bib_id=test_bib_data["id"],
+            set_title=test_bib_data["title"],
+            var_fields=var_fields,
+            language=test_bib_data["lang"],
+        )
+        assert legacy_bib.grade_level == output
 
     def test_legacy_bib_data_call_number_pattern_error(self, test_bib_data):
         var_fields = [i for i in test_bib_data["varFields"] if i["marcTag"] != "091"]
