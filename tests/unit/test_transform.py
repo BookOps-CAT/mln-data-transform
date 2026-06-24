@@ -173,3 +173,8 @@ class TestWorldcatManager:
                 "9781234567897"
             )
         assert worldcat_response.description == ""
+        assert [i.msg for i in caplog.records] == [
+            "ISBN 9781234567897: retrieving brief bib record.",
+            "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
+            "WorldCat record for ocn123456789 missing description.",
+        ]
