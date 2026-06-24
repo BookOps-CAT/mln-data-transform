@@ -78,12 +78,6 @@ class TeacherSetCopyModel(TeacherSetModel):
 
     def to_set_bib(self) -> TeacherSetBib:
         data = self.model_dump()
-        data["subjects"] = [
-            VarFieldData(
-                tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
-            )
-            for i in data["subjects"]
-        ]
         if data.get("var_field_data"):
             data["var_field_data"] = [
                 VarFieldData(
