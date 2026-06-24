@@ -297,3 +297,15 @@ def mock_session_managers(
     monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib)
     monkeypatch.setattr(PlatformSession, "get_bib", get_platform_bib)
     monkeypatch.setattr(PlatformSession, "get_bib_items", get_platform_items)
+
+
+@pytest.fixture
+def mock_session_managers_no_description(
+    monkeypatch, mock_session_managers, stub_bib
+) -> None:
+    def get_worldcat_bib_no_description(*args, **kwargs):
+        bib = stub_bib
+        bib.remove_fields("520")
+        return MockMarcResponse(bib.as_marc())
+
+    monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib_no_description)

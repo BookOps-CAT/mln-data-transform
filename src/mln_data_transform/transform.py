@@ -7,7 +7,6 @@ from typing import Any
 from bookops_nypl_platform import PlatformSession, PlatformToken
 from bookops_worldcat import MetadataSession, WorldcatAccessToken
 from pymarc import Field, Record
-from requests import Response
 
 logger = logging.getLogger(__name__)
 
@@ -144,30 +143,39 @@ class WorldcatManager:
     def __exit__(self, *args, **kwargs) -> None:
         self.session.close()
 
-    def parse_brief_bib(self, response: Response) -> str:
-        parsed_responses = [
-            BriefBibResponse(i) for i in response.json()["briefRecords"]
-        ]
+    def parse_brief_bib(self, brief_records: list[dict[str, Any]]) -> list[str]:
+        parsed_responses = [BriefBibResponse(i) for i in brief_records]
         sorted_recs = sorted(parsed_responses, key=BriefBibResponse.sort_key)
-        return [i.oclc_number for i in sorted_recs][0]
+        return [i.oclc_number for i in sorted_recs]
 
-    def get_full_record(self, oclc_number: str) -> Record:
+    def get_full_record(self, isbn: str, oclc_number: str) -> FullWorldCatResponse:
+        logger.debug(
+            f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
+        )
         full_bib_response = self.session.bib_get(
             oclcNumber=oclc_number, responseFormat="application/marc"
         )
-        return Record(data=full_bib_response.content)  # type: ignore
+        record = Record(data=full_bib_response.content)  # type: ignore
+        return FullWorldCatResponse(isbn=isbn, wc_response=record)
 
     def get_oclc_number_from_isbn(self, isbn: str) -> str:
         brief_bib = self.session.brief_bibs_search(
             q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
         )
-        return self.parse_brief_bib(response=brief_bib)
+        brief_bib_json = brief_bib.json()
+        return self.parse_brief_bib(
+            brief_records=brief_bib_json.get("briefRecords", [])
+        )
 
     def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
         logger.debug(f"ISBN {isbn}: retrieving brief bib record.")
-        oclc_number = self.get_oclc_number_from_isbn(isbn=isbn)
-        logger.debug(
-            f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
-        )
-        full_rec = self.get_full_record(oclc_number=oclc_number)
-        return FullWorldCatResponse(isbn=isbn, wc_response=full_rec)
+        oclc_numbers = self.get_oclc_number_from_isbn(isbn=isbn)
+        first_rec = None
+        for oclc in oclc_numbers:
+            full_rec = self.get_full_record(oclc_number=oclc, isbn=isbn)
+            if not full_rec.description:
+                first_rec = full_rec
+                continue
+            else:
+                return full_rec
+        return first_rec

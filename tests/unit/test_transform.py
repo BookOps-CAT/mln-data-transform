@@ -163,3 +163,13 @@ class TestWorldcatManager:
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
         ]
+
+    def test_get_worldcat_data_for_part_no_description(
+        self, mock_session_managers_no_description, caplog
+    ):
+        caplog.set_level("DEBUG")
+        with WorldcatManager() as worldcat_manager:
+            worldcat_response = worldcat_manager.get_worldcat_data_for_part(
+                "9781234567897"
+            )
+        assert worldcat_response.description == ""

@@ -848,47 +848,13 @@ class TestLiveTeacherSetBuilder:
                 "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
-        # assert len(caplog.records) == 32
-        assert len(caplog.records) == 5
+        assert len(caplog.records) == 4
         assert [i.msg for i in caplog.records] == [
             "(20895133) Building teacher set from legacy data.",
             "(20895133) Retrieved bib and 8 item record(s) from platform.",
             "(20895133) Data retrieved from WorldCat for 8 set component(s).",
             "(20895133) Created 8 valid copy/copies of set.",
         ]
-        # assert [i.msg for i in caplog.records] == [
-        #     "Creating base teacher set for legacy set: Bib ID 20895133.",
-        #     "Getting bib record from platform for 20895133.",
-        #     "Getting items from platform for 20895133.",
-        #     "8 item record(s) found for bib 20895133.",
-        #     "ISBN 9781624035425: retrieving brief bib record.",
-        #     "ISBN 9781624035425: retrieving full bib record (OCLC number: 911497614).",
-        #     "ISBN 9781624035418: retrieving brief bib record.",
-        #     "ISBN 9781624035418: retrieving full bib record (OCLC number: 910879453).",
-        #     "ISBN 9781624035401: retrieving brief bib record.",
-        #     "ISBN 9781624035401: retrieving full bib record (OCLC number: 904346699).",
-        #     "ISBN 9781624035395: retrieving brief bib record.",
-        #     "ISBN 9781624035395: retrieving full bib record (OCLC number: 891122638).",
-        #     "ISBN 9781624035388: retrieving brief bib record.",
-        #     "ISBN 9781624035388: retrieving full bib record (OCLC number: 914136830).",
-        #     "ISBN 9781624035371: retrieving brief bib record.",
-        #     "ISBN 9781624035371: retrieving full bib record (OCLC number: 910879363).",
-        #     "ISBN 9781624035364: retrieving brief bib record.",
-        #     "ISBN 9781624035364: retrieving full bib record (OCLC number: 908256277).",
-        #     "ISBN 9781624035357: retrieving brief bib record.",
-        #     "ISBN 9781624035357: retrieving full bib record (OCLC number: 891122602).",
-        #     "Validating set.",
-        #     "Creating 8 copy/copies of set.",
-        #     "Creating copy 1 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 2 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 3 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 4 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 5 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 6 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 7 of legacy set: Bib ID 20895133.",
-        #     "Creating copy 8 of legacy set: Bib ID 20895133.",
-        #     "Validating 8 copy/copies of set.",
-        # ]
 
     def test_topic_astronomy(self, live_creds, mock_control_number_file):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="19544031")
@@ -1240,26 +1206,7 @@ class TestLiveTeacherSetBuilder:
                 "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
-        # assert len(caplog.records) == 17
-        assert len(caplog.records) == 5
-        # assert [i.msg for i in caplog.records] == [
-        #     "Creating base teacher set for legacy set: Bib ID 19538471.",
-        #     "Getting bib record from platform for 19538471.",
-        #     "Getting items from platform for 19538471.",
-        #     "7 item record(s) found for bib 19538471.",
-        #     "ISBN 9780789308849: retrieving brief bib record.",
-        #     "ISBN 9780789308849: retrieving full bib record (OCLC number: 52510777).",
-        #     "Validating set.",
-        #     "Creating 7 copy/copies of set.",
-        #     "Creating copy 1 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 2 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 3 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 4 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 5 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 6 of legacy set: Bib ID 19538471.",
-        #     "Creating copy 7 of legacy set: Bib ID 19538471.",
-        #     "Validating 7 copy/copies of set.",
-        # ]
+        assert len(caplog.records) == 4
         assert [i.msg for i in caplog.records] == [
             "(19538471) Building teacher set from legacy data.",
             "(19538471) Retrieved bib and 7 item record(s) from platform.",
