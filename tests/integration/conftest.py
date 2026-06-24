@@ -205,11 +205,27 @@ def mock_set_missing_info(monkeypatch, mock_set, mock_worldcat_parts) -> None:
 @pytest.fixture
 def mock_set_no_dates(monkeypatch, mock_set, mock_worldcat_parts) -> None:
     def mock_parts(*args, **kwargs):
-        mock_worldcat_parts[0]["author_name"] = None
         mock_worldcat_parts[0]["author_dates"] = None
         mock_worldcat_parts[0]["pub_date"] = None
         mock_worldcat_parts[1]["pub_date"] = None
         mock_worldcat_parts[0]["subjects"] = []
+        return mock_worldcat_parts
+
+    monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+    monkeypatch.setattr(TeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+
+
+@pytest.fixture
+def mock_set_dupe_subjects(monkeypatch, mock_set, mock_worldcat_parts) -> None:
+    def mock_parts(*args, **kwargs):
+        mock_worldcat_parts[1]["subjects"] = [
+            {
+                "tag": "651",
+                "ind1": " ",
+                "ind2": "0",
+                "subfields": [("a", "New York (N.Y.)")],
+            }
+        ]
         return mock_worldcat_parts
 
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)

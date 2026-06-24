@@ -107,11 +107,13 @@ def test_item_data() -> dict[str, Any]:
             "id": "31187496",
             "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-1   ",
             "barcode": "33333987654321",
+            "varFields": [],
         },
         {
             "id": "31187496",
             "callNumber": "Teacher Set SOC A Foo Bar Book Club 1-2   ",
             "barcode": "33333123456789",
+            "varFields": [],
         },
     ]
 

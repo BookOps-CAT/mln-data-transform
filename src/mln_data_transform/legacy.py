@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import difflib
 import logging
 import re
+from enum import StrEnum
 from typing import Any
 
 from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
 from mln_data_transform.taxonomy import (
+    GENRE_REGEX_MAP,
+    TOPIC_REGEX_MAP,
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
@@ -245,10 +247,13 @@ class LegacyBibData:
 class LegacyItemData:
     """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
 
-    def __init__(self, barcode: str, call_number: str, item_id: str) -> None:
+    def __init__(
+        self, barcode: str, call_number: str, item_id: str, incomplete: bool = False
+    ) -> None:
         self.barcode = barcode
         self.call_number = call_number.strip()
         self.item_id = item_id
+        self.incomplete = incomplete
 
     @property
     def bib_call_number(self) -> str:
@@ -282,9 +287,15 @@ class LegacySetStub:
             f"({self.bib_id}) {len(item_data)} item record(s) retrieved from platform."
         )
         for item in item_data:
-            barcode = item["barcode"]
+            incomplete_fields = [
+                i for i in item["varFields"] if "Below 75%" in i["content"]
+            ]
+            incomplete = incomplete_fields != []
             legacy_item = LegacyItemData(
-                call_number=item["callNumber"], item_id=item["id"], barcode=barcode
+                call_number=item["callNumber"],
+                item_id=item["id"],
+                barcode=item["barcode"],
+                incomplete=incomplete,
             )
             item_list.append(legacy_item)
         return item_list
@@ -413,36 +424,36 @@ class LegacyTeacherSet:
     @property
     def local_genre_term(self) -> list[TaxonomyGenre]:
         genre_terms = []
-        choices = [
-            i.value for i in TaxonomyGenre if i.value not in ["Fiction", "Nonfiction"]
-        ]
         for subject in self.subject_strings:
-            close_matches = difflib.get_close_matches(subject, choices)
+            close_matches = self.compare_terms(term=subject, regex_map=GENRE_REGEX_MAP)
             for genre in close_matches:
                 genre_terms.append(genre)
-            if "nonfiction".casefold() not in subject and (
-                "fiction".casefold() in subject or "literature".casefold() in subject
-            ):
-                genre_terms.append("Fiction")
-            elif "nonfiction".casefold() in subject:
-                genre_terms.append("Nonfiction")
-        call_num_matches = difflib.get_close_matches(self.call_number, choices)
-        for genre in call_num_matches:
+        title_matches = self.compare_terms(
+            term=self.set_title, regex_map=GENRE_REGEX_MAP
+        )
+        call_num_matches = self.compare_terms(
+            term=self.call_number, regex_map=GENRE_REGEX_MAP
+        )
+        for genre in call_num_matches + title_matches:
             genre_terms.append(genre)
-        return list(set([TaxonomyGenre(i) for i in genre_terms]))
+        return list(set(genre_terms))
 
     @property
     def local_topic_term(self) -> list[TaxonomyTopic]:
         topic_terms = []
-        choices = [i.value for i in TaxonomyTopic]
         for subject in self.subject_strings:
-            close_matches = difflib.get_close_matches(subject, choices)
+            close_matches = self.compare_terms(term=subject, regex_map=TOPIC_REGEX_MAP)
             for topic in close_matches:
                 topic_terms.append(topic)
-        call_num_matches = difflib.get_close_matches(self.call_number, choices)
-        for topic in call_num_matches:
+        title_matches = self.compare_terms(
+            term=self.set_title, regex_map=TOPIC_REGEX_MAP
+        )
+        call_num_matches = self.compare_terms(
+            term=self.call_number, regex_map=TOPIC_REGEX_MAP
+        )
+        for topic in call_num_matches + title_matches:
             topic_terms.append(topic)
-        return list(set([TaxonomyTopic(i) for i in topic_terms]))
+        return list(set(topic_terms))
 
     @property
     def parts(self) -> list[WorldcatSetPart]:
@@ -474,3 +485,11 @@ class LegacyTeacherSet:
                         " ".join([i[1] for i in subject["subfields"] if i[0].isalpha()])
                     )
         return subjects
+
+    def compare_terms(self, term: str, regex_map: dict) -> list[StrEnum]:
+        matched_terms = []
+        for taxonomy_item, pattern in regex_map.items():
+            if pattern.search(term):
+                matched_terms.append(taxonomy_item)
+
+        return matched_terms

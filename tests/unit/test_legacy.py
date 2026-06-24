@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 from mln_data_transform.legacy import (
@@ -194,6 +196,528 @@ class TestLegacyBibData:
             str(exc.value)
             == "Call number 'call number' does not match pattern. Cannot extract components."
         )
+
+    @pytest.mark.parametrize(
+        "subject,output",
+        [
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Adventure stories")],
+                },
+                ["Adventure"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [
+                        ("a", "Puerto Ricans"),
+                        ("z", "New York (State)"),
+                        ("z", "New York"),
+                        ("v", "Biography."),
+                    ],
+                },
+                ["Biography"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Fantasy fiction")],
+                },
+                ["Fantasy", "Fiction"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Literature and folklore")],
+                },
+                ["Folklore"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Manga (Comic books)")],
+                },
+                ["Comics & Graphic Novels", "Manga"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Autobiography")],
+                },
+                ["Memoir"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Cozy mysteries")],
+                },
+                ["Mystery"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Detective and mystery stories, Spanish")],
+                },
+                ["Mystery"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Russian American poetry")],
+                },
+                ["Poetry"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Romance fiction, English")],
+                },
+                ["Fiction", "Romance"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "1",
+                    "tag": "650",
+                    "subfields": [("a", "Family life"), ("v", "Fiction")],
+                },
+                ["Fiction"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "1",
+                    "tag": "650",
+                    "subfields": [("a", "Women"), ("v", "Biography")],
+                },
+                ["Biography"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Comics (Graphic works)."), ("2", "lcgft")],
+                },
+                ["Comics & Graphic Novels"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [
+                        ("a", "Friendship"),
+                        ("v", "Comic books, strips, etc."),
+                    ],
+                },
+                ["Comics & Graphic Novels"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Coming-of-age comics"), ("2", "lcgft")],
+                },
+                ["Comics & Graphic Novels", "Coming of Age"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Memoirs"), ("2", "lcgft")],
+                },
+                ["Memoir"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [
+                        ("a", "Detective and mystery fiction"),
+                        ("2", "lcgft"),
+                    ],
+                },
+                ["Fiction", "Mystery"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Love poetry"), ("2", "lcgft")],
+                },
+                ["Poetry"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Romance fiction"), ("2", "lcgft")],
+                },
+                ["Fiction", "Romance"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "7",
+                    "tag": "655",
+                    "subfields": [("a", "Nonfiction films"), ("2", "lcgft")],
+                },
+                ["Nonfiction"],
+            ),
+        ],
+    )
+    def test_legacy_set_local_genre_from_subjects(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, subject, output
+    ):
+        response = copy.deepcopy(mock_worldcat_response)
+        response[0]["subjects"] = [subject]
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data, worldcat_parts=response)
+        assert sorted([i.value for i in legacy_set.local_genre_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "title,output",
+        [
+            ("Schneider Family Book Award with Playaway Audiobook.", ["Award Winners"]),
+            ("Animals - Easy Readers Nonfiction.", ["Nonfiction"]),
+            ("Great Graphic Novels for Teens (Set V).", ["Comics & Graphic Novels"]),
+            ("Caldecott Award Winners en espanol.", ["Award Winners"]),
+        ],
+    )
+    def test_legacy_set_local_genre_from_title(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, title, output
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        test_data["set_title"] = title
+        mock_worldcat_response[0]["subjects"] = []
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.set_title == title
+        assert sorted([i.value for i in legacy_set.local_genre_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "call_number,output",
+        [
+            ("Teacher Set ELA D Graphic Novels 3", ["Comics & Graphic Novels"]),
+            ("Teacher Set SCI D Manga Guide 1", ["Manga"]),
+            ("Teacher Set ELA B Poetry 3", ["Poetry"]),
+            ("Teacher Set FRLA A Award Caldecott 2", ["Award Winners"]),
+        ],
+    )
+    def test_legacy_set_local_genre_from_call_number(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, call_number, output
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        test_data["call_number"] = call_number
+        mock_worldcat_response[0]["subjects"] = []
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.call_number == call_number
+        assert sorted([i.value for i in legacy_set.local_genre_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "subject,output",
+        [
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "African Americans in motion pictures")],
+                },
+                ["African Americans"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "1",
+                    "tag": "650",
+                    "subfields": [("a", "African American athletes")],
+                },
+                ["African Americans", "Sports"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Asian Americans"), ("x", "Ethnic identity")],
+                },
+                ["Asian Americans"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "1",
+                    "tag": "650",
+                    "subfields": [("a", "Astronomy projects")],
+                },
+                ["Astronomy"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Autism spectrum disorders in children")],
+                },
+                ["Autism"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Behavior"), ("v", "Juvenile fiction")],
+                },
+                ["Behavior"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [
+                        ("a", "Bullying"),
+                        ("x", "Prevention"),
+                        ("v", "Juvenile fiction"),
+                    ],
+                },
+                ["Bullying"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Bullies"), ("v", "Juvenile fiction")],
+                },
+                ["Bullying"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Chinese Americans")],
+                },
+                ["Chinese Americans"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Civil rights movements")],
+                },
+                ["Civil Rights"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Community arts projects")],
+                },
+                ["Community"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Number concept")],
+                },
+                ["Concepts"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Concepts"), ("v", "Juvenile literature.")],
+                },
+                ["Concepts"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Cooking (Vegetables)")],
+                },
+                ["Cooking"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Courage in children")],
+                },
+                ["Courage"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Cultural Property")],
+                },
+                ["Cultural Heritage"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Dance"), ("v", "Juvenile fiction")],
+                },
+                ["Dance"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Family reunions")],
+                },
+                ["Family"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Immigrants")],
+                },
+                ["Immigration"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "New York (N.Y.)")],
+                },
+                ["New York City"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Heirloom varieties (Plants)")],
+                },
+                ["Plants"],
+            ),
+            (
+                {
+                    "ind1": " ",
+                    "ind2": "0",
+                    "tag": "650",
+                    "subfields": [("a", "Plants and history")],
+                },
+                ["Plants"],
+            ),
+        ],
+    )
+    def test_legacy_set_local_topic_from_subject(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, subject, output
+    ):
+        response = copy.deepcopy(mock_worldcat_response)
+        response[0]["subjects"] = [subject]
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
+        legacy_set = LegacyTeacherSet(set_data=legacy_set_data, worldcat_parts=response)
+        assert sorted([i.value for i in legacy_set.local_topic_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "title,output",
+        [
+            ("Food and Nutrition - Seed to Food.", ["Health & Wellness"]),
+            ("NYC Picture Books.", ["New York City"]),
+            ("Communities", ["Community"]),
+            ("Weather Picture Book Read Alouds with DVD.", ["Weather"]),
+            ("Civil Rights Poetry", ["Civil Rights"]),
+            ("Weather and Natural Disasters en espanol.", ["Weather"]),
+            ("Exploring weather with DVD.", ["Weather"]),
+            ("Ancient Civilization.", ["Ancient Civilization"]),
+        ],
+    )
+    def test_legacy_set_local_topic_from_title(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, title, output
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        test_data["set_title"] = title
+        mock_worldcat_response[0]["subjects"] = []
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.set_title == title
+        assert sorted([i.value for i in legacy_set.local_topic_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "call_number,output",
+        [
+            (
+                "Teacher Set SOC B NYC History - Immigration 1",
+                ["New York City", "Immigration"],
+            ),
+            ("Teacher Set ELA D NYC Fic 1", ["New York City"]),
+            ("Teacher Set SCI A Reptiles 1", ["Animals"]),
+            ("Teacher Set Math A Concepts 1", ["Concepts"]),
+            ("Teacher Set SCI A Outer Space 1", ["Astronomy"]),
+            ("Teacher Set SCI A Life Cycles - Plants and Seeds 1", ["Plants"]),
+            (
+                "Teacher Set SOC B Ancient Civilizations - Latin America 1",
+                ["Ancient Civilization"],
+            ),
+        ],
+    )
+    def test_legacy_set_local_topic_from_call_number(
+        self, legacy_set_test_data, caplog, mock_worldcat_response, call_number, output
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        test_data["call_number"] = call_number
+        mock_worldcat_response[0]["subjects"] = []
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.call_number == call_number
+        assert sorted([i.value for i in legacy_set.local_topic_term]) == sorted(output)
 
     @pytest.mark.parametrize(
         "arg,output",
