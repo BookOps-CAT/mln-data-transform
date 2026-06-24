@@ -1,4 +1,5 @@
 import logging
+import re
 from enum import StrEnum
 
 logger = logging.getLogger(__name__)
@@ -79,3 +80,67 @@ class TaxonomyTopic(StrEnum):
     plants = "Plants"
     sports = "Sports"
     weather = "Weather"
+
+
+GENRE_REGEX_MAP = {
+    TaxonomyGenre.adventure: re.compile(r"adventure", re.IGNORECASE),
+    TaxonomyGenre.award_winners: re.compile(
+        r"(book )?award((s?)|( winners))", re.IGNORECASE
+    ),
+    TaxonomyGenre.biography: re.compile(r"\b(biograph)((y)|(ical))", re.IGNORECASE),
+    TaxonomyGenre.comics_graphic_novels: re.compile(
+        r"comics?|graphic novels?", re.IGNORECASE
+    ),
+    TaxonomyGenre.coming_of_age: re.compile(
+        r"(coming[- ]of[- ]age|bildungsromans?)", re.IGNORECASE
+    ),
+    TaxonomyGenre.fantasy: re.compile(r"fantasy", re.IGNORECASE),
+    TaxonomyGenre.fiction: re.compile(r"(\bfiction(al)?\b)", re.IGNORECASE),
+    TaxonomyGenre.folklore: re.compile(r"folklore", re.IGNORECASE),
+    TaxonomyGenre.manga: re.compile(r"manga", re.IGNORECASE),
+    TaxonomyGenre.memoir: re.compile(r"memoir|autobiograph((y)|(ical))", re.IGNORECASE),
+    TaxonomyGenre.mystery: re.compile(r"(myster)((y)|(ies))", re.IGNORECASE),
+    TaxonomyGenre.nonfiction: re.compile(r"(\bnonfiction(al)?\b)", re.IGNORECASE),
+    TaxonomyGenre.poetry: re.compile(r"poetry|poems?", re.IGNORECASE),
+    TaxonomyGenre.romance: re.compile(r"romance", re.IGNORECASE),
+}
+
+TOPIC_REGEX_MAP = {
+    TaxonomyTopic.african_americans: re.compile(r"african americans?", re.IGNORECASE),
+    TaxonomyTopic.ancient_civilization: re.compile(
+        r"ancient civilizations?", re.IGNORECASE
+    ),
+    TaxonomyTopic.animals: re.compile(
+        r"animals?|mammals?|reptiles?|birds?", re.IGNORECASE
+    ),
+    TaxonomyTopic.asian_americans: re.compile(r"asian americans?", re.IGNORECASE),
+    TaxonomyTopic.astronomy: re.compile(
+        r"astronomy|space(?! and time)|stars?|planets?", re.IGNORECASE
+    ),
+    TaxonomyTopic.autism: re.compile(r"autism", re.IGNORECASE),
+    TaxonomyTopic.behavior: re.compile(r"^behavior|^helping behavior", re.IGNORECASE),
+    TaxonomyTopic.bullying: re.compile(r"bull((ying)|(ies))", re.IGNORECASE),
+    TaxonomyTopic.chinese_americans: re.compile(r"chinese americans?", re.IGNORECASE),
+    TaxonomyTopic.civil_rights: re.compile(r"civil rights", re.IGNORECASE),
+    TaxonomyTopic.community: re.compile(r"communit((y)|(ies))", re.IGNORECASE),
+    TaxonomyTopic.concepts: re.compile(r"(?<!philosophical )concepts?", re.IGNORECASE),
+    TaxonomyTopic.cooking: re.compile(r"cooking", re.IGNORECASE),
+    TaxonomyTopic.courage: re.compile(r"courage", re.IGNORECASE),
+    TaxonomyTopic.cultural_heritage: re.compile(
+        r"cultural ((heritage)|(property))", re.IGNORECASE
+    ),
+    TaxonomyTopic.dance: re.compile(r"dance", re.IGNORECASE),
+    TaxonomyTopic.family: re.compile(r"family", re.IGNORECASE),
+    TaxonomyTopic.health_wellness: re.compile(
+        r"health|wellness|nutrition", re.IGNORECASE
+    ),
+    TaxonomyTopic.immigration: re.compile(r"immigra((tion)|(nt[s]?))", re.IGNORECASE),
+    TaxonomyTopic.music: re.compile(r"music(ians)?", re.IGNORECASE),
+    TaxonomyTopic.new_york_city: re.compile(
+        r"(new york,? ?\(?n\.y\.\)?)|nyc|bronx|manhattan|brooklyn|staten island",
+        re.IGNORECASE,
+    ),
+    TaxonomyTopic.plants: re.compile(r"plants", re.IGNORECASE),
+    TaxonomyTopic.sports: re.compile(r"sports|athlet((es?)|ics)", re.IGNORECASE),
+    TaxonomyTopic.weather: re.compile(r"weather|natural disasters", re.IGNORECASE),
+}
