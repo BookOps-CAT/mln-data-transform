@@ -32,7 +32,7 @@ class TeacherSetBuilder:
         df = pd.read_csv(
             self.file,
             sep="|",
-            usecols=["BARCODE", "LOCATION", "BIB_ID"],
+            usecols=["SUBJECT", "BARCODE", "LOCATION", "BIB_ID"],
             header=0,
             dtype=str,
         )
@@ -50,14 +50,26 @@ class TeacherSetBuilder:
         return bib_df.to_dict("index")
 
     def build_legacy_set(self, bib_id: str) -> dict[str, Any]:
-        logger.info(f"Creating base teacher set for legacy set: Bib ID {bib_id}.")
+        logger.info(f"({bib_id}) Building teacher set from legacy data.")
         set_stub = LegacySetStub(bib_id=bib_id)
         bib_data = set_stub.get_bib_data()
         item_data = set_stub.get_item_data()
+        logger.info(
+            f"({bib_id}) Retrieved bib and "
+            f"{len(item_data)} item record(s) from platform."
+        )
         set_data = LegacyTeacherSetData.from_bib_item_data(
             bib_data=bib_data, item_data=item_data
         )
+        logger.info(
+            f"({bib_id}) Record contains "
+            f"{len(set_data.set_parts)} ISBN(s) to query WorldCat."
+        )
         worldcat_parts = set_data.get_worldcat_data_for_parts()
+        logger.info(
+            f"({bib_id}) Data retrieved from WorldCat for "
+            f"{len(worldcat_parts)} set components."
+        )
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(legacy_set)
 
@@ -74,7 +86,7 @@ class TeacherSetBuilder:
         local_topic_term: list[str] | None = None,
         special_formats: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
-        logger.info(f"Creating base teacher set for new set: '{set_title}'.")
+        logger.info(f"Building teacher set from new data: '{set_title}'.")
         set_data = TeacherSetData(
             copies_of_set=copies_of_set,
             grade_level=grade_level,
@@ -87,22 +99,34 @@ class TeacherSetBuilder:
             local_topic_term=local_topic_term,
             special_formats=special_formats,
         )
+        logger.info(f"Record contains {len(parts)} ISBN(s) to query WorldCat.")
         worldcat_parts = set_data.get_worldcat_data_for_parts()
+        logger.info(
+            f"Data retrieved from WorldCat for {len(worldcat_parts)} set components."
+        )
         teacher_set = TeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(teacher_set)
 
     def build_set_copies(self, set_data: dict[str, Any]) -> dict[str, Any]:
         control_number = self.ctrl_number_gen.next_control_number()
-        error_data = []
+        log_id = (
+            set_data["bib_id"] if set_data["bib_id"] is not None else control_number
+        )
+        logger.debug(
+            f"({log_id}) Creating {set_data['copies_of_set']} copy/copies of set."
+        )
         try:
             set_copies = self.create_set_copies(
                 teacher_set_dict=set_data, control_number=control_number
             )
             valid_set_copies = self.validate_set_copies(set_copies)
             self.ctrl_number_gen.save_state()
+            logger.info(
+                f"({log_id}) Created {len(valid_set_copies)} valid copy/copies of set."
+            )
             return valid_set_copies
         except ValidationError as e:
-            error_data.append(json.loads(e.json()))
+            logger.error(f"Validation errors for set copies: {json.loads(e.json())}")
 
     def create_set_copies(
         self, teacher_set_dict: dict[str, Any], control_number: str
@@ -110,13 +134,9 @@ class TeacherSetBuilder:
         copies = []
         teacher_set_dict["control_number"] = control_number
         bib_id = teacher_set_dict.get("bib_id")
-        logger.info(f"Creating {teacher_set_dict['copies_of_set']} copy/copies of set.")
         for copy_num in range(0, teacher_set_dict["copies_of_set"]):
             set_copy_dict = copy.deepcopy(teacher_set_dict)
             if bib_id:
-                logger.info(
-                    f"Creating copy {copy_num + 1} of legacy set: Bib ID {bib_id}."
-                )
                 mapping = self.location_mapping(bib_id)
                 barcode = mapping[copy_num]["BARCODE"]
                 set_copy_dict["var_field_data"].append(
@@ -126,23 +146,18 @@ class TeacherSetBuilder:
                         "ind2": " ",
                         "subfields": [
                             ("n", barcode),
-                            ("o", set_copy_dict["legacy_barcodes"][barcode]),
+                            ("o", set_copy_dict["legacy_barcodes"].get(barcode, "")),
                         ],
                     }
                 )
                 set_copy_dict["shelf_number"] = mapping[copy_num]["LOCATION"]
             else:
-                logger.info(
-                    f"Creating copy {copy_num + 1} of teacher set: "
-                    f"{set_copy_dict['set_title']}."
-                )
                 set_copy_dict["shelf_number"] = "[SHELF-NUMBER]"
             set_copy_dict["copy_number"] = copy_num + 1
             copies.append(TeacherSetCopy(**set_copy_dict))
         return copies
 
     def validate_set(self, set: LegacyTeacherSet | TeacherSet) -> dict[str, Any]:
-        logger.info("Validating set.")
         try:
             teacher_set = TeacherSetModel.model_validate(set, from_attributes=True)
             return teacher_set.model_dump()
@@ -153,7 +168,6 @@ class TeacherSetBuilder:
         self, legacy_set_copies: list[TeacherSetCopy]
     ) -> list[TeacherSetCopy]:
         valid_bibs = []
-        logger.info(f"Validating {len(legacy_set_copies)} copy/copies of set.")
         for set in legacy_set_copies:
             set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
             valid_bibs.append(set_copy.to_set_bib())
@@ -165,7 +179,7 @@ class TeacherSetBuilder:
         df.to_csv(f"data/{today_str}_validation_errors.csv", index=False, mode="a")
 
     def write_marc_to_file(self, out_file: str, set_bibs: list[TeacherSetBib]) -> None:
-        logger.info(f"Writing records to file for {set_bibs[0].control_number}.")
+        logger.info(f"({set_bibs[0].control_number}) Writing records to file for set.")
         with open(out_file, "ab") as fh:
             for set_bib in set_bibs:
                 bib = set_bib.to_bib()

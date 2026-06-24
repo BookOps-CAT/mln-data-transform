@@ -358,14 +358,12 @@ class TestTeacherSetBuilderLogging:
     ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         self.BUILDER.build_set_copies(teacher_set)
-        assert len(caplog.records) == 6
+        assert len(caplog.records) == 4
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for new set: 'Foo Bar Teacher Set'.",
-            "Validating set.",
-            "Creating 2 copy/copies of set.",
-            "Creating copy 1 of teacher set: Foo Bar Teacher Set.",
-            "Creating copy 2 of teacher set: Foo Bar Teacher Set.",
-            "Validating 2 copy/copies of set.",
+            "Building teacher set from new data: 'Foo Bar Teacher Set'.",
+            "Record contains 2 ISBN(s) to query WorldCat.",
+            "Data retrieved from WorldCat for 2 set components.",
+            "(nn-mlnyc-0000001) Created 2 valid copy/copies of set.",
         ]
 
     def test_build_legacy_sets(
@@ -373,15 +371,14 @@ class TestTeacherSetBuilderLogging:
     ):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 7
+        assert len(caplog.records) == 6
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for legacy set: Bib ID 12345678.",
+            "(12345678) Building teacher set from legacy data.",
+            "(12345678) Retrieved bib and 2 item record(s) from platform.",
+            "(12345678) Record contains 2 ISBN(s) to query WorldCat.",
             "Record contains 2 ISBN(s) to query WorldCat.",
-            "Validating set.",
-            "Creating 2 copy/copies of set.",
-            "Creating copy 1 of legacy set: Bib ID 12345678.",
-            "Creating copy 2 of legacy set: Bib ID 12345678.",
-            "Validating 2 copy/copies of set.",
+            "(12345678) Data retrieved from WorldCat for 2 set components.",
+            "(12345678) Created 2 valid copy/copies of set.",
         ]
 
     def test_build_teacher_sets_debug(
@@ -390,18 +387,17 @@ class TestTeacherSetBuilderLogging:
         caplog.set_level("DEBUG")
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         self.BUILDER.build_set_copies(teacher_set)
-        assert len(caplog.records) == 10
+        assert len(caplog.records) == 9
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for new set: 'Foo Bar Teacher Set'.",
+            "Building teacher set from new data: 'Foo Bar Teacher Set'.",
+            "Record contains 2 ISBN(s) to query WorldCat.",
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
             "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
-            "Validating set.",
-            "Creating 2 copy/copies of set.",
-            "Creating copy 1 of teacher set: Foo Bar Teacher Set.",
-            "Creating copy 2 of teacher set: Foo Bar Teacher Set.",
-            "Validating 2 copy/copies of set.",
+            "Data retrieved from WorldCat for 2 set components.",
+            "(nn-mlnyc-0000003) Creating 2 copy/copies of set.",
+            "(nn-mlnyc-0000003) Created 2 valid copy/copies of set.",
         ]
 
     def test_build_legacy_sets_debug(
@@ -412,19 +408,19 @@ class TestTeacherSetBuilderLogging:
         self.BUILDER.build_set_copies(set_data=legacy_set)
         assert len(caplog.records) == 13
         assert [i.msg for i in caplog.records] == [
-            "Creating base teacher set for legacy set: Bib ID 12345678.",
+            "(12345678) Building teacher set from legacy data.",
             "(12345678) Getting bib record from platform.",
             "(12345678) Getting item records from platform.",
+            "(12345678) Retrieved bib and 2 item record(s) from platform.",
+            "(12345678) Record contains 2 ISBN(s) to query WorldCat.",
             "Record contains 2 ISBN(s) to query WorldCat.",
             "ISBN 9781234567897: retrieving brief bib record.",
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
             "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
-            "Validating set.",
-            "Creating 2 copy/copies of set.",
-            "Creating copy 1 of legacy set: Bib ID 12345678.",
-            "Creating copy 2 of legacy set: Bib ID 12345678.",
-            "Validating 2 copy/copies of set.",
+            "(12345678) Data retrieved from WorldCat for 2 set components.",
+            "(12345678) Creating 2 copy/copies of set.",
+            "(12345678) Created 2 valid copy/copies of set.",
         ]
 
 
