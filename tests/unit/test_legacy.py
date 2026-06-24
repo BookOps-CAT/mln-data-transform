@@ -198,6 +198,129 @@ class TestLegacyBibData:
         )
 
     @pytest.mark.parametrize(
+        "arg,output",
+        [
+            ("9780789308849 ", ["9780789308849"]),
+            ("978-0-78-930884-9 ", ["9780789308849"]),
+            ("9780789308849 9781234567890", ["9780789308849"]),
+            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
+            ("978-0-78-930884-X 068816241X", ["068816241X"]),
+            (" 0789308843", ["0789308843"]),
+            ("0-7893-0884-3", ["0789308843"]),
+            (" 068816241X ", ["068816241X"]),
+            ("0-7893-0884-3 97897897X9", ["0789308843"]),
+            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
+        ],
+    )
+    def test_legacy_bib_data_validate_isbns(self, test_bib_data, arg, output):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "944",
+                "fieldTag": "y",
+                "subfields": [{"tag": "a", "content": arg}],
+            }
+        ]
+        legacy_bib = LegacyBibData(
+            bib_id=test_bib_data["id"],
+            set_title=test_bib_data["title"],
+            var_fields=test_bib_data["varFields"],
+            language=test_bib_data["lang"],
+        )
+        assert legacy_bib.isbns == output
+
+
+class TestLegacyItemData:
+    def test_legacy_item_data(self):
+        legacy_item = LegacyItemData(
+            item_id="i123456789",
+            call_number="Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
+            barcode="33333123456789",
+        )
+        assert (
+            legacy_item.call_number
+            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
+        )
+        assert (
+            legacy_item.bib_call_number
+            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
+        )
+
+    @pytest.mark.parametrize(
+        "arg,result",
+        [
+            ("Math B Assorted 1-10", "Math B Assorted 1"),
+            ("ELA D Genre - Horror 1-1", "ELA D Genre - Horror 1"),
+            (
+                "Language Arts ENG YA Book Club 185-5",
+                "Language Arts ENG YA Book Club 185",
+            ),
+            (
+                "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1-1",
+                "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1",
+            ),
+            ("Arts A BIOG - Musicians (Jazz) 1-2", "Arts A BIOG - Musicians (Jazz) 1"),
+            ("ELA D Horror Large Print 1-1", "ELA D Horror Large Print 1"),
+            (
+                "Language Arts ENG MG Book Club Graphic Novel 29-1",
+                "Language Arts ENG MG Book Club Graphic Novel 29",
+            ),
+        ],
+    )
+    def test_legacy_item_data_call_number_patterns(self, arg, result):
+        legacy_item = LegacyItemData(
+            item_id="i123456789",
+            call_number=f"Teacher Set {arg}",
+            barcode="33333123456789",
+        )
+        assert legacy_item.call_number == f"Teacher Set {arg}"
+        assert legacy_item.bib_call_number == f"Teacher Set {result}"
+
+
+class TestLegacyTeacherSet:
+    def test_legacy_set(self, legacy_set_test_data, caplog, mock_worldcat_response):
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert legacy_set.parts[0].author == "Bar, Foo"
+        assert legacy_set.parts[0].author_dates == "1980-"
+        assert legacy_set.parts[0].description == "Fake description of book."
+        assert legacy_set.parts[0].pub_date == "2000"
+        assert len(legacy_set.parts[0].subjects) == 2
+        assert (
+            legacy_set.contents_note
+            == 'Set consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".'
+        )
+        assert len(legacy_set.var_field_data) == 16
+        assert legacy_set.legacy_barcodes == {
+            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
+            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
+        }
+        assert legacy_set.local_genre_term == ["Comics & Graphic Novels"]
+        assert legacy_set.local_topic_term == ["New York City"]
+
+    def test_legacy_set_single_copy(
+        self, legacy_set_test_data, caplog, mock_worldcat_response
+    ):
+        legacy_set_test_data["set_parts"][0]["copies"] = 1
+        legacy_set_test_data["set_parts"][1]["copies"] = 1
+        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
+        )
+        assert (
+            legacy_set.contents_note
+            == 'Set consists of 1 copy of "Fake book 1", 1 copy of "Fake book 2".'
+        )
+        assert legacy_set.legacy_barcodes == {
+            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
+            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
+        }
+
+    @pytest.mark.parametrize(
         "subject,output",
         [
             (
@@ -718,126 +841,3 @@ class TestLegacyBibData:
         )
         assert legacy_set.call_number == call_number
         assert sorted([i.value for i in legacy_set.local_topic_term]) == sorted(output)
-
-    @pytest.mark.parametrize(
-        "arg,output",
-        [
-            ("9780789308849 ", ["9780789308849"]),
-            ("978-0-78-930884-9 ", ["9780789308849"]),
-            ("9780789308849 9781234567890", ["9780789308849"]),
-            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
-            ("978-0-78-930884-X 068816241X", ["068816241X"]),
-            (" 0789308843", ["0789308843"]),
-            ("0-7893-0884-3", ["0789308843"]),
-            (" 068816241X ", ["068816241X"]),
-            ("0-7893-0884-3 97897897X9", ["0789308843"]),
-            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
-        ],
-    )
-    def test_legacy_bib_data_validate_isbns(self, test_bib_data, arg, output):
-        test_bib_data["varFields"] = [
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "944",
-                "fieldTag": "y",
-                "subfields": [{"tag": "a", "content": arg}],
-            }
-        ]
-        legacy_bib = LegacyBibData(
-            bib_id=test_bib_data["id"],
-            set_title=test_bib_data["title"],
-            var_fields=test_bib_data["varFields"],
-            language=test_bib_data["lang"],
-        )
-        assert legacy_bib.isbns == output
-
-
-class TestLegacyItemData:
-    def test_legacy_item_data(self):
-        legacy_item = LegacyItemData(
-            item_id="i123456789",
-            call_number="Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1",
-            barcode="33333123456789",
-        )
-        assert (
-            legacy_item.call_number
-            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1-1"
-        )
-        assert (
-            legacy_item.bib_call_number
-            == "Teacher Set SOC A Book Club Set NYC History - This Is New York 1"
-        )
-
-    @pytest.mark.parametrize(
-        "arg,result",
-        [
-            ("Math B Assorted 1-10", "Math B Assorted 1"),
-            ("ELA D Genre - Horror 1-1", "ELA D Genre - Horror 1"),
-            (
-                "Language Arts ENG YA Book Club 185-5",
-                "Language Arts ENG YA Book Club 185",
-            ),
-            (
-                "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1-1",
-                "SOC C Enhanced Book Club Set Narrative of the Life of Frederick Douglass 1",
-            ),
-            ("Arts A BIOG - Musicians (Jazz) 1-2", "Arts A BIOG - Musicians (Jazz) 1"),
-            ("ELA D Horror Large Print 1-1", "ELA D Horror Large Print 1"),
-            (
-                "Language Arts ENG MG Book Club Graphic Novel 29-1",
-                "Language Arts ENG MG Book Club Graphic Novel 29",
-            ),
-        ],
-    )
-    def test_legacy_item_data_call_number_patterns(self, arg, result):
-        legacy_item = LegacyItemData(
-            item_id="i123456789",
-            call_number=f"Teacher Set {arg}",
-            barcode="33333123456789",
-        )
-        assert legacy_item.call_number == f"Teacher Set {arg}"
-        assert legacy_item.bib_call_number == f"Teacher Set {result}"
-
-
-class TestLegacyTeacherSet:
-    def test_legacy_set(self, legacy_set_test_data, caplog, mock_worldcat_response):
-        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
-        legacy_set = LegacyTeacherSet(
-            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
-        )
-        assert legacy_set.parts[0].author == "Bar, Foo"
-        assert legacy_set.parts[0].author_dates == "1980-"
-        assert legacy_set.parts[0].description == "Fake description of book."
-        assert legacy_set.parts[0].pub_date == "2000"
-        assert len(legacy_set.parts[0].subjects) == 2
-        assert (
-            legacy_set.contents_note
-            == 'Set consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".'
-        )
-        assert len(legacy_set.var_field_data) == 16
-        assert legacy_set.legacy_barcodes == {
-            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
-            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
-        }
-        assert legacy_set.local_genre_term == ["Comics & Graphic Novels"]
-        assert legacy_set.local_topic_term == ["New York City"]
-
-    def test_legacy_set_single_copy(
-        self, legacy_set_test_data, caplog, mock_worldcat_response
-    ):
-        legacy_set_test_data["set_parts"][0]["copies"] = 1
-        legacy_set_test_data["set_parts"][1]["copies"] = 1
-        legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)
-        legacy_set = LegacyTeacherSet(
-            set_data=legacy_set_data, worldcat_parts=mock_worldcat_response
-        )
-        assert (
-            legacy_set.contents_note
-            == 'Set consists of 1 copy of "Fake book 1", 1 copy of "Fake book 2".'
-        )
-        assert legacy_set.legacy_barcodes == {
-            "33333987654321": "Teacher Set SOC A Foo Bar Book Club 1-1",
-            "33333123456789": "Teacher Set SOC A Foo Bar Book Club 1-2",
-        }
