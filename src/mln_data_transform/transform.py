@@ -174,7 +174,10 @@ class WorldcatManager:
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, isbn=isbn)
             if not full_rec.description:
-                logger.debug(f"WorldCat record for {oclc} missing description.")
+                logger.debug(
+                    f"ISBN {isbn}: full bib record for "
+                    f"{oclc} missing description. Checking next record if present."
+                )
                 first_rec = full_rec
                 continue
             else:
