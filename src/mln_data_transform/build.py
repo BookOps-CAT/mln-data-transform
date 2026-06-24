@@ -61,14 +61,10 @@ class TeacherSetBuilder:
         set_data = LegacyTeacherSetData.from_bib_item_data(
             bib_data=bib_data, item_data=item_data
         )
-        logger.info(
-            f"({bib_id}) Record contains "
-            f"{len(set_data.set_parts)} ISBN(s) to query WorldCat."
-        )
         worldcat_parts = set_data.get_worldcat_data_for_parts()
         logger.info(
             f"({bib_id}) Data retrieved from WorldCat for "
-            f"{len(worldcat_parts)} set components."
+            f"{len(worldcat_parts)} set component(s)."
         )
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(legacy_set)
@@ -99,10 +95,9 @@ class TeacherSetBuilder:
             local_topic_term=local_topic_term,
             special_formats=special_formats,
         )
-        logger.info(f"Record contains {len(parts)} ISBN(s) to query WorldCat.")
         worldcat_parts = set_data.get_worldcat_data_for_parts()
         logger.info(
-            f"Data retrieved from WorldCat for {len(worldcat_parts)} set components."
+            f"Data retrieved from WorldCat for {len(worldcat_parts)} set component(s)."
         )
         teacher_set = TeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
         return self.validate_set(teacher_set)
