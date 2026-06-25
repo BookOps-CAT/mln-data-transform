@@ -15,7 +15,7 @@ from mln_data_transform.teacher_sets import TeacherSetData
 
 
 @pytest.fixture
-def mock_control_number_file(mocker, monkeypatch) -> dict[str, Any]:
+def mock_control_number_file(mocker, monkeypatch) -> None:
     token = '{"used_numbers", ["1", "2"]}'
     m = mocker.mock_open(read_data=token)
     mocker.patch("mln_data_transform.control_numbers.Path.read_text", m)
@@ -24,7 +24,7 @@ def mock_control_number_file(mocker, monkeypatch) -> dict[str, Any]:
 
 
 @pytest.fixture
-def mock_location_mapping(monkeypatch, mock_control_number_file):
+def mock_location_mapping(monkeypatch, mock_control_number_file) -> None:
     def mock_read_csv(*args, **kwargs):
         return pd.DataFrame(
             data=[
@@ -37,7 +37,7 @@ def mock_location_mapping(monkeypatch, mock_control_number_file):
 
 
 @pytest.fixture
-def mock_worldcat_parts(*args, **kwargs):
+def mock_worldcat_parts(*args, **kwargs) -> list[dict[str, Any]]:
     return [
         {
             "author_name": "Bar, Foo",
@@ -91,10 +91,10 @@ def mock_set(
     ]
     bib_id = "12345678"
 
-    def mock_parts(*args, **kwargs):
+    def mock_parts(*args, **kwargs) -> dict[str, Any]:
         return mock_worldcat_parts
 
-    def mock_bib_data(*args, **kwargs):
+    def mock_bib_data(*args, **kwargs) -> LegacyBibData:
         return LegacyBibData(
             bib_id=bib_id,
             language="eng",
@@ -145,7 +145,7 @@ def mock_set(
             ],
         )
 
-    def mock_item_data(*args, **kwargs):
+    def mock_item_data(*args, **kwargs) -> list[LegacyItemData]:
         items = []
         for n, item in enumerate(item_data):
             items.append(
@@ -157,7 +157,7 @@ def mock_set(
             )
         return items
 
-    def mock_read_csv(*args, **kwargs):
+    def mock_read_csv(*args, **kwargs) -> pd.DataFrame:
         data = []
         for n, item in enumerate(item_data):
             data.append(
@@ -186,7 +186,7 @@ def mock_set(
 
 @pytest.fixture
 def mock_set_missing_info(monkeypatch, mock_set, mock_worldcat_parts) -> None:
-    def mock_parts(*args, **kwargs):
+    def mock_parts(*args, **kwargs) -> dict[str, Any]:
         mock_worldcat_parts[0]["author_name"] = None
         mock_worldcat_parts[0]["author_dates"] = None
         mock_worldcat_parts[0]["pub_date"] = None
@@ -199,7 +199,7 @@ def mock_set_missing_info(monkeypatch, mock_set, mock_worldcat_parts) -> None:
 
 @pytest.fixture
 def mock_set_no_dates(monkeypatch, mock_set, mock_worldcat_parts) -> None:
-    def mock_parts(*args, **kwargs):
+    def mock_parts(*args, **kwargs) -> dict[str, Any]:
         mock_worldcat_parts[0]["author_dates"] = None
         mock_worldcat_parts[0]["pub_date"] = None
         mock_worldcat_parts[1]["pub_date"] = None
