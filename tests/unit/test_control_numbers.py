@@ -6,18 +6,17 @@ from mln_data_transform.control_numbers import ControlNumberGenerator
 
 
 @pytest.fixture
-def mock_empty_file(mocker):
-    mocker.patch("os.path.exists", lambda *args, **kwargs: True)
-
-
-@pytest.fixture
-def mock_control_number_file(mock_empty_file, monkeypatch):
+def mock_control_number_file(monkeypatch):
     def fake_read_text(*args, **kwargs) -> str:
         return '{"used_numbers": [1]}'
 
     def fake_write_text(*args, **kwargs) -> str:
-        return args[0]
+        pass
 
+    def fake_path_exists(*args, **kwargs) -> str:
+        return True
+
+    monkeypatch.setattr(Path, "exists", fake_path_exists)
     monkeypatch.setattr(Path, "read_text", fake_read_text)
     monkeypatch.setattr(Path, "write_text", fake_write_text)
 
