@@ -109,6 +109,16 @@ class TeacherSetBuilder:
         except ValidationError as e:
             logger.error(f"Validation errors for set copies: {json.loads(e.json())}")
 
+    def add_barcode_data(self, bib_id: str, copy_num: int, data: dict):
+        mapping = self.location_mapping(bib_id)
+        barcode = mapping[copy_num]["BARCODE"]
+        call_num = data["legacy_barcodes"].get(barcode, "")
+        subfields = [("n", barcode), ("o", call_num)]
+        legacy_data = {"tag": "901", "ind1": " ", "ind2": " ", "subfields": subfields}
+        data["var_field_data"].append(legacy_data)
+        data["shelf_number"] = mapping[copy_num].get("LOCATION", "[SHELF-NUMBER]")
+        return data
+
     def create_set_copies(
         self, set_dict: dict[str, Any], control_number: str
     ) -> list[TeacherSetCopy]:
@@ -118,21 +128,8 @@ class TeacherSetBuilder:
         for copy_num in range(0, set_dict["copies_of_set"]):
             set_copy_dict = copy.deepcopy(set_dict)
             if bib_id:
-                mapping = self.location_mapping(bib_id)
-                barcode = mapping[copy_num]["BARCODE"]
-                set_copy_dict["var_field_data"].append(
-                    {
-                        "tag": "901",
-                        "ind1": " ",
-                        "ind2": " ",
-                        "subfields": [
-                            ("n", barcode),
-                            ("o", set_copy_dict["legacy_barcodes"].get(barcode, "")),
-                        ],
-                    }
-                )
-                set_copy_dict["shelf_number"] = mapping[copy_num].get(
-                    "LOCATION", "[SHELF-NUMBER]"
+                set_copy_dict = self.add_barcode_data(
+                    bib_id=bib_id, copy_num=copy_num, data=set_copy_dict
                 )
             else:
                 set_copy_dict["shelf_number"] = "[SHELF-NUMBER]"
