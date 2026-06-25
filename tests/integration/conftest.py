@@ -1,5 +1,4 @@
 import datetime
-import pathlib
 from typing import Any
 
 import pandas as pd
@@ -16,15 +15,11 @@ from mln_data_transform.teacher_sets import TeacherSetData
 
 
 @pytest.fixture
-def mock_control_number_file(monkeypatch) -> dict[str, Any]:
-    def mock_path(*args, **kwargs):
-        pass
-
-    def mock_numbers(*args, **kwargs):
-        return '{"used_numbers", ["1", "2"]}'
-
-    monkeypatch.setattr(pathlib.Path, "write_text", mock_path)
-    monkeypatch.setattr(pathlib.Path, "read_text", mock_numbers)
+def mock_control_number_file(mocker, monkeypatch) -> dict[str, Any]:
+    token = '{"used_numbers", ["1", "2"]}'
+    m = mocker.mock_open(read_data=token)
+    mocker.patch("mln_data_transform.control_numbers.Path.read_text", m)
+    mocker.patch("mln_data_transform.control_numbers.Path.write_text", m)
     monkeypatch.setattr(datetime, "datetime", MockDatetimeNow)
 
 

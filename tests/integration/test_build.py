@@ -127,7 +127,9 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_teacher_set_missing_info(self, set_test_data, mock_set_missing_info):
+    def test_build_teacher_sets_missing_info(
+        self, set_test_data, mock_set_missing_info
+    ):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         valid_set_copies = self.BUILDER.build_set_copies(set_data=teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
@@ -168,7 +170,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_teacher_set_no_dates(self, set_test_data, mock_set_no_dates):
+    def test_build_teacher_sets_no_dates(self, set_test_data, mock_set_no_dates):
         teacher_set = self.BUILDER.build_teacher_set(**set_test_data)
         valid_set_copies = self.BUILDER.build_set_copies(set_data=teacher_set)
         bibs = [i.to_bib() for i in valid_set_copies]
@@ -253,7 +255,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_legacy_set_missing_info(self, mock_set_missing_info):
+    def test_build_legacy_sets_missing_info(self, mock_set_missing_info):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bibs = [i.to_bib() for i in valid_set_copies]
@@ -293,7 +295,7 @@ class TestTeacherSetBuilder:
             "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
-    def test_legacy_set_no_dates(self, mock_set_no_dates):
+    def test_build_legacy_sets_no_dates(self, mock_set_no_dates):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
         valid_set_copies = self.BUILDER.build_set_copies(set_data=legacy_set)
         bibs = [i.to_bib() for i in valid_set_copies]
@@ -322,6 +324,53 @@ class TestTeacherSetBuilder:
             "=690  \\7$aBook Club$2bookops",
             "=700  12$aBar, Foo$tFake book 1$x9781234567897",
             "=730  02$aFake book 2$x9780987654328",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar Book Club 1-1",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
+
+    def test_build_legacy_sets_multiple(self, mock_set, tmp_path):
+        fake_file = tmp_path / "legacy_sets.mrc"
+        for bib_id in self.BUILDER.all_bib_ids[:2]:
+            legacy_set = self.BUILDER.build_legacy_set(bib_id=bib_id)
+            valid_set_copies = self.BUILDER.build_set_copies(legacy_set)
+            self.BUILDER.write_marc_to_file(
+                set_bibs=valid_set_copies, out_file=fake_file
+            )
+        bibs = [i.to_bib() for i in valid_set_copies]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert len(valid_set_copies[0].components) == 2
+        assert sorted([i.field_245.format_field() for i in valid_set_copies]) == sorted(
+            ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
+        )
+        assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
+            ["nn-mlnyc-0000008", "nn-mlnyc-0000008"]
+        )
+        assert len(bibs) == 2
+        assert len(field_strings) == 25
+        assert field_strings == [
+            "=001  nn-mlnyc-0000008",
+            "=003  BookOps",
+            "=008  000101i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
+            "=245  00$aFoo Bar Teacher Set.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aSocial Studies",
+            "=690  \\7$aBook Club$2bookops",
+            "=691  \\7$aNew York City$2bookops",
+            "=695  \\7$aFiction$2bookops",
+            "=700  12$aBar, Foo$d1980-$tFake book 1$f2000$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=901  \\\\$n33333987654321$oTeacher Set SOC A Foo Bar Book Club 1-1",
             "=909  \\\\$aOCLC Holdings Exclusion",
@@ -423,7 +472,7 @@ def live_creds() -> Generator[None, None, None]:
 
 @pytest.mark.livetest
 class TestLiveTeacherSetBuilder:
-    BUILDER = TeacherSetBuilder(file="data/260622_all.txt")
+    BUILDER = TeacherSetBuilder(file="tests/data/all_legacy_sets.txt")
 
     def test_genre_adventure(self, live_creds, mock_control_number_file):
         legacy_set = self.BUILDER.build_legacy_set(bib_id="20830666")
