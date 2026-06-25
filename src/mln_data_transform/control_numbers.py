@@ -8,13 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 class ControlNumberGenerator:
-    def __init__(self, state_file: str | None = None, start: int = 1):
+    def __init__(self, state_file: str, start: int = 1):
         self.state_path = Path(state_file)
         self.used_numbers = set()
         self.next_number = start
 
-        if state_file is not None:
-            self._load_state()
+        self._load_state()
 
     def _load_state(self):
         if not self.state_path.exists():
@@ -30,14 +29,12 @@ class ControlNumberGenerator:
         return f"nn-mlnyc-{number:07d}"
 
     def next_control_number(self) -> str:
-        while self.next_number in self.used_numbers:
-            self.next_number += 1
         number = self.next_number
         self.used_numbers.add(number)
         self.next_number += 1
         return self._format(number)
 
-    def save_state(self):
+    def save_state(self) -> None:
         self.state_path.write_text(
             json.dumps({"used_numbers": sorted(self.used_numbers)})
         )

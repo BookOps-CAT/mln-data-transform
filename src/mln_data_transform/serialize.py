@@ -187,7 +187,7 @@ class TeacherSetBib:
             tag="690",
             indicators=Indicators(" ", "7"),
             subfields=[
-                Subfield(code="a", value=self.set_type.value),
+                Subfield(code="a", value=f"{self.set_type.value}."),
                 Subfield(code="2", value="bookops"),
             ],
         )
@@ -198,6 +198,7 @@ class TeacherSetBib:
         subject_list = []
         if self.local_topic_term:
             for term in self.local_topic_term:
+                term = f"{term}."
                 subject_list.append(
                     Field(
                         tag="691",
@@ -216,6 +217,7 @@ class TeacherSetBib:
         subject_list = []
         if self.local_genre_term:
             for term in self.local_genre_term:
+                term = f"{term}."
                 subject_list.append(
                     Field(
                         tag="695",
