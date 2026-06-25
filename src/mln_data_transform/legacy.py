@@ -143,18 +143,16 @@ class LegacyBibData:
     def isbns(self) -> list[str]:
         isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
         if isbns:
-            subfields_944 = isbns[0]["subfields"]
-            isbn_string = " ".join([i["content"] for i in subfields_944])
-            isbn_list = isbn_string.split()
-            normalized_isbns = [
-                normalize_isbn(i.strip(".")) for i in isbn_list if is_valid_isbn(i)
-            ]
-            if len(normalized_isbns) < len(isbn_list):
+            isbn_string = " ".join([i["content"] for i in isbns[0]["subfields"]])
+            isbn_list = [normalize_isbn(i) for i in isbn_string.split()]
+            validated_isbns = [i for i in isbn_list if is_valid_isbn(i)]
+            if len(validated_isbns) < len(isbn_list):
+                errors = [i for i in isbn_list if i not in validated_isbns]
                 raise ValueError(
                     f"({self.bib_id}) Record contains {len(isbn_list)} ISBN(s). "
-                    f"{len(normalized_isbns)}/{len(isbn_list)} are valid."
+                    f"{len(errors)}/{len(isbn_list)} are invalid: {errors}"
                 )
-            return normalized_isbns
+            return validated_isbns
         return []
 
     @property

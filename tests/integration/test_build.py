@@ -61,10 +61,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_enhanced(self, set_test_data, mock_set):
@@ -94,12 +94,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000002", "nn-mlnyc-0000002"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 26
         assert field_strings == [
-            "=001  nn-mlnyc-0000002",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101i20002000xxu\\\\\\\\\\\\\\\\\\\\\\\\\\|\\||eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB E$pA$c[SHELF-NUMBER]",
@@ -120,11 +120,11 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_missing_info(
@@ -139,12 +139,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000003", "nn-mlnyc-0000003"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 24
         assert field_strings == [
-            "=001  nn-mlnyc-0000003",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
@@ -164,10 +164,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_no_dates(self, set_test_data, mock_set_no_dates):
@@ -180,12 +180,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000004", "nn-mlnyc-0000004"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 24
         assert field_strings == [
-            "=001  nn-mlnyc-0000004",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
@@ -205,10 +205,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets(self, mock_set):
@@ -221,14 +221,14 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000005", "nn-mlnyc-0000005"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert legacy_set["local_genre_term"] == ["Fiction"]
         assert legacy_set["local_topic_term"] == ["New York City"]
         assert len(bibs) == 2
         assert len(field_strings) == 25
         assert field_strings == [
-            "=001  nn-mlnyc-0000005",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
@@ -249,10 +249,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_missing_info(self, mock_set_missing_info):
@@ -265,12 +265,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000006", "nn-mlnyc-0000006"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 23
         assert field_strings == [
-            "=001  nn-mlnyc-0000006",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101i20uu20uuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
@@ -289,10 +289,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_no_dates(self, mock_set_no_dates):
@@ -305,12 +305,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000007", "nn-mlnyc-0000007"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 23
         assert field_strings == [
-            "=001  nn-mlnyc-0000007",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
@@ -329,10 +329,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_multiple(self, mock_set, tmp_path):
@@ -350,12 +350,12 @@ class TestTeacherSetBuilder:
             ["Foo Bar Teacher Set. Copy 1 of 2", "Foo Bar Teacher Set. Copy 2 of 2"]
         )
         assert sorted([i.field_001.format_field() for i in valid_set_copies]) == sorted(
-            ["nn-mlnyc-0000008", "nn-mlnyc-0000008"]
+            ["nn-mlnyc-0000001", "nn-mlnyc-0000001"]
         )
         assert len(bibs) == 2
         assert len(field_strings) == 25
         assert field_strings == [
-            "=001  nn-mlnyc-0000008",
+            "=001  nn-mlnyc-0000001",
             "=003  BookOps",
             "=008  000101i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
             "=091  \\\\$aMLNYC SOC$fCLUB$pA$c1",
@@ -376,10 +376,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
 
@@ -421,8 +421,8 @@ class TestTeacherSetBuilderLogging:
             "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
             "ISBN 9780987654328: retrieving brief bib record.",
             "ISBN 9780987654328: retrieving full bib record (OCLC number: ocn123456789).",
-            "(nn-mlnyc-0000003) Creating 2 copy/copies of set.",
-            "(nn-mlnyc-0000003) Created 2 valid copy/copies of set.",
+            "(nn-mlnyc-0000001) Creating 2 copy/copies of set.",
+            "(nn-mlnyc-0000001) Created 2 valid copy/copies of set.",
         ]
 
     def test_build_legacy_sets_debug(
@@ -518,20 +518,20 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Hurry up, Houdini!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Hurry up, Houdini!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Magic tricks from the tree house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Magic tricks from the tree house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A perfect time for pandas$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A perfect time for pandas$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Pandas and other endangered species$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Pandas and other endangered species$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-High Time for Heroes #51$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-High Time for Heroes #51$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Soccer on Sunday$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Soccer on Sunday$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Soccer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Soccer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Hurry up, Houdini!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Hurry up, Houdini!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Magic tricks from the tree house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Magic tricks from the tree house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A perfect time for pandas$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A perfect time for pandas$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Pandas and other endangered species$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Pandas and other endangered species$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-High Time for Heroes #51$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-High Time for Heroes #51$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Soccer on Sunday$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Soccer on Sunday$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Soccer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Soccer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -548,7 +548,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000002",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20132023xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fTOPIC$pB$c5936",
@@ -591,16 +591,16 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Edda$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Firebird$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Grandfather Gandhi$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Hana Hashimoto, sixth violin$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Little Elliot, big city$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Rain!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Shh! We have a plan$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Sophie's squash$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Take me out to the Yakyu$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Tea party rules$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Edda$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Firebird$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Grandfather Gandhi$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Hana Hashimoto, sixth violin$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Little Elliot, big city$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Rain!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Shh! We have a plan$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Sophie's squash$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Take me out to the Yakyu$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Tea party rules$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -623,7 +623,7 @@ class TestLiveTeacherSetBuilder:
         assert legacy_set["local_topic_term"] == ["Sports"]
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000003",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20162016xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fTOPIC$pE$cINC 1178",
@@ -666,36 +666,36 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Behind the scenes!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Bleach$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Devil's line$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Haikyu!!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Horimiya$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Monthly girls' Nozaki-kun$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Naruto$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-One piece$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Shigeru Mizuki's Kitaro$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Yona of the dawn$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -708,7 +708,7 @@ class TestLiveTeacherSetBuilder:
         assert legacy_set["local_topic_term"] == []
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000004",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20112011xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fCLUB$pE$c5882",
@@ -727,16 +727,16 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A spy in the house$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -751,7 +751,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000005",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20122014xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fTOPIC$pD$c",
@@ -776,21 +776,21 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-How I discovered poetry$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I, too, am America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-When thunder comes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -805,7 +805,7 @@ class TestLiveTeacherSetBuilder:
         assert legacy_set["local_topic_term"] == []
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000006",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20142014xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fCLUB$pE$c1632",
@@ -825,16 +825,16 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This one summer$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -861,7 +861,7 @@ class TestLiveTeacherSetBuilder:
         assert len(bib_records) == 8
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000007",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20152015xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC SOC$fTOPIC$pE$c1072",
@@ -893,14 +893,14 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Rome$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Mesopotamia$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Maya$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient India$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Greece$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Egypt$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient China$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Rome$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Mesopotamia$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Maya$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient India$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Greece$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Egypt$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient China$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Ancient Aztecs$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
         assert len(caplog.records) == 2
@@ -918,7 +918,7 @@ class TestLiveTeacherSetBuilder:
         assert legacy_set["local_topic_term"] == ["Astronomy"]
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000008",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101nuuuuuuuuxxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC SCI$fCLUB$pB$c297",
@@ -936,16 +936,16 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Galaxies, galaxies!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -971,7 +971,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000009",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20002017xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC SOC$fTOPIC$pB$c431",
@@ -1055,37 +1055,37 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-Adrift at sea$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Be the change in your community$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Can I play, too?$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Can we help?$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Each kindness$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Emmanuel's dream$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Empathy$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Families around the world$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Families$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Families, families, families!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Feminist Baby$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-I am Jazz$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-If you plant a seed$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Adrift at sea$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Be the change in your community$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Can I play, too?$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Can we help?$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Each kindness$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Emmanuel's dream$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Empathy$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Families around the world$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Families$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Families, families, families!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Feminist Baby$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-I am Jazz$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-If you plant a seed$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
                 "=949  \\\\$h10$i[BARCODE]-It's okay to be "
-                "different$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "different$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
                 "=949  \\\\$h10$i[BARCODE]-Let's talk about "
-                "race$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Look where we live!$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-My brother Charlie$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-My family, your family$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Red$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The black book of colors$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The great big green book$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The soda bottle school$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Their great gift$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Those shoes$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Two white rabbits$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-We came to America$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-We march$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Whose hands are these?$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Wings$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "race$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Look where we live!$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-My brother Charlie$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-My family, your family$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Red$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The black book of colors$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The great big green book$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The soda bottle school$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Their great gift$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Those shoes$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Two white rabbits$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-We came to America$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-We march$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Whose hands are these?$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Wings$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -1118,7 +1118,7 @@ class TestLiveTeacherSetBuilder:
         )
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000010",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20172018xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC ELA$fTOPIC$pE$c3153",
@@ -1185,25 +1185,25 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-A line in the dark$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-All that I can fix$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Cool Tokyo guide$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Down and Across$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Emergency contact$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-From Twinkle, with love$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Girl code$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Love, hate & other filters$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Noteworthy$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Picture us in the light$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Rebel Seoul$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Saints and misfits$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Starfish$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The astonishing color of after$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The best we could do$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The epic crush of Genie Lo$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-The speaker$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-Warcross$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-You bring the distant near$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-A line in the dark$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-All that I can fix$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Cool Tokyo guide$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Down and Across$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Emergency contact$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-From Twinkle, with love$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Girl code$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Love, hate & other filters$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Noteworthy$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Picture us in the light$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Rebel Seoul$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Saints and misfits$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Starfish$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The astonishing color of after$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The best we could do$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The epic crush of Genie Lo$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-The speaker$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-Warcross$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-You bring the distant near$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
 
@@ -1229,7 +1229,7 @@ class TestLiveTeacherSetBuilder:
         assert len(bib_records) == 7
         assert sorted(field_strings) == sorted(
             [
-                "=001  nn-mlnyc-0000011",
+                "=001  nn-mlnyc-0000001",
                 "=003  BookOps",
                 "=008  000101i20032003xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
                 "=091  \\\\$aMLNYC SOC$fCLUB$pB$c358",
@@ -1247,16 +1247,16 @@ class TestLiveTeacherSetBuilder:
                 "=909  \\\\$aOCLC Holdings Exclusion",
                 "=910  \\\\$aBL",
                 "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$p0.00$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+                "=949  \\\\$h10$i[BARCODE]-This is New York$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
             ]
         )
         assert len(caplog.records) == 3

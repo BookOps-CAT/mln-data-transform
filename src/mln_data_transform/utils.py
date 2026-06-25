@@ -1,5 +1,5 @@
 def is_valid_isbn(isbn_str: str) -> bool:
-    clean_isbn = isbn_str.replace("-", "").replace(" ", "")
+    clean_isbn = isbn_str.strip(".").replace("-", "").replace(" ", "")
     if len(clean_isbn) == 10:
         # First 9 characters must be numbers
         if not clean_isbn[:9].isdigit():
@@ -38,4 +38,4 @@ def is_valid_isbn(isbn_str: str) -> bool:
 
 
 def normalize_isbn(isbn_str: str) -> str:
-    return isbn_str.replace("-", "").replace(" ", "")
+    return isbn_str.strip(".").replace("-", "").replace(" ", "")

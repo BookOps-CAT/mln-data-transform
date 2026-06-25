@@ -182,6 +182,4 @@ class WorldcatManager:
                 continue
             else:
                 return full_rec
-        if not first_rec:
-            raise ValueError("WorldCat response is empty.")
         return first_rec

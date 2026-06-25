@@ -1,11 +1,11 @@
 import datetime
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import pytest
 from bookops_nypl_platform import PlatformToken
 
+from mln_data_transform.control_numbers import ControlNumberGenerator
 from mln_data_transform.legacy import (
     LegacyBibData,
     LegacyItemData,
@@ -16,17 +16,18 @@ from mln_data_transform.teacher_sets import TeacherSetData
 
 
 @pytest.fixture
-def mock_control_number_file(mocker, monkeypatch) -> None:
-    def fake_read_text(*args, **kwargs) -> str:
-        return '{"used_numbers": [1]}'
+def mock_control_number_file(monkeypatch) -> None:
+    def fake_next_control_number(*args, **kwargs) -> str:
+        return "nn-mlnyc-0000001"
 
-    def fake_write_text(*args, **kwargs) -> None:
+    def fake_save_state(*args, **kwargs) -> None:
         pass
 
-    mocker.patch("os.path.exists", lambda *args, **kwargs: True)
-    monkeypatch.setattr(Path, "read_text", fake_read_text)
-    monkeypatch.setattr(Path, "write_text", fake_write_text)
-    monkeypatch.setattr(datetime, "datetime", MockDatetimeNow)
+    monkeypatch.setattr(
+        ControlNumberGenerator, "next_control_number", fake_next_control_number
+    )
+    monkeypatch.setattr(ControlNumberGenerator, "save_state", fake_save_state)
+    monkeypatch.setattr(ControlNumberGenerator, "_load_state", fake_save_state)
 
 
 @pytest.fixture

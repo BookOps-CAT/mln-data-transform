@@ -257,11 +257,11 @@ class TestLegacyBibData:
     @pytest.mark.parametrize(
         "arg,output",
         [
-            ("9780789308849 9781234567890", ["9780789308849"]),
-            ("978-0-78-930884-9 asdfgh", ["9780789308849"]),
-            ("978-0-78-930884-X 068816241X", ["068816241X"]),
-            ("0-7893-0884-3 97897897X9", ["0789308843"]),
-            ("068816241X  0-7893-0884-Z ", ["068816241X"]),
+            ("9780789308849 9781234567890", ["9781234567890"]),
+            ("978-0-78-930884-9 asdfgh", ["asdfgh"]),
+            ("978-0-78-930884-X 068816241X", ["978078930884X"]),
+            ("0-7893-0884-3 97897897X9", ["97897897X9"]),
+            ("068816241X  0-7893-0884-Z ", ["078930884Z"]),
         ],
     )
     def test_legacy_bib_data_invalid_isbns(self, test_bib_data, arg, output):
@@ -283,7 +283,10 @@ class TestLegacyBibData:
                 language=test_bib_data["lang"],
             )
             legacy_bib.isbns
-        assert str(exc.value) == "(19538471) Record contains 2 ISBN(s). 1/2 are valid."
+        assert (
+            str(exc.value)
+            == f"(19538471) Record contains 2 ISBN(s). 1/2 are invalid: {output}"
+        )
 
 
 class TestLegacyItemData:
