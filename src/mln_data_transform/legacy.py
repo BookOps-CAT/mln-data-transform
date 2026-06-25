@@ -153,7 +153,7 @@ class LegacyBibData:
                     f"{len(errors)}/{len(isbn_list)} are invalid: {errors}"
                 )
             return validated_isbns
-        return []
+        raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
 
     @property
     def lang(self) -> str:
