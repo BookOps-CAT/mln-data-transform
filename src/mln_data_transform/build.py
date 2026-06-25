@@ -1,5 +1,4 @@
 import copy
-import datetime
 import json
 import logging
 from functools import cached_property
@@ -158,11 +157,6 @@ class TeacherSetBuilder:
             set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
             valid_bibs.append(set_copy.to_set_bib())
         return valid_bibs
-
-    def write_errors_to_file(self, errors: list[dict[str, Any]]) -> None:
-        today_str = datetime.datetime.strftime(datetime.date.today(), "%y%m%d")
-        df = pd.DataFrame(errors)
-        df.to_csv(f"data/{today_str}_validation_errors.csv", index=False, mode="a")
 
     def write_marc_to_file(self, out_file: str, set_bibs: list[TeacherSetBib]) -> None:
         logger.info(f"({set_bibs[0].control_number}) Writing records to file for set.")

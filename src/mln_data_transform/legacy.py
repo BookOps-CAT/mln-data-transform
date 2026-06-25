@@ -132,8 +132,7 @@ class LegacyBibData:
             subfields_521 = grade_level[0]["subfields"]
             grade_level_string = " ".join([i["content"].strip() for i in subfields_521])
             matches = self.map_to_closest_enum(grade_level_string)
-            if matches:
-                return matches
+            return matches
         grade_level = self.call_number_components["grade_level"]
         if self.lang:
             return self.GRADE_LEVEL_MAPPING[grade_level]
@@ -277,6 +276,7 @@ class LegacySetStub:
 
     def get_item_data(self) -> list[LegacyItemData]:
         item_list = []
+        incomplete_sets = []
         manager = PlatformManager()
         item_data = manager.get_platform_bib_items(self.bib_id)
         logger.debug(
@@ -295,7 +295,8 @@ class LegacySetStub:
                 incomplete=incomplete,
             )
             item_list.append(legacy_item)
-        incomplete_sets = [i.barcode for i in item_list if i.incomplete is True]
+            if incomplete:
+                incomplete_sets.append(item["barcode"])
         if incomplete_sets:
             logger.warning(
                 f"({self.bib_id}) {len(incomplete_sets)} of {len(item_list)} set "
