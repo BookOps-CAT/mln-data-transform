@@ -100,25 +100,23 @@ class TeacherSetBuilder:
         )
         try:
             set_copies = self.create_set_copies(
-                teacher_set_dict=set_data, control_number=control_number
+                set_dict=set_data, control_number=control_number
             )
-            valid_set_copies = self.validate_set_copies(set_copies)
+            valid = self.validate_set_copies(set_copies)
             self.ctrl_number_gen.save_state()
-            logger.info(
-                f"({log_id}) Created {len(valid_set_copies)} valid copy/copies of set."
-            )
-            return valid_set_copies
+            logger.info(f"({log_id}) Created {len(valid)} valid copy/copies of set.")
+            return valid
         except ValidationError as e:
             logger.error(f"Validation errors for set copies: {json.loads(e.json())}")
 
     def create_set_copies(
-        self, teacher_set_dict: dict[str, Any], control_number: str
+        self, set_dict: dict[str, Any], control_number: str
     ) -> list[TeacherSetCopy]:
         copies = []
-        teacher_set_dict["control_number"] = control_number
-        bib_id = teacher_set_dict.get("bib_id")
-        for copy_num in range(0, teacher_set_dict["copies_of_set"]):
-            set_copy_dict = copy.deepcopy(teacher_set_dict)
+        set_dict["control_number"] = control_number
+        bib_id = set_dict.get("bib_id")
+        for copy_num in range(0, set_dict["copies_of_set"]):
+            set_copy_dict = copy.deepcopy(set_dict)
             if bib_id:
                 mapping = self.location_mapping(bib_id)
                 barcode = mapping[copy_num]["BARCODE"]
@@ -150,10 +148,10 @@ class TeacherSetBuilder:
             logger.error(f"Validation errors for set: {e.json()}.")
 
     def validate_set_copies(
-        self, legacy_set_copies: list[TeacherSetCopy]
-    ) -> list[TeacherSetCopy]:
+        self, set_copies: list[TeacherSetCopy]
+    ) -> list[TeacherSetBib]:
         valid_bibs = []
-        for set in legacy_set_copies:
+        for set in set_copies:
             set_copy = TeacherSetCopyModel.model_validate(set, from_attributes=True)
             valid_bibs.append(set_copy.to_set_bib())
         return valid_bibs
