@@ -1,3 +1,4 @@
+import copy
 import os
 from typing import Generator
 
@@ -201,6 +202,57 @@ class TestTeacherSetBuilder:
             "=695  \\7$aFiction.$2bookops",
             "=700  12$aBar, Foo$tFake book 1$x9781234567897",
             "=730  02$aFake book 2$x9780987654328",
+            "=901  \\\\$amlnyc-bot$bCATBL",
+            "=909  \\\\$aOCLC Holdings Exclusion",
+            "=910  \\\\$aBL",
+            "=949  \\\\$a*b2=8;b3=e;bn=ed;",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$mm$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+        ]
+
+    @pytest.mark.parametrize(
+        "title,field_245",
+        [
+            ("A Title", "2$aA Title"),
+            ("L'Title", "2$aL'Title"),
+            ("An Alternative Title", "3$aAn Alternative Title"),
+            ("El Title", "3$aEl Title"),
+            ("La Title", "3$aLa Title"),
+            ("Le Title", "3$aLe Title"),
+            ("The Titles", "4$aThe Titles"),
+            ("Las Titles", "4$aLas Titles"),
+            ("Los Titles", "4$aLos Titles"),
+            ("Les Titles", "4$aLes Titles"),
+        ],
+    )
+    def test_build_teacher_sets_title_variants(
+        self, set_test_data, mock_set, title, field_245
+    ):
+        set_data = copy.deepcopy(set_test_data)
+        set_data["set_title"] = title
+        teacher_set = self.BUILDER.build_teacher_set(**set_data)
+        valid_set_copies = self.BUILDER.build_set_copies(teacher_set)
+        bibs = [i.to_bib() for i in valid_set_copies]
+        field_strings = [str(i) for i in bibs[0].fields]
+        assert field_strings == [
+            "=001  nn-mlnyc-0000001",
+            "=003  BookOps",
+            "=008  000101i20002000xxu\\\\\\\\\\\\\\\\\\\\\\000\\0\\eng\\d",
+            "=091  \\\\$aMLNYC SOC$fCLUB$pA$c[SHELF-NUMBER]",
+            f"=245  0{field_245}.$nCopy 1 of 2",
+            "=300  \\\\$a4 item(s)",
+            '=500  \\\\$aSet consists of 2 copies of "Fake book 1", 2 copies of "Fake book 2".',
+            "=520  \\\\$3Fake book 1$aFake description of book.",
+            "=520  \\\\$3Fake book 2$aAnother fake description of a book.",
+            "=521  2\\$aPre-K",
+            "=526  8\\$aSocial Studies",
+            "=690  \\7$aBook Club.$2bookops",
+            "=691  \\7$aNew York City.$2bookops",
+            "=695  \\7$aFiction.$2bookops",
+            "=700  12$aBar, Foo$d1980-$tFake book 1$f2000$x9781234567897",
+            "=730  02$aFake book 2$f20uu$x9780987654328",
             "=901  \\\\$amlnyc-bot$bCATBL",
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",

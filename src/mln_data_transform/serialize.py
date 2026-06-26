@@ -116,11 +116,20 @@ class TeacherSetBib:
     @property
     def field_245(self) -> Field:
         """Title Field"""
+        set_title = self.set_title.strip(".")
+        if set_title[:2] in ["A ", "L'"]:
+            ind2 = "2"
+        elif set_title[:3] in ["An ", "El ", "La ", "Le "]:
+            ind2 = "3"
+        elif set_title[:4] in ["The ", "Los ", "Las ", "Les "]:
+            ind2 = "4"
+        else:
+            ind2 = "0"
         return Field(
             tag="245",
-            indicators=Indicators("0", "0"),
+            indicators=Indicators("0", ind2),
             subfields=[
-                Subfield(code="a", value=f"{self.set_title.strip('.')}."),
+                Subfield(code="a", value=f"{set_title}."),
                 Subfield(
                     code="n", value=f"Copy {self.copy_number} of {self.copies_of_set}"
                 ),
@@ -179,6 +188,25 @@ class TeacherSetBib:
             indicators=Indicators("8", " "),
             subfields=[Subfield(code="a", value=self.study_program_info.value)],
         )
+
+    # @property
+    # def field_6xx(self) -> list[Field]:
+    #     """Subject fields (REPEATBLE)"""
+    #     subject_list = []
+    #     subject_set = set()
+    #     if not self.subjects:
+    #         return []
+    #     for subject in self.subjects:
+    #         subject_field = Field(
+    #             tag=subject.tag,
+    #             indicators=Indicators(subject.ind1, subject.ind2),
+    #             subfields=[Subfield(code=i[0], value=i[1]) for i in subject.subfields]
+    #         )
+    #         subject_str = subject_field.format_field()
+    #         if subject_str not in subject_set:
+    #             subject_set.add(subject_str)
+    #             subject_list.append(subject_field)
+    #     return subject_list
 
     @property
     def field_690(self) -> Field:
@@ -341,6 +369,8 @@ class TeacherSetBib:
             bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_521)
         bib.add_ordered_field(self.field_526)
+        # for field in self.field_6xx:
+        #     bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_690)
         for field in self.field_691:
             bib.add_ordered_field(field)
