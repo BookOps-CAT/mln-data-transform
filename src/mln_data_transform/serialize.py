@@ -125,11 +125,13 @@ class TeacherSetBib:
             ind2 = "4"
         else:
             ind2 = "0"
+        if set_title[-1] not in ["!", "?"]:
+            set_title = f"{set_title}."
         return Field(
             tag="245",
             indicators=Indicators("0", ind2),
             subfields=[
-                Subfield(code="a", value=f"{set_title}."),
+                Subfield(code="a", value=set_title),
                 Subfield(
                     code="n", value=f"Copy {self.copy_number} of {self.copies_of_set}"
                 ),
