@@ -90,7 +90,7 @@ class TeacherSetBuilder:
         validated_set = self.validate_set(teacher_set)
         return validated_set
 
-    def build_set_copies(self, set_data: dict[str, Any]) -> dict[str, Any]:
+    def build_set_copies(self, set_data: dict[str, Any]) -> list[TeacherSetBib]:
         control_number = self.ctrl_number_gen.next_control_number()
         log_id = (
             set_data["bib_id"] if set_data["bib_id"] is not None else control_number
