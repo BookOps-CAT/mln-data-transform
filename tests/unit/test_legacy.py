@@ -148,6 +148,7 @@ class TestLegacyBibData:
             ("ELA D Storytelling 1", None, "D", "STORY", "ELA"),
             ("Language Arts SPA J 135", None, "C", "TOPIC", "SPLA"),
             ("Language Arts POL J 99", None, "C", "TOPIC", "WorldLang"),
+            ("Social Studies ENG J Picture Book 155", None, "C", "TOPIC", "SOC"),
         ],
     )
     def test_legacy_bib_data_call_number_patterns(

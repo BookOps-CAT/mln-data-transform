@@ -209,6 +209,8 @@ class LegacyBibData:
             return self.SUBJECT_MAPPING[subject]
         elif self.lang and subject.removesuffix(self.lang).strip() == "Language Arts":
             return "WorldLang"
+        elif subject.startswith("Social Studies"):
+            return "SOC"
         else:
             return subject.upper()
 
@@ -299,7 +301,7 @@ class LegacySetStub:
             if incomplete:
                 incomplete_sets.append(item["barcode"])
         if incomplete_sets:
-            logger.warning(
+            raise ValueError(
                 f"({self.bib_id}) {len(incomplete_sets)} of {len(item_list)} set "
                 f"copies have <75% of items: {incomplete_sets}."
             )

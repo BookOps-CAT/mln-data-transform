@@ -501,16 +501,23 @@ class TestTeacherSetBuilderLogging:
         ]
 
     def test_build_legacy_sets_incomplete(
-        self, mock_session_managers_missing_data, caplog, mock_location_mapping
+        self, mock_session_managers_missing_data, mock_location_mapping
     ):
-        legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
-        self.BUILDER.build_set_copies(set_data=legacy_set)
-        assert len(caplog.records) == 3
-        assert [i.msg for i in caplog.records] == [
-            "(12345678) Building teacher set from legacy data.",
-            "(12345678) 1 of 2 set copies have <75% of items: ['33333987654321'].",
-            "(12345678) Created 2 valid copy/copies of set.",
-        ]
+        with pytest.raises(ValueError) as exc:
+            legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+            self.BUILDER.build_set_copies(set_data=legacy_set)
+        assert (
+            str(exc.value)
+            == "(12345678) 1 of 2 set copies have <75% of items: ['33333987654321']."
+        )
+
+    def test_build_legacy_sets_invalid_status(
+        self, mock_session_managers_item_missing, mock_location_mapping
+    ):
+        with pytest.raises(ValueError) as exc:
+            legacy_set = self.BUILDER.build_legacy_set(bib_id="12345678")
+            self.BUILDER.build_set_copies(set_data=legacy_set)
+        assert str(exc.value) == "(12345678) Item status issue."
 
 
 @pytest.fixture(scope="class")
