@@ -42,6 +42,7 @@ class LegacyBibData:
         "Language Arts FRE": "SPLA",
         "Language Arts CHI": "CHLA",
         "Arts": "ART",
+        "ARTS": "ART",
         "Math": "MAT",
         "Games": "GAME",
         "Social Studies": "SOC",
@@ -285,6 +286,8 @@ class LegacySetStub:
             incomplete_fields = [
                 i for i in item["varFields"] if "Below 75%" in i["content"]
             ]
+            if item["status"]["code"] not in ["-", "k"]:
+                raise ValueError(f"({self.bib_id}) Item status issue.")
             incomplete = incomplete_fields != []
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
