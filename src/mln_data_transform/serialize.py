@@ -324,7 +324,7 @@ class TeacherSetBib:
                             Subfield(code="h", value="10"),
                             Subfield(code="i", value=f"[BARCODE]-{comp[0]}"),
                             Subfield(code="l", value="eduls"),
-                            Subfield(code="m", value="m"),
+                            Subfield(code="o", value="m"),
                             Subfield(code="q", value="30010"),
                             Subfield(code="t", value="252"),
                             Subfield(code="u", value="-"),
