@@ -28,6 +28,7 @@ def mock_control_number_file(monkeypatch) -> None:
     )
     monkeypatch.setattr(ControlNumberGenerator, "save_state", fake_save_state)
     monkeypatch.setattr(ControlNumberGenerator, "_load_state", fake_save_state)
+    monkeypatch.setattr(datetime, "datetime", MockDatetimeNow)
 
 
 @pytest.fixture
