@@ -101,7 +101,9 @@ class LegacyBibData:
         fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
         for content in fields_5xx:
             matched = self.COPY_INFO_PATTERN.match(content)
-            if matched:
+            if "+" in content:
+                raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
+            if matched and "+" not in content:
                 copy_count = matched["copy_count"].casefold()
                 if copy_count.isalpha():
                     copy_count = self.DIGITS[copy_count]
@@ -209,8 +211,11 @@ class LegacyBibData:
             return self.SUBJECT_MAPPING[subject]
         elif self.lang and subject.removesuffix(self.lang).strip() == "Language Arts":
             return "WorldLang"
-        elif subject.startswith("Social Studies"):
-            return "SOC"
+        elif (
+            self.lang
+            and subject.removesuffix(self.lang).strip() in self.SUBJECT_MAPPING
+        ):
+            return self.SUBJECT_MAPPING[subject.removesuffix(self.lang).strip()]
         else:
             return subject.upper()
 

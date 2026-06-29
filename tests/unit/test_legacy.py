@@ -92,7 +92,17 @@ class TestLegacyBibData:
         )
         assert legacy_bib.copy_count == output
 
-    def test_legacy_bib_data_pattern_matching_invalid(self, test_bib_data):
+    @pytest.mark.parametrize(
+        "arg",
+        [
+            "15 item(s) + 1 DVD.",
+            "15 item(s) + 1 DVD.",
+            "2 copies of 12 titles + 1 Playaway Audiobook.",
+            "Topic Set (24 books + 1 Playaway Audiobook)",
+            "11 item(s) + 1 Playaway Audiobook",
+        ],
+    )
+    def test_legacy_bib_data_pattern_matching_invalid(self, test_bib_data, arg):
         test_bib_data["varFields"] = [
             {
                 "ind1": " ",
@@ -100,7 +110,7 @@ class TestLegacyBibData:
                 "content": None,
                 "marcTag": "500",
                 "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Teacher set"}],
+                "subfields": [{"tag": "a", "content": arg}],
             },
             {
                 "ind1": " ",
@@ -108,7 +118,7 @@ class TestLegacyBibData:
                 "content": None,
                 "marcTag": "520",
                 "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Foo, Bar Baz - Qux. "}],
+                "subfields": [{"tag": "a", "content": "10 copies of 2 books"}],
             },
         ]
         with pytest.raises(ValueError) as exc:
