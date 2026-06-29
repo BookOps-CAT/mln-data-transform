@@ -92,6 +92,27 @@ class TestLegacyBibData:
         )
         assert legacy_bib.copy_count == output
 
+    def test_legacy_bib_data_pattern_matching_no_valid_match(self, test_bib_data):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "500",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "1 teacher set"}],
+            }
+        ]
+        with pytest.raises(ValueError) as exc:
+            legacy_bib = LegacyBibData(
+                bib_id=test_bib_data["id"],
+                set_title=test_bib_data["title"],
+                var_fields=test_bib_data["varFields"],
+                language=test_bib_data["lang"],
+            )
+            legacy_bib.copy_count
+        assert str(exc.value) == "Copy info pattern does not match for 19538471."
+
     @pytest.mark.parametrize(
         "arg",
         [
@@ -102,7 +123,7 @@ class TestLegacyBibData:
             "11 item(s) + 1 Playaway Audiobook",
         ],
     )
-    def test_legacy_bib_data_pattern_matching_invalid(self, test_bib_data, arg):
+    def test_legacy_bib_data_pattern_matching_invalid_match(self, test_bib_data, arg):
         test_bib_data["varFields"] = [
             {
                 "ind1": " ",
