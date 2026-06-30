@@ -28,7 +28,7 @@ class LegacyBibData:
         r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
     )  # noqa: E501
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
-        r"(?:(\d\s+)?((game)|(topic\s+[Ss]et)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-z]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
+        r"(?:(\d\s+)?((game)|(topic\s+set)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-zñ]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
         re.IGNORECASE,
     )
     CALL_NUMBER_PATTERN = re.compile(
@@ -44,6 +44,7 @@ class LegacyBibData:
         "Arts": "ART",
         "ARTS": "ART",
         "Math": "MAT",
+        "MATH": "MAT",
         "Games": "GAME",
         "Social Studies": "SOC",
         "Science": "SCI",
@@ -60,6 +61,8 @@ class LegacyBibData:
         "eight": 8,
         "nine": 9,
         "ten": 10,
+        "fifteen": 15,
+        "twenty": 20,
     }
 
     def __init__(
@@ -294,7 +297,7 @@ class LegacySetStub:
                 i for i in item["varFields"] if "Below 75%" in i["content"]
             ]
             if item["status"]["code"] not in ["-", "k"]:
-                raise ValueError(f"({self.bib_id}) Item status issue.")
+                continue
             incomplete = incomplete_fields != []
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
@@ -305,11 +308,13 @@ class LegacySetStub:
             item_list.append(legacy_item)
             if incomplete:
                 incomplete_sets.append(item["barcode"])
-        if incomplete_sets:
-            raise ValueError(
+        if incomplete_sets or not item_list:
+            logger.warning(
                 f"({self.bib_id}) {len(incomplete_sets)} of {len(item_list)} set "
                 f"copies have <75% of items: {incomplete_sets}."
             )
+        if not item_list:
+            raise ValueError(f"({self.bib_id}) Item status issue.")
         return item_list
 
 

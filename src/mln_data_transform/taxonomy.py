@@ -36,6 +36,7 @@ class SubjectStudyProgram(StrEnum):
     SEL = "Social Emotional Learning"
     SOC = "Social Studies"
     TEC = "Technology"
+    WorldLang = "Language Arts"
 
 
 class TaxonomyGenre(StrEnum):

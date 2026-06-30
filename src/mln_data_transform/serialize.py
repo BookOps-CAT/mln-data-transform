@@ -116,7 +116,7 @@ class TeacherSetBib:
     @property
     def field_245(self) -> Field:
         """Title Field"""
-        set_title = self.set_title.strip(".")
+        set_title = self.set_title.strip(" .")
         if set_title[:2] in ["A ", "L'"]:
             ind2 = "2"
         elif set_title[:3] in ["An ", "El ", "La ", "Le "]:

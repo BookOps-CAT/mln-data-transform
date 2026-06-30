@@ -338,6 +338,11 @@ def mock_session_managers_item_missing(
             "display": "MISSING",
             "duedate": None,
         }
+        test_item_data[1]["status"] = {
+            "code": "m",
+            "display": "MISSING",
+            "duedate": None,
+        }
         return MockJsonResponse({"data": test_item_data})
 
     monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib_no_description)

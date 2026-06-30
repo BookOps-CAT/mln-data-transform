@@ -136,7 +136,7 @@ class WorldcatManager:
 
     def __enter__(self, *args, **kwargs) -> WorldcatManager:
         self.session = MetadataSession(
-            authorization=self.worldcat_token, timeout=(10, 10)
+            authorization=self.worldcat_token, timeout=(10, 10), totalRetries=2
         )
         return self
 

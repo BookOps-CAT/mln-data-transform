@@ -38,4 +38,7 @@ def is_valid_isbn(isbn_str: str) -> bool:
 
 
 def normalize_isbn(isbn_str: str) -> str:
-    return isbn_str.strip(".").replace("-", "").replace(" ", "")
+    clean_isbn = isbn_str.strip(".").replace("-", "").replace(" ", "")
+    if len(clean_isbn) == 9:
+        clean_isbn = f"0{clean_isbn}"
+    return clean_isbn
