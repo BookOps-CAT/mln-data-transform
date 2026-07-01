@@ -48,6 +48,10 @@ class LegacyBibData:
         "Games": "GAME",
         "Social Studies": "SOC",
         "Science": "SCI",
+        "ELA ENG": "ELA",
+        "ELA SPA": "SPLA",
+        "ELA FRE": "SPLA",
+        "ELA CHI": "CHLA",
     }
     DIGITS = {
         "zero": 0,

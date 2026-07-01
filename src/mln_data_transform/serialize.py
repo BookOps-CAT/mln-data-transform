@@ -133,7 +133,7 @@ class TeacherSetBib:
             subfields=[
                 Subfield(code="a", value=set_title),
                 Subfield(
-                    code="n", value=f"Copy {self.copy_number} of {self.copies_of_set}"
+                    code="p", value=f"Copy {self.copy_number} of {self.copies_of_set}"
                 ),
             ],
         )
