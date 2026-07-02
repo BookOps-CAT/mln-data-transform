@@ -158,18 +158,31 @@ class WorldcatManager:
         record = Record(data=full_bib_response.content)  # type: ignore
         return FullWorldCatResponse(isbn=isbn, wc_response=record)
 
-    def get_oclc_number_from_isbn(self, isbn: str) -> str:
-        brief_bib = self.session.brief_bibs_search(
-            q=f"bn:{isbn}", itemType="book", itemSubType="book-printbook"
-        )
+    def get_oclc_number_from_isbn(self, isbn: str, format: str) -> list[dict[str, Any]]:
+        query = f"sn:{isbn}"
+        if format == "video":
+            brief_bib = self.session.brief_bibs_search(
+                q=query, itemType="video", itemSubType="video-dvd"
+            )
+        elif format == "game":
+            brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
+        else:
+            brief_bib = self.session.brief_bibs_search(
+                q=query, itemType="book", itemSubType="book-printbook"
+            )
         brief_bib_json = brief_bib.json()
-        return self.parse_brief_bib(
+        parsed_brief_bibs = self.parse_brief_bib(
             brief_records=brief_bib_json.get("briefRecords", [])
         )
+        if parsed_brief_bibs:
+            return parsed_brief_bibs
+        raise ValueError(f"No records found in WorldCat for {isbn}.")
 
-    def get_worldcat_data_for_part(self, isbn: str) -> FullWorldCatResponse:
+    def get_worldcat_data_for_part(
+        self, isbn: str, format: str | None = "book"
+    ) -> FullWorldCatResponse:
         logger.debug(f"ISBN {isbn}: retrieving brief bib record.")
-        oclc_numbers = self.get_oclc_number_from_isbn(isbn=isbn)
+        oclc_numbers = self.get_oclc_number_from_isbn(isbn=isbn, format=format)
         first_rec = None
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, isbn=isbn)

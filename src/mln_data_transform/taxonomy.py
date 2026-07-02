@@ -37,6 +37,7 @@ class SubjectStudyProgram(StrEnum):
     SOC = "Social Studies"
     TEC = "Technology"
     WorldLang = "Language Arts"
+    GAME = "Game"
 
 
 class TaxonomyGenre(StrEnum):

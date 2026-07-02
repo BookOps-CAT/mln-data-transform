@@ -25,14 +25,18 @@ class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
     COPY_INFO_PATTERN = re.compile(
-        r"((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+(?P<title_count>\d+|[A-z]+))(?:\s+[a-z]+))"
-    )  # noqa: E501
+        r"^(((Topic)|(Book Club)) Set \()?(((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|[a-z]+))(?:\s+[A-z]+)((?: \+ )(?P<enhanced_item_count_1>(\d+)|([A-z]+)) (?P<enhanced_item_type_1>\d+|[A-z ]+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|[A-z ]+))?)?"  # noqa: E501
+    )
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
         r"(?:(\d\s+)?((game)|(topic\s+set)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-zñ]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
         re.IGNORECASE,
     )
     CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
+        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
+        re.IGNORECASE,
+    )
+    ALT_CALL_NUMBER_PATTERN = re.compile(
+        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( [A-z]{3})?))\s*)\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
         re.IGNORECASE,
     )
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
@@ -50,8 +54,12 @@ class LegacyBibData:
         "Science": "SCI",
         "ELA ENG": "ELA",
         "ELA SPA": "SPLA",
-        "ELA FRE": "SPLA",
+        "ELA FRE": "FRLA",
         "ELA CHI": "CHLA",
+        "ENG": "ELA",
+        "SPA": "SPLA",
+        "FRE": "FRLA",
+        "CHI": "CHLA",
     }
     DIGITS = {
         "zero": 0,
@@ -96,6 +104,8 @@ class LegacyBibData:
         """Matches legacy call number str from item record to extract parts."""
         components = self.CALL_NUMBER_PATTERN.match(self.call_number)
         if not components:
+            components = self.ALT_CALL_NUMBER_PATTERN.match(self.call_number)
+        if not components:
             raise ValueError(
                 f"Call number '{self.call_number}' does not match pattern. "
                 f"Cannot extract components."
@@ -105,17 +115,24 @@ class LegacyBibData:
     @property
     def copy_count(self) -> int:
         fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
-        fields_5xx = [" ".join([i["content"] for i in j["subfields"]]) for j in fields]
+        fields_5xx = []
+        for field in fields:
+            content = [
+                i["content"]
+                for i in field["subfields"]
+                if not i["content"].startswith("Content of this set will include")
+                and i["content"] not in ["Topic Set", "Book Club Set"]
+            ]
+            fields_5xx.extend(content)
         for content in fields_5xx:
             matched = self.COPY_INFO_PATTERN.match(content)
-            if "+" in content:
-                raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
-            if matched and "+" not in content:
-                copy_count = matched["copy_count"].casefold()
-                if copy_count.isalpha():
-                    copy_count = self.DIGITS[copy_count]
+            if matched:
+                copy_count = matched["copy_count"]
+                if copy_count is None and matched["title_count"] is not None:
+                    return 1
+                elif copy_count.isalpha():
+                    copy_count = self.DIGITS[copy_count.casefold()]
                 return int(copy_count)
-
         for content in fields_5xx:
             matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
             if matched and "+" not in content:
@@ -298,7 +315,9 @@ class LegacySetStub:
         )
         for item in item_data:
             incomplete_fields = [
-                i for i in item["varFields"] if "Below 75%" in i["content"]
+                i
+                for i in item["varFields"]
+                if i["content"] and "Below 75%" in i["content"]
             ]
             if item["status"]["code"] not in ["-", "k"]:
                 continue
