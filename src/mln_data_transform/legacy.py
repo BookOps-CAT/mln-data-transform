@@ -36,7 +36,7 @@ class LegacyBibData:
         re.IGNORECASE,
     )
     ALT_CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( [A-z]{3})?))\s*)\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
+        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( (eng)|(spa)|(fre)|(chi))?))\s*)\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
         re.IGNORECASE,
     )
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
@@ -183,9 +183,10 @@ class LegacyBibData:
         raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
 
     @property
-    def lang(self) -> str:
+    def lang(self) -> str | None:
         """Parses language from call number if present."""
-        return self.call_number_components["lang"]
+        if "lang" in self.call_number_components.groupdict():
+            return self.call_number_components["lang"]
 
     @property
     def physical_description(self) -> str | None:
@@ -226,6 +227,22 @@ class LegacyBibData:
             return "LPRINT"
         else:
             return "TOPIC"
+
+    @property
+    def special_formats(self) -> dict[str, str] | None:
+        if not self.call_number_components["enhanced_item_count_1"]:
+            return None
+        out = {
+            self.call_number_components[
+                "enhanced_item_count_1"
+            ]: self.call_number_components["enhanced_item_type_1"]
+        }
+        if not self.call_number_components["enhanced_item_count_2"]:
+            return out
+        out[self.call_number_components["enhanced_item_count_2"]] = (
+            self.call_number_components["enhanced_item_type_2"]
+        )
+        return out
 
     @property
     def subject(self) -> str:

@@ -1,3 +1,4 @@
+import copy
 import datetime
 from typing import Any
 
@@ -216,3 +217,108 @@ def mock_set_no_dates(monkeypatch, mock_set, mock_worldcat_parts) -> None:
 
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
     monkeypatch.setattr(TeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+
+
+@pytest.fixture
+def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
+    subject = "ELA"
+    call_number = f"Teacher Set Assorted {subject} Foo Bar Book Club 1"
+    item_data = [
+        {"barcode": "33333987654321", "item_id": "12345678"},
+        {"barcode": "33333123456789", "item_id": "23456789"},
+    ]
+    bib_id = "12345678"
+
+    def mock_parts(*args, **kwargs) -> dict[str, Any]:
+        parts = copy.deepcopy(mock_worldcat_parts)
+        parts.append(
+            {
+                "author_name": None,
+                "author_dates": None,
+                "description": "A fake description of a DVD.",
+                "isbn": "9789876543217",
+                "pub_date": "20uu",
+                "subjects": [],
+                "title": "Fake DVD",
+            }
+        )
+
+    def mock_bib_data(*args, **kwargs) -> LegacyBibData:
+        return LegacyBibData(
+            bib_id=bib_id,
+            language="eng",
+            set_title="Foo Bar Teacher Set",
+            var_fields=[
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "091",
+                    "fieldTag": "c",
+                    "subfields": [{"tag": "a", "content": call_number}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "300",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "5 v."}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "520",
+                    "fieldTag": "n",
+                    "subfields": [
+                        {"tag": "a", "content": "2 copies of 2 titles + 1 DVD"}
+                    ],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "521",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "4-8"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": "00000nam  2200000 a 4500",
+                    "marcTag": None,
+                    "fieldTag": "n",
+                    "subfields": None,
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "944",
+                    "fieldTag": "y",
+                    "subfields": [
+                        {
+                            "tag": "a",
+                            "content": "9781234567897 9780987654328 9789876543217 ",
+                        }
+                    ],
+                },
+            ],
+        )
+
+    def mock_item_data(*args, **kwargs) -> list[LegacyItemData]:
+        items = []
+        for n, item in enumerate(item_data):
+            items.append(
+                LegacyItemData(
+                    call_number=f"{call_number}-{str(n + 1)}",
+                    item_id=item["item_id"],
+                    barcode=item["barcode"],
+                )
+            )
+        return items
+
+    monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
+    monkeypatch.setattr(LegacySetStub, "get_item_data", mock_item_data)
+    monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
