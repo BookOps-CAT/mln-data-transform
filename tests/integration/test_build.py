@@ -62,10 +62,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_enhanced(self, set_test_data, mock_set):
@@ -121,11 +121,11 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Cat puppet$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Cat puppet$nCat puppet$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_missing_info(
@@ -165,10 +165,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_teacher_sets_no_dates(self, set_test_data, mock_set_no_dates):
@@ -206,10 +206,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     @pytest.mark.parametrize(
@@ -259,10 +259,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets(self, mock_set):
@@ -303,10 +303,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_missing_info(self, mock_set_missing_info):
@@ -343,10 +343,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_no_dates(self, mock_set_no_dates):
@@ -383,10 +383,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
     def test_build_legacy_sets_multiple(self, mock_set, tmp_path):
@@ -430,10 +430,10 @@ class TestTeacherSetBuilder:
             "=909  \\\\$aOCLC Holdings Exclusion",
             "=910  \\\\$aBL",
             "=949  \\\\$a*b2=8;b3=e;bn=ed;",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
-            "=949  \\\\$h10$i[BARCODE]-Fake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 1$nFake book 1$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
+            "=949  \\\\$h10$i[BARCODE]-Fake book 2$nFake book 2$leduls$om$q30010$t252$u-$vLOGDOE/mlnyc-bot",
         ]
 
 
