@@ -9,6 +9,7 @@ from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
 from mln_data_transform.taxonomy import (
     GENRE_REGEX_MAP,
     TOPIC_REGEX_MAP,
+    ComponentFormat,
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
@@ -16,7 +17,7 @@ from mln_data_transform.taxonomy import (
     TaxonomyTopic,
 )
 from mln_data_transform.transform import PlatformManager, WorldcatManager
-from mln_data_transform.utils import is_valid_isbn, normalize_isbn
+from mln_data_transform.utils import is_valid_isbn, is_valid_upc, normalize_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,19 @@ class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
     COPY_INFO_PATTERN = re.compile(
-        r"^(((Topic)|(Book Club)) Set \()?(((?P<copy_count>\d+|[A-z]+)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|[a-z]+))(?:\s+[A-z]+)((?: \+ )(?P<enhanced_item_count_1>(\d+)|([A-z]+)) (?P<enhanced_item_type_1>\d+|[A-z ]+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|[A-z ]+))?)?"  # noqa: E501
+        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()?(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+    )
+    GENERAL_COPY_INFO_PATTERN = re.compile(
+        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()?(((\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+    )
+    PRIMARY_COPY_INFO_PATTERN = re.compile(
+        r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+    )
+    BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
+        r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \()(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+    )
+    TOPIC_SET_COPY_INFO_PATTERN = re.compile(
+        r"^(?:[Tt]opic( [Ss]et)? \()(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
         r"(?:(\d\s+)?((game)|(topic\s+set)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-zñ]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
@@ -113,31 +126,46 @@ class LegacyBibData:
         return components
 
     @property
-    def copy_count(self) -> int:
-        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "520"]]
+    def copy_info_field(self) -> str:
+        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "505", "520"]]
         fields_5xx = []
         for field in fields:
             content = [
                 i["content"]
                 for i in field["subfields"]
-                if not i["content"].startswith("Content of this set will include")
-                and i["content"] not in ["Topic Set", "Book Club Set"]
+                if i["content"].lower().startswith("topic")
+                or i["content"].lower().startswith("book club")
+                or i["content"][0].isnumeric()
+                or i["content"].split()[0].lower() in self.DIGITS.keys()
             ]
             fields_5xx.extend(content)
-        for content in fields_5xx:
-            matched = self.COPY_INFO_PATTERN.match(content)
+        for field in fields_5xx:
+            matched = self.GENERAL_COPY_INFO_PATTERN.match(field)
             if matched:
-                copy_count = matched["copy_count"]
-                if copy_count is None and matched["title_count"] is not None:
-                    return 1
-                elif copy_count.isalpha():
-                    copy_count = self.DIGITS[copy_count.casefold()]
-                return int(copy_count)
-        for content in fields_5xx:
-            matched = self.SINGLE_ITEM_COPY_INFO_PATTERN.match(content)
-            if matched and "+" not in content:
-                return 1
+                return field
         raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
+
+    @property
+    def copy_info_components(self) -> re.Match:
+        matched = self.PRIMARY_COPY_INFO_PATTERN.match(self.copy_info_field)
+        if matched:
+            return matched
+        bookclub_match = self.BOOK_CLUB_COPY_INFO_PATTERN.match(self.copy_info_field)
+        if bookclub_match:
+            return bookclub_match
+        topic_match = self.TOPIC_SET_COPY_INFO_PATTERN.match(self.copy_info_field)
+        if topic_match:
+            return topic_match
+        raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
+
+    @property
+    def copy_count(self) -> int:
+        if "copy_count" not in self.copy_info_components.groupdict():
+            return 1
+        copy_count = self.copy_info_components["copy_count"]
+        if copy_count.isalpha():
+            copy_count = self.DIGITS[copy_count.casefold()]
+        return int(copy_count)
 
     @property
     def enhanced(self) -> str | None:
@@ -167,19 +195,19 @@ class LegacyBibData:
             return grade_level
 
     @property
-    def isbns(self) -> list[str]:
-        isbns = [i for i in self.var_fields if i["marcTag"] == "944"]
-        if isbns:
-            isbn_string = " ".join([i["content"] for i in isbns[0]["subfields"]])
-            isbn_list = [normalize_isbn(i) for i in isbn_string.split()]
-            validated_isbns = [i for i in isbn_list if is_valid_isbn(i)]
-            if len(validated_isbns) < len(isbn_list):
-                errors = [i for i in isbn_list if i not in validated_isbns]
+    def ids(self) -> list[str]:
+        ids = [i for i in self.var_fields if i["marcTag"] == "944"]
+        if ids:
+            id_string = " ".join([i["content"] for i in ids[0]["subfields"]])
+            id_list = [normalize_isbn(i) for i in id_string.split()]
+            validated_ids = [i for i in id_list if is_valid_isbn(i) or is_valid_upc(i)]
+            if len(validated_ids) < len(id_list):
+                errors = [i for i in id_list if i not in validated_ids]
                 raise ValueError(
-                    f"({self.bib_id}) Record contains {len(isbn_list)} ISBN(s). "
-                    f"{len(errors)}/{len(isbn_list)} are invalid: {errors}"
+                    f"({self.bib_id}) Record contains {len(id_list)} ISBN/UPC(s). "
+                    f"{len(errors)}/{len(id_list)} are invalid: {errors}"
                 )
-            return validated_isbns
+            return id_list
         raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
 
     @property
@@ -229,19 +257,35 @@ class LegacyBibData:
             return "TOPIC"
 
     @property
-    def special_formats(self) -> dict[str, str] | None:
-        if not self.call_number_components["enhanced_item_count_1"]:
+    def special_formats(self) -> list[tuple[str, int]] | None:
+        if (
+            "enhanced_item_count_1" not in self.copy_info_components.groupdict()
+            or not self.copy_info_components["enhanced_item_count_1"]
+        ):
             return None
-        out = {
-            self.call_number_components[
-                "enhanced_item_count_1"
-            ]: self.call_number_components["enhanced_item_type_1"]
+        enhanced_types = {
+            "playaway": re.compile(r"playaway", re.IGNORECASE),
+            "lprint": re.compile(r"large[ ]?print", re.IGNORECASE),
+            "dvd": re.compile(r"dvd", re.IGNORECASE),
         }
-        if not self.call_number_components["enhanced_item_count_2"]:
+        out = []
+        item_type_1 = self.copy_info_components["enhanced_item_type_1"]
+        for item_type, regex in enhanced_types.items():
+            match = regex.match(item_type_1)
+            if match:
+                out.append(
+                    (item_type, int(self.copy_info_components["enhanced_item_count_1"]))
+                )
+
+        item_type_2 = self.copy_info_components["enhanced_item_type_2"]
+        if not item_type_2:
             return out
-        out[self.call_number_components["enhanced_item_count_2"]] = (
-            self.call_number_components["enhanced_item_type_2"]
-        )
+        for item_type, regex in enhanced_types.items():
+            match = regex.match(item_type_2)
+            if match:
+                out.append(
+                    (item_type, int(self.copy_info_components["enhanced_item_count_2"]))
+                )
         return out
 
     @property
@@ -259,6 +303,15 @@ class LegacyBibData:
             return self.SUBJECT_MAPPING[subject.removesuffix(self.lang).strip()]
         else:
             return subject.upper()
+
+    @property
+    def title_count(self) -> int:
+        if "title_count" not in self.copy_info_components.groupdict():
+            return 1
+        title_count = self.copy_info_components["title_count"]
+        if title_count.isalpha():
+            title_count = self.DIGITS[title_count.casefold()]
+        return int(title_count)
 
     def map_to_closest_enum(self, grade_str: str) -> str:
         """Applies explicit overrides, then falls back to Euclidean distance."""
@@ -289,13 +342,10 @@ class LegacyBibData:
 class LegacyItemData:
     """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
 
-    def __init__(
-        self, barcode: str, call_number: str, item_id: str, incomplete: bool = False
-    ) -> None:
+    def __init__(self, barcode: str, call_number: str, item_id: str) -> None:
         self.barcode = barcode
         self.call_number = call_number.strip()
         self.item_id = item_id
-        self.incomplete = incomplete
 
     @property
     def bib_call_number(self) -> str:
@@ -323,7 +373,6 @@ class LegacySetStub:
 
     def get_item_data(self) -> list[LegacyItemData]:
         item_list = []
-        incomplete_sets = []
         manager = PlatformManager()
         item_data = manager.get_platform_bib_items(self.bib_id)
         logger.debug(
@@ -331,28 +380,14 @@ class LegacySetStub:
             f"{len(item_data)} item record(s) from platform."
         )
         for item in item_data:
-            incomplete_fields = [
-                i
-                for i in item["varFields"]
-                if i["content"] and "Below 75%" in i["content"]
-            ]
             if item["status"]["code"] not in ["-", "k"]:
                 continue
-            incomplete = incomplete_fields != []
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
                 item_id=item["id"],
                 barcode=item["barcode"],
-                incomplete=incomplete,
             )
             item_list.append(legacy_item)
-            if incomplete:
-                incomplete_sets.append(item["barcode"])
-        if incomplete_sets or not item_list:
-            logger.warning(
-                f"({self.bib_id}) {len(incomplete_sets)} of {len(item_list)} set "
-                f"copies have <75% of items: {incomplete_sets}."
-            )
         if not item_list:
             raise ValueError(f"({self.bib_id}) Item status issue.")
         return item_list
@@ -395,6 +430,43 @@ class LegacyTeacherSetData:
     def from_bib_item_data(
         cls, bib_data: LegacyBibData, item_data: list[LegacyItemData]
     ) -> "LegacyTeacherSetData":
+        if not bib_data.special_formats:
+            return LegacyTeacherSetData(
+                bib_id=bib_data.bib_id,
+                copies_of_set=len(item_data),
+                enhanced=bib_data.enhanced,
+                grade_level=bib_data.grade_level,
+                language=bib_data.language,
+                legacy_barcodes={i.barcode: i.call_number for i in item_data},
+                call_number=bib_data.call_number.strip(),
+                physical_description=bib_data.physical_description,
+                record_type=bib_data.record_type,
+                set_parts=[
+                    {"id": i, "copies": bib_data.copy_count, "format": "book"}
+                    for i in bib_data.ids
+                ],
+                set_title=bib_data.set_title,
+                set_type=bib_data.set_type,
+                study_program_info=bib_data.subject,
+                var_fields=bib_data.var_fields,
+            )
+        book_ids = bib_data.ids[: bib_data.title_count]
+        other_ids = bib_data.ids[bib_data.title_count :]
+        parts = [
+            {"id": i, "copies": bib_data.copy_count, "format": "book"} for i in book_ids
+        ]
+        if len(other_ids) < sum([i[1] for i in bib_data.special_formats]):
+            added = [None] * (
+                sum([i[1] for i in bib_data.special_formats]) - len(other_ids)
+            )
+
+            other_ids = other_ids + added
+        zipped_items = [
+            (format, count, id)
+            for (format, count), id in zip(bib_data.special_formats, other_ids)
+        ]
+        for item in zipped_items:
+            parts.append({"format": item[0], "copies": item[1], "id": item[2]})
         return LegacyTeacherSetData(
             bib_id=bib_data.bib_id,
             copies_of_set=len(item_data),
@@ -405,9 +477,7 @@ class LegacyTeacherSetData:
             call_number=bib_data.call_number.strip(),
             physical_description=bib_data.physical_description,
             record_type=bib_data.record_type,
-            set_parts=[
-                {"isbn": i, "copies": bib_data.copy_count} for i in bib_data.isbns
-            ],
+            set_parts=parts,
             set_title=bib_data.set_title,
             set_type=bib_data.set_type,
             study_program_info=bib_data.subject,
@@ -434,8 +504,13 @@ class LegacyTeacherSetData:
         parts = []
         with WorldcatManager() as manager:
             for part in self.set_parts:
-                worldcat_part = manager.get_worldcat_data_for_part(isbn=part.isbn)
-                parts.append(worldcat_part.to_dict())
+                worldcat_part = manager.get_worldcat_data_for_part(
+                    id=part.id, format=part.format
+                )
+                worldcat_part.update(
+                    {"id": part.id, "format": part.format, "copies": part.copies}
+                )
+                parts.append(worldcat_part)
         return parts
 
 
@@ -471,11 +546,10 @@ class LegacyTeacherSet:
                 copy_part = " copies of "
             else:
                 copy_part = " copy of "
-            part_list.append(
-                "".join(
-                    [str(part.copies), copy_part, '"', part.title.strip("."), '", ']
-                )
-            )
+            title = part.title.strip(".")
+            if part.format != "book":
+                title = f"{title} [{part.format}]"
+            part_list.append("".join([str(part.copies), copy_part, '"', title, '", ']))
         return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
     @property
@@ -515,18 +589,18 @@ class LegacyTeacherSet:
     @property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        parts_dict = {i.isbn: i.copies for i in self.set_parts}
         for worldcat_part in self.worldcat_parts:
             parts.append(
                 WorldcatSetPart(
-                    isbn=worldcat_part["isbn"],
+                    id=worldcat_part["id"],
                     title=worldcat_part["title"],
-                    author=worldcat_part["author_name"],
-                    author_dates=worldcat_part["author_dates"],
-                    pub_date=worldcat_part["pub_date"],
+                    author=worldcat_part.get("author_name"),
+                    author_dates=worldcat_part.get("author_dates"),
+                    pub_date=worldcat_part.get("pub_date"),
                     description=worldcat_part["description"],
-                    copies=parts_dict[worldcat_part["isbn"]],
-                    subjects=worldcat_part["subjects"],
+                    copies=worldcat_part["copies"],
+                    subjects=worldcat_part.get("subjects", []),
+                    format=ComponentFormat[worldcat_part["format"]],
                 )
             )
         return parts

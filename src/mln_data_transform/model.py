@@ -53,8 +53,8 @@ class TeacherSetCopy:
         self.legacy_call_number = legacy_call_number
         self.local_genre_term = local_genre_term
         self.local_topic_term = local_topic_term
-        self.parts = [WorldcatSetPart(**i) for i in parts if "isbn" in i] + [
-            TeacherSetSpecialFormat(**i) for i in parts if "isbn" not in i
+        self.parts = [WorldcatSetPart(**i) for i in parts if "id" in i] + [
+            TeacherSetSpecialFormat(**i) for i in parts if "id" not in i
         ]
         self.physical_description = physical_description
         self.record_type = record_type

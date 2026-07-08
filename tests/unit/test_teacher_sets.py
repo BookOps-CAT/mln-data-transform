@@ -15,7 +15,7 @@ class TestTeacherSetData:
         assert teacher_set.language == "eng"
         assert teacher_set.local_topic_term == [TaxonomyTopic("New York City")]
         assert teacher_set.local_genre_term == [TaxonomyGenre("Fiction")]
-        assert teacher_set.parts[0].isbn == "9781234567897"
+        assert teacher_set.parts[0].id == "9781234567897"
         assert len(teacher_set.parts) == 2
         assert teacher_set.record_type == "a"
         assert teacher_set.set_title == "Foo Bar Teacher Set"
@@ -37,7 +37,6 @@ class TestTeacherSetData:
         assert worldcat_parts[0]["author_name"] == "Bar, Foo"
         assert worldcat_parts[0]["author_dates"] == "1980-"
         assert worldcat_parts[0]["description"] == "Fake description of book."
-        assert worldcat_parts[0]["isbn"] == "9781234567897"
         assert worldcat_parts[0]["pub_date"] == "2000"
         assert worldcat_parts[0]["subjects"] == [
             {
@@ -108,6 +107,8 @@ class TestTeacherSet:
     def test_teacher_set_single_copy(
         self, set_test_data, mock_worldcat_response, caplog
     ):
+        mock_worldcat_response[0]["copies"] = 1
+        mock_worldcat_response[1]["copies"] = 1
         set_test_data["parts"][0]["copies"] = 1
         set_test_data["parts"][1]["copies"] = 1
         set_data = TeacherSetData(**set_test_data)

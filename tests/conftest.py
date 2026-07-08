@@ -57,8 +57,8 @@ def set_test_data() -> dict[str, Any]:
         "language": "eng",
         "set_title": "Foo Bar Teacher Set",
         "parts": [
-            {"isbn": "9781234567897", "copies": 2},
-            {"copies": 2, "isbn": "9780987654328"},
+            {"id": "9781234567897", "copies": 2, "format": "book"},
+            {"copies": 2, "id": "9780987654328", "format": "book"},
         ],
         "set_type": "Book Club",
         "study_program_info": "Social Studies",
@@ -87,8 +87,8 @@ def legacy_set_test_data(test_bib_data) -> dict[str, Any]:
         "study_program_info": "SOC",
         "var_fields": test_bib_data["varFields"],
         "set_parts": [
-            {"isbn": "9781234567897", "copies": 2},
-            {"copies": 2, "isbn": "9780987654328"},
+            {"id": "9781234567897", "copies": 2},
+            {"copies": 2, "id": "9780987654328"},
         ],
     }
 
@@ -202,7 +202,7 @@ def mock_worldcat_response() -> list[dict[str, Any]]:
             "author_name": "Bar, Foo",
             "author_dates": "1980-",
             "description": "Fake description of book.",
-            "isbn": "9781234567897",
+            "id": "9781234567897",
             "pub_date": "2000",
             "subjects": [
                 {
@@ -219,15 +219,19 @@ def mock_worldcat_response() -> list[dict[str, Any]]:
                 },
             ],
             "title": "Fake book 1",
+            "format": "book",
+            "copies": 2,
         },
         {
             "author_name": None,
             "author_dates": None,
             "description": "Another fake description of a book.",
-            "isbn": "9780987654328",
+            "id": "9780987654328",
             "pub_date": "20uu",
             "subjects": [],
             "title": "Fake book 2",
+            "format": "book",
+            "copies": 2,
         },
     ]
 
@@ -239,10 +243,11 @@ def mock_worldcat_response_no_pub_dates() -> None:
             "author_name": "Sasek, M.",
             "author_dates": "1916-1980",
             "description": "Fake description of book.",
-            "isbn": "9781234567897",
+            "id": "9781234567897",
             "pub_date": None,
             "subjects": [],
             "title": "This is New York",
+            "format": "book",
         }
     ]
 
@@ -278,12 +283,19 @@ def mock_session_managers(
         return MockMarcResponse(stub_bib.as_marc())
 
     def get_worldcat_brief_bib(*args, **kwargs):
+        format_dict = {
+            "video-dvd": "DVD",
+            "book-printbook": "PrintBook",
+            "book-largeprint": "LargePrint",
+        }
+        format = kwargs.get("itemSubType")
         return MockJsonResponse(
             {
                 "briefRecords": [
                     {
                         "oclcNumber": "ocn123456789",
                         "catalogingInfo": {"levelOfCataloging": " "},
+                        "specificFormat": format_dict[format],
                     }
                 ]
             }
@@ -321,6 +333,24 @@ def mock_session_managers_missing_data(
 
     monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib_no_description)
     monkeypatch.setattr(PlatformSession, "get_bib_items", get_platform_items)
+
+
+@pytest.fixture
+def mock_session_managers_no_wc_records(monkeypatch, mock_session_managers) -> None:
+    def get_worldcat_brief_bib(*args, **kwargs):
+        return MockJsonResponse(
+            {
+                "briefRecords": [
+                    {
+                        "oclcNumber": "ocn123456789",
+                        "catalogingInfo": {"levelOfCataloging": " "},
+                        "specificFormat": "Digital",
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr(MetadataSession, "brief_bibs_search", get_worldcat_brief_bib)
 
 
 @pytest.fixture

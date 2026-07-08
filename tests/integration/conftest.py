@@ -52,7 +52,7 @@ def mock_worldcat_parts(*args, **kwargs) -> list[dict[str, Any]]:
             "author_name": "Bar, Foo",
             "author_dates": "1980-",
             "description": "Fake description of book.",
-            "isbn": "9781234567897",
+            "id": "9781234567897",
             "pub_date": "2000",
             "subjects": [
                 {
@@ -69,15 +69,19 @@ def mock_worldcat_parts(*args, **kwargs) -> list[dict[str, Any]]:
                 },
             ],
             "title": "Fake book 1",
+            "format": "book",
+            "copies": 2,
         },
         {
             "author_name": None,
             "author_dates": None,
             "description": "Another fake description of a book.",
-            "isbn": "9780987654328",
+            "id": "9780987654328",
             "pub_date": "20uu",
             "subjects": [],
             "title": "Fake book 2",
+            "format": "book",
+            "copies": 2,
         },
     ]
 
@@ -221,14 +225,6 @@ def mock_set_no_dates(monkeypatch, mock_set, mock_worldcat_parts) -> None:
 
 @pytest.fixture
 def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
-    subject = "ELA"
-    call_number = f"Teacher Set Assorted {subject} Foo Bar Book Club 1"
-    item_data = [
-        {"barcode": "33333987654321", "item_id": "12345678"},
-        {"barcode": "33333123456789", "item_id": "23456789"},
-    ]
-    bib_id = "12345678"
-
     def mock_parts(*args, **kwargs) -> dict[str, Any]:
         parts = copy.deepcopy(mock_worldcat_parts)
         parts.append(
@@ -236,16 +232,19 @@ def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
                 "author_name": None,
                 "author_dates": None,
                 "description": "A fake description of a DVD.",
-                "isbn": "9789876543217",
+                "id": "9789876543217",
                 "pub_date": "20uu",
                 "subjects": [],
                 "title": "Fake DVD",
+                "format": "dvd",
+                "copies": 1,
             }
         )
+        return parts
 
     def mock_bib_data(*args, **kwargs) -> LegacyBibData:
         return LegacyBibData(
-            bib_id=bib_id,
+            bib_id="12345678",
             language="eng",
             set_title="Foo Bar Teacher Set",
             var_fields=[
@@ -255,7 +254,12 @@ def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
                     "content": None,
                     "marcTag": "091",
                     "fieldTag": "c",
-                    "subfields": [{"tag": "a", "content": call_number}],
+                    "subfields": [
+                        {
+                            "tag": "a",
+                            "content": "Teacher Set Assorted ELA Foo Bar Book Club 1",
+                        }
+                    ],
                 },
                 {
                     "ind1": " ",
@@ -263,7 +267,7 @@ def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
                     "content": None,
                     "marcTag": "300",
                     "fieldTag": "n",
-                    "subfields": [{"tag": "a", "content": "5 v."}],
+                    "subfields": [{"tag": "a", "content": "4 v. + 1 DVD"}],
                 },
                 {
                     "ind1": " ",
@@ -307,18 +311,101 @@ def mock_set_enhanced(monkeypatch, mock_set, mock_worldcat_parts) -> None:
             ],
         )
 
-    def mock_item_data(*args, **kwargs) -> list[LegacyItemData]:
-        items = []
-        for n, item in enumerate(item_data):
-            items.append(
-                LegacyItemData(
-                    call_number=f"{call_number}-{str(n + 1)}",
-                    item_id=item["item_id"],
-                    barcode=item["barcode"],
-                )
-            )
-        return items
+    monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
+    monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+
+
+@pytest.fixture
+def mock_set_enhanced_missing_identifier(monkeypatch, mock_set) -> None:
+    def mock_parts(*args, **kwargs) -> dict[str, Any]:
+        parts = [
+            {
+                "author_name": None,
+                "author_dates": None,
+                "description": "A fake description of a book.",
+                "id": "9780987654328",
+                "pub_date": "20uu",
+                "subjects": [],
+                "title": "Fake book 1",
+                "format": "book",
+                "copies": 4,
+            },
+            {
+                "title": "Playaway (missing identifier)",
+                "format": "playaway",
+                "copies": 4,
+                "id": None,
+                "description": "",
+            },
+        ]
+        return parts
+
+    def mock_bib_data(*args, **kwargs) -> LegacyBibData:
+        return LegacyBibData(
+            bib_id="12345678",
+            language="eng",
+            set_title="Foo Bar Teacher Set",
+            var_fields=[
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "091",
+                    "fieldTag": "c",
+                    "subfields": [
+                        {
+                            "tag": "a",
+                            "content": "Teacher Set Assorted ELA Foo Bar Book Club 1",
+                        }
+                    ],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "300",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "4 v. + 4 Playaways"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "520",
+                    "fieldTag": "n",
+                    "subfields": [
+                        {
+                            "tag": "a",
+                            "content": "4 copies of 1 title + 1 Playaway Audiobooks",
+                        }
+                    ],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "521",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "4-8"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": "00000nam  2200000 a 4500",
+                    "marcTag": None,
+                    "fieldTag": "n",
+                    "subfields": None,
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "944",
+                    "fieldTag": "y",
+                    "subfields": [{"tag": "a", "content": "9781234567897 "}],
+                },
+            ],
+        )
 
     monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
-    monkeypatch.setattr(LegacySetStub, "get_item_data", mock_item_data)
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)

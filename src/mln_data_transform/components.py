@@ -20,7 +20,8 @@ class SetBook:
     """A book included within a Teacher Set to be searched for in WorldCat."""
 
     copies: int
-    isbn: str
+    id: str | None
+    format: str | None = None
 
 
 @dataclass(frozen=True)
@@ -29,10 +30,11 @@ class WorldcatSetPart:
 
     copies: int
     description: str
-    isbn: str
+    id: str
     title: str
     author: str | None = None
     author_dates: str | None = None
+    format: str | None = "book"
     pub_date: str | None = None
     subjects: list[dict[str, Any]] | None = None
 
@@ -51,11 +53,16 @@ class WorldcatSetPart:
             subfields.append(("a", self.title))
         if self.pub_date:
             subfields.append(("f", self.pub_date))
-        subfields.append(("x", self.isbn))
+        subfields.append(("x", self.id))
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
 
     def summary_component(self) -> tuple[str, str]:
-        return (self.title.strip("."), self.description.strip("."), self.copies)
+        return (
+            self.title.strip("."),
+            self.description.strip("."),
+            self.copies,
+            self.format,
+        )
 
 
 @dataclass(frozen=True)

@@ -7,6 +7,7 @@ from mln_data_transform.components import (
     WorldcatSetPart,
 )
 from mln_data_transform.taxonomy import (
+    ComponentFormat,
     GradeReadingLevel,
     SetTypeFormat,
     SubjectStudyProgram,
@@ -14,7 +15,6 @@ from mln_data_transform.taxonomy import (
     TaxonomyTopic,
 )
 from mln_data_transform.transform import WorldcatManager
-from mln_data_transform.utils import is_valid_isbn, normalize_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +68,15 @@ class TeacherSetData:
 
     def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
         parts = []
-        normalized_isbns = [
-            normalize_isbn(i.isbn) for i in self.parts if is_valid_isbn(i.isbn)
-        ]
         with WorldcatManager() as manager:
-            for isbn in normalized_isbns:
-                worldcat_part = manager.get_worldcat_data_for_part(isbn=isbn)
-                parts.append(worldcat_part.to_dict())
+            for part in self.parts:
+                worldcat_part = manager.get_worldcat_data_for_part(
+                    id=part.id, format=part.format
+                )
+                worldcat_part.update(
+                    {"id": part.id, "format": part.format, "copies": part.copies}
+                )
+                parts.append(worldcat_part)
         return parts
 
 
@@ -116,18 +118,18 @@ class TeacherSet:
     @property
     def parts(self) -> list[WorldcatSetPart]:
         parts = []
-        parts_dict = {i.isbn: i.copies for i in self._set_data.parts}
         for worldcat_part in self.worldcat_parts:
             parts.append(
                 WorldcatSetPart(
-                    isbn=worldcat_part["isbn"],
+                    id=worldcat_part["id"],
                     title=worldcat_part["title"],
-                    author=worldcat_part["author_name"],
-                    author_dates=worldcat_part["author_dates"],
-                    pub_date=worldcat_part["pub_date"],
+                    author=worldcat_part.get("author_name"),
+                    author_dates=worldcat_part.get("author_dates"),
+                    pub_date=worldcat_part.get("pub_date"),
                     description=worldcat_part["description"],
-                    copies=parts_dict[worldcat_part["isbn"]],
-                    subjects=worldcat_part["subjects"],
+                    copies=worldcat_part["copies"],
+                    subjects=worldcat_part.get("subjects", []),
+                    format=ComponentFormat[worldcat_part["format"]],
                 )
             )
         if self._set_data.special_formats:

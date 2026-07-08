@@ -18,7 +18,7 @@ class TestLegacyBibData:
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.isbns == ["9781234567897", "9780987654328"]
+        assert legacy_bib.ids == ["9781234567897", "9780987654328"]
         assert legacy_bib.physical_description == "10 item(s)"
         assert legacy_bib.record_type == "a"
         assert legacy_bib.copy_count == 2
@@ -33,7 +33,7 @@ class TestLegacyBibData:
         assert legacy_bib.physical_description is None
         assert legacy_bib.record_type == "a"
 
-    def test_legacy_bib_data_missing_isbns(self, test_bib_data):
+    def test_legacy_bib_data_missing_ids(self, test_bib_data):
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
@@ -41,35 +41,27 @@ class TestLegacyBibData:
             language=test_bib_data["lang"],
         )
         with pytest.raises(ValueError) as exc:
-            legacy_bib.isbns
+            legacy_bib.ids
         assert str(exc.value) == "(19538471) Record does not contain ISBNs."
 
     @pytest.mark.parametrize(
-        "arg,output",
+        "arg,copies,titles",
         [
-            ("Five copies of two titles", 5),
-            ("Three copies of ten titles", 3),
-            ("Five copies of six titles", 5),
-            ("Three copies of eight titles", 3),
-            ("Four copies of four titles", 4),
-            ("Five copies of four titles", 5),
-            ("Five copies of two titles", 5),
-            ("2 copies of 11 titles", 2),
-            ("1 copy of 16 titles", 1),
-            ("2 copies of 13 titles", 2),
-            ("3 copies of 11 titles", 3),
-            ("One copy of 35 titles", 1),
-            ("Tabletop Game - ", 1),
-            ("Game - ", 1),
-            ("DVD - ", 1),
-            ("Game (Board Game) - ", 1),
-            ("15 item(s) + 1 DVD.", 1),
-            ("2 copies of 12 titles + 1 Playaway Audiobook.", 2),
-            ("11 item(s) + 1 Playaway Audiobook", 1),
-            ("Topic Set (24 books + 1 Playaway Audiobook)", 1),
+            ("Five copies of two titles", 5, 2),
+            ("Three copies of ten titles", 3, 10),
+            ("Five copies of six titles", 5, 6),
+            ("Three copies of eight titles", 3, 8),
+            ("Four copies of four titles", 4, 4),
+            ("Five copies of four titles", 5, 4),
+            ("Five copies of two titles", 5, 2),
+            ("2 copies of 11 titles", 2, 11),
+            ("1 copy of 16 titles", 1, 16),
+            ("2 copies of 13 titles", 2, 13),
+            ("3 copies of 11 titles", 3, 11),
+            ("One copy of 35 titles", 1, 35),
         ],
     )
-    def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, output):
+    def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, copies, titles):
         test_bib_data["varFields"] = [
             {
                 "ind1": " ",
@@ -94,17 +86,33 @@ class TestLegacyBibData:
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.copy_count == output
+        assert legacy_bib.copy_count == copies
+        assert legacy_bib.title_count == titles
+        assert legacy_bib.special_formats is None
 
-    def test_legacy_bib_data_pattern_matching_no_valid_match(self, test_bib_data):
+    @pytest.mark.parametrize(
+        "arg",
+        [
+            "Tabletop Game - ",
+            "Game - ",
+            "DVD - ",
+            "Game (Board Game) - ",
+            "Topic set",
+            "Teacher set",
+        ],
+    )
+    @pytest.mark.parametrize("tag", ["500", "505", "520"])
+    def test_legacy_bib_data_pattern_matching_no_valid_match(
+        self, test_bib_data, arg, tag
+    ):
         test_bib_data["varFields"] = [
             {
                 "ind1": " ",
                 "ind2": " ",
                 "content": None,
-                "marcTag": "500",
+                "marcTag": tag,
                 "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Teacher set"}],
+                "subfields": [{"tag": "a", "content": f"{arg}"}],
             }
         ]
         with pytest.raises(ValueError) as exc:
@@ -116,6 +124,59 @@ class TestLegacyBibData:
             )
             legacy_bib.copy_count
         assert str(exc.value) == "Copy info pattern does not match for 19538471."
+
+    @pytest.mark.parametrize(
+        "arg,copies,titles,special_formats",
+        [
+            ("Topic Set (15 books + 1 DVD.)", 1, 15, [("dvd", 1)]),
+            ("2 copies of 12 titles + 1 Playaway Audiobook.", 2, 12, [("playaway", 1)]),
+            (
+                "Book Club Set (11 books + 1 Playaway Audiobook)",
+                11,
+                1,
+                [("playaway", 1)],
+            ),
+            ("Topic Set (11 books + 1 large print copy)", 1, 11, [("lprint", 1)]),
+            (
+                "Book club set (11 books + 1 large print copy + 1 DVD)",
+                11,
+                1,
+                [("lprint", 1), ("dvd", 1)],
+            ),
+            ("Topic Set (24 books + 1 Playaway Audiobook)", 1, 24, [("playaway", 1)]),
+            ("1 copy of 12 titles + 12 Playaways", 1, 12, [("playaway", 12)]),
+        ],
+    )
+    def test_legacy_bib_data_enhanced_pattern_matching(
+        self, test_bib_data, arg, copies, titles, special_formats
+    ):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "500",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "Teacher set"}],
+            },
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "520",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": arg}],
+            },
+        ]
+        legacy_bib = LegacyBibData(
+            bib_id=test_bib_data["id"],
+            set_title=test_bib_data["title"],
+            var_fields=test_bib_data["varFields"],
+            language=test_bib_data["lang"],
+        )
+        assert legacy_bib.copy_count == copies
+        assert legacy_bib.title_count == titles
+        assert legacy_bib.special_formats == special_formats
 
     @pytest.mark.parametrize(
         "arg,enhanced,grade,set_type,subject",
@@ -246,6 +307,8 @@ class TestLegacyBibData:
             ("439331188", ["0439331188"]),
             ("9780515202366", ["9780515202366"]),
             ("9780547199566", ["9780547199566"]),
+            ("012345678905", ["012345678905"]),
+            ("9780547199566 012345678905", ["9780547199566", "012345678905"]),
         ],
     )
     def test_legacy_bib_data_validate_isbns(self, test_bib_data, arg, output):
@@ -265,7 +328,7 @@ class TestLegacyBibData:
             var_fields=test_bib_data["varFields"],
             language=test_bib_data["lang"],
         )
-        assert legacy_bib.isbns == output
+        assert legacy_bib.ids == output
 
     @pytest.mark.parametrize(
         "arg,output",
@@ -275,9 +338,12 @@ class TestLegacyBibData:
             ("978-0-78-930884-X 068816241X", ["978078930884X"]),
             ("0-7893-0884-3 97897897X9", ["97897897X9"]),
             ("068816241X  0-7893-0884-Z ", ["078930884Z"]),
+            ("9780789308849  012345678906 ", ["012345678906"]),
+            ("068816241X  12345678901 ", ["12345678901"]),
+            ("978-0-78-930884-9  01234567890A ", ["01234567890A"]),
         ],
     )
-    def test_legacy_bib_data_invalid_isbns(self, test_bib_data, arg, output):
+    def test_legacy_bib_data_invalid_ids(self, test_bib_data, arg, output):
         test_bib_data["varFields"] = [
             {
                 "ind1": " ",
@@ -295,10 +361,10 @@ class TestLegacyBibData:
                 var_fields=test_bib_data["varFields"],
                 language=test_bib_data["lang"],
             )
-            legacy_bib.isbns
+            legacy_bib.ids
         assert (
             str(exc.value)
-            == f"(19538471) Record contains 2 ISBN(s). 1/2 are invalid: {output}"
+            == f"(19538471) Record contains 2 ISBN/UPC(s). 1/2 are invalid: {output}"
         )
 
 
@@ -375,6 +441,8 @@ class TestLegacyTeacherSet:
     def test_legacy_set_single_copy(
         self, legacy_set_test_data, caplog, mock_worldcat_response
     ):
+        mock_worldcat_response[0]["copies"] = 1
+        mock_worldcat_response[1]["copies"] = 1
         legacy_set_test_data["set_parts"][0]["copies"] = 1
         legacy_set_test_data["set_parts"][1]["copies"] = 1
         legacy_set_data = LegacyTeacherSetData(**legacy_set_test_data)

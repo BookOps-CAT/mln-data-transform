@@ -5,6 +5,13 @@ from enum import StrEnum
 logger = logging.getLogger(__name__)
 
 
+class ComponentFormat(StrEnum):
+    lprint = "large print"
+    dvd = "DVD"
+    book = "book"
+    playaway = "Playaway Audiobook"
+
+
 class GradeReadingLevel(StrEnum):
     A = "Pre-K"
     B = "K-2"

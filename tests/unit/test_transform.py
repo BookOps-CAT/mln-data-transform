@@ -69,7 +69,7 @@ class TestWorldcatResponses:
 class TestFullWorldCatResponse:
     def test_full_bib_response(self, stub_bib):
         full_bib_response = FullWorldCatResponse(
-            isbn="9781234567897", wc_response=stub_bib
+            id="9781234567897", wc_response=stub_bib
         )
         assert full_bib_response.author_data.format_field() == "Bar, Foo 1980-"
         assert full_bib_response.author_name == "Bar, Foo"
@@ -82,7 +82,6 @@ class TestFullWorldCatResponse:
             "author_name",
             "author_dates",
             "description",
-            "isbn",
             "pub_date",
             "subjects",
             "title",
@@ -91,7 +90,7 @@ class TestFullWorldCatResponse:
     def test_full_bib_response_missing_data(self, stub_bib):
         stub_bib.remove_fields("100", "264", "520", "651", "655")
         full_bib_response = FullWorldCatResponse(
-            isbn="9781234567897", wc_response=stub_bib
+            id="9781234567897", wc_response=stub_bib
         )
         assert full_bib_response.author_data is None
         assert full_bib_response.author_name is None
@@ -104,7 +103,6 @@ class TestFullWorldCatResponse:
             "author_name",
             "author_dates",
             "description",
-            "isbn",
             "pub_date",
             "subjects",
             "title",
@@ -137,32 +135,52 @@ class TestPlatformManager:
 
 
 class TestWorldcatManager:
-    def test_get_worldcat_data_for_part(self, mock_session_managers, caplog):
+    @pytest.mark.parametrize("format", ["book", "dvd", "lprint"])
+    def test_get_worldcat_data_for_part(self, mock_session_managers, caplog, format):
         caplog.set_level("DEBUG")
         with WorldcatManager() as worldcat_manager:
             worldcat_response = worldcat_manager.get_worldcat_data_for_part(
-                "9781234567897"
+                id="9781234567897", format=format
             )
-        assert worldcat_response.author_data.format_field() == "Bar, Foo 1980-"
-        assert worldcat_response.author_name == "Bar, Foo"
-        assert worldcat_response.author_dates == "1980-"
-        assert worldcat_response.description == "Fake description of book."
-        assert worldcat_response.pub_date == "2000"
-        assert len(worldcat_response.subjects) == 2
-        assert worldcat_response.title == "Fake book 1"
-        assert list(worldcat_response.to_dict().keys()) == [
+        assert worldcat_response["author_name"] == "Bar, Foo"
+        assert worldcat_response["author_dates"] == "1980-"
+        assert worldcat_response["description"] == "Fake description of book."
+        assert worldcat_response["pub_date"] == "2000"
+        assert len(worldcat_response["subjects"]) == 2
+        assert worldcat_response["title"] == "Fake book 1"
+        assert list(worldcat_response.keys()) == [
             "author_name",
             "author_dates",
             "description",
-            "isbn",
             "pub_date",
             "subjects",
             "title",
         ]
         assert [i.msg for i in caplog.records] == [
-            "ISBN 9781234567897: retrieving brief bib record.",
-            "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
+            "ISBN/UPC 9781234567897: retrieving brief bib record.",
+            "ISBN/UPC 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
         ]
+
+    @pytest.mark.parametrize("format", ["book", "dvd", "lprint"])
+    def test_get_worldcat_data_for_part_no_id(
+        self, mock_session_managers, caplog, format
+    ):
+        caplog.set_level("DEBUG")
+        with WorldcatManager() as worldcat_manager:
+            worldcat_response = worldcat_manager.get_worldcat_data_for_part(
+                id=None, format=format
+            )
+        assert worldcat_response["title"] == f"{format.upper()} (missing identifier)"
+        assert worldcat_response["description"] == ""
+        assert caplog.records == []
+
+    def test_get_worldcat_data_for_part_no_records(
+        self, mock_session_managers_no_wc_records
+    ):
+        with pytest.raises(ValueError) as exc:
+            with WorldcatManager() as worldcat_manager:
+                worldcat_manager.get_worldcat_data_for_part(id="9781234567897")
+        assert str(exc.value) == "No records found in WorldCat for 9781234567897."
 
     def test_get_worldcat_data_for_part_no_description(
         self, mock_session_managers_missing_data, caplog
@@ -172,9 +190,9 @@ class TestWorldcatManager:
             worldcat_response = worldcat_manager.get_worldcat_data_for_part(
                 "9781234567897"
             )
-        assert worldcat_response.description == ""
+        assert worldcat_response["description"] == ""
         assert [i.msg for i in caplog.records] == [
-            "ISBN 9781234567897: retrieving brief bib record.",
-            "ISBN 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
-            "ISBN 9781234567897: full bib record for ocn123456789 missing description. Checking next record if present.",
+            "ISBN/UPC 9781234567897: retrieving brief bib record.",
+            "ISBN/UPC 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
+            "ISBN/UPC 9781234567897: full bib record for ocn123456789 missing description. Checking next record if present.",
         ]

@@ -29,8 +29,8 @@ class BriefBibResponse:
 
 
 class FullWorldCatResponse:
-    def __init__(self, isbn: str, wc_response: Record) -> None:
-        self.isbn = isbn
+    def __init__(self, id: str, wc_response: Record) -> None:
+        self.id = id
         self.record = wc_response
         self.subject_fields: list[Field] = wc_response.subjects
 
@@ -96,7 +96,6 @@ class FullWorldCatResponse:
             "author_name": self.author_name,
             "author_dates": self.author_dates,
             "description": self.description,
-            "isbn": self.isbn,
             "pub_date": self.pub_date,
             "subjects": self.subjects,
             "title": self.title,
@@ -143,56 +142,100 @@ class WorldcatManager:
     def __exit__(self, *args, **kwargs) -> None:
         self.session.close()
 
-    def parse_brief_bib(self, brief_records: list[dict[str, Any]]) -> list[str]:
+    def parse_brief_bib(
+        self, brief_records: list[dict[str, Any]], sort: bool = True
+    ) -> list[str]:
         parsed_responses = [BriefBibResponse(i) for i in brief_records]
-        sorted_recs = sorted(parsed_responses, key=BriefBibResponse.sort_key)
-        return [i.oclc_number for i in sorted_recs]
+        if sort:
+            parsed_responses = sorted(parsed_responses, key=BriefBibResponse.sort_key)
+        return [i.oclc_number for i in parsed_responses]
 
-    def get_full_record(self, isbn: str, oclc_number: str) -> FullWorldCatResponse:
+    def get_full_record(self, id: str, oclc_number: str) -> FullWorldCatResponse:
         logger.debug(
-            f"ISBN {isbn}: retrieving full bib record (OCLC number: {oclc_number})."
+            f"ISBN/UPC {id}: retrieving full bib record (OCLC number: {oclc_number})."
         )
         full_bib_response = self.session.bib_get(
             oclcNumber=oclc_number, responseFormat="application/marc"
         )
         record = Record(data=full_bib_response.content)  # type: ignore
-        return FullWorldCatResponse(isbn=isbn, wc_response=record)
+        return FullWorldCatResponse(id=id, wc_response=record)
 
-    def get_oclc_number_from_isbn(self, isbn: str, format: str) -> list[dict[str, Any]]:
-        query = f"sn:{isbn}"
-        if format == "video":
-            brief_bib = self.session.brief_bibs_search(
-                q=query, itemType="video", itemSubType="video-dvd"
-            )
-        elif format == "game":
-            brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
+    def get_oclc_number_from_id(self, id: str, format: str) -> list[dict[str, Any]]:
+        query = f"sn:{id}"
+        if format == "dvd":
+            brief_bibs = self.dvd_brief_bib_search(query)
+        elif format == "lprint":
+            brief_bibs = self.large_print_brief_bib_search(query)
         else:
-            brief_bib = self.session.brief_bibs_search(
-                q=query, itemType="book", itemSubType="book-printbook"
-            )
+            brief_bibs = self.book_brief_bib_search(query)
+        if brief_bibs:
+            return brief_bibs
+        raise ValueError(f"No records found in WorldCat for {id}.")
+
+    def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
         brief_bib_json = brief_bib.json()
-        parsed_brief_bibs = self.parse_brief_bib(
-            brief_records=brief_bib_json.get("briefRecords", [])
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["specificFormat"] == "DVD"
+        ]
+        return self.parse_brief_bib(brief_records=brief_records, sort=False)
+
+    # def game_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+    #     brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
+    #     brief_bib_json = brief_bib.json()
+    #     brief_records = [
+    #         i
+    #         for i in brief_bib_json.get("briefRecords", [])
+    #         if i and i["generalFormat"] == "Game"
+    #     ]
+    #     return self.parse_brief_bib(brief_records=brief_records, sort=False)
+
+    def large_print_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, itemSubType="book-largeprint"
         )
-        if parsed_brief_bibs:
-            return parsed_brief_bibs
-        raise ValueError(f"No records found in WorldCat for {isbn}.")
+        brief_bib_json = brief_bib.json()
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["specificFormat"] == "LargePrint"
+        ]
+        return self.parse_brief_bib(brief_records=brief_records, sort=False)
+
+    def book_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, itemSubType="book-printbook"
+        )
+        brief_bib_json = brief_bib.json()
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["specificFormat"] == "PrintBook"
+        ]
+        return self.parse_brief_bib(brief_records=brief_records, sort=True)
 
     def get_worldcat_data_for_part(
-        self, isbn: str, format: str | None = "book"
-    ) -> FullWorldCatResponse:
-        logger.debug(f"ISBN {isbn}: retrieving brief bib record.")
-        oclc_numbers = self.get_oclc_number_from_isbn(isbn=isbn, format=format)
+        self, id: str, format: str | None = "book"
+    ) -> dict[str, Any]:
+        if not id:
+            return {
+                "title": f"{format.upper()} (missing identifier)",
+                "description": "",
+            }
+        logger.debug(f"ISBN/UPC {id}: retrieving brief bib record.")
+        oclc_numbers = self.get_oclc_number_from_id(id=id, format=format)
         first_rec = None
         for oclc in oclc_numbers:
-            full_rec = self.get_full_record(oclc_number=oclc, isbn=isbn)
+            full_rec = self.get_full_record(oclc_number=oclc, id=id)
             if not full_rec.description:
                 logger.debug(
-                    f"ISBN {isbn}: full bib record for "
+                    f"ISBN/UPC {id}: full bib record for "
                     f"{oclc} missing description. Checking next record if present."
                 )
                 first_rec = full_rec
                 continue
             else:
-                return full_rec
-        return first_rec
+                return full_rec.to_dict()
+        return first_rec.to_dict()
