@@ -24,7 +24,7 @@ class SetBook:
     format: str | None = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class WorldcatSetPart:
     """A book included within a Teacher Set."""
 
@@ -40,19 +40,30 @@ class WorldcatSetPart:
 
     def entry_dict(self) -> dict[str, Any]:
         subfields = []
+        if self.title[-1] not in ["!", "?", ")", "]"]:
+            self.title = f"{self.title.strip('.')}."
         if self.author:
             tag = "700"
             ind1 = "1"
-            subfields.append(("a", self.author.strip(".")))
             if self.author_dates:
+                subfields.append(("a", f"{self.author.strip('.')},"))
                 subfields.append(("d", self.author_dates))
-            subfields.append(("t", self.title))
+                subfields.append(("t", self.title))
+            else:
+                subfields.append(("a", f"{self.author.strip('.')}."))
+                subfields.append(("t", self.title))
         else:
             tag = "730"
             ind1 = "0"
             subfields.append(("a", self.title))
         if self.pub_date:
-            subfields.append(("f", self.pub_date))
+            self.pub_date = self.pub_date.strip(".")
+            if self.pub_date[-1] in ["]", "-"]:
+                subfields.append(("f", self.pub_date))
+            else:
+                subfields.append(("f", f"{self.pub_date}."))
+        if self.format == "Large print":
+            subfields.append(("s", "Large print edition."))
         subfields.append(("x", self.id))
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
 

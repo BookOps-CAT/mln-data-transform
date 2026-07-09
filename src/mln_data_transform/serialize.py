@@ -161,11 +161,18 @@ class TeacherSetBib:
         """Summary description note field (REPEATABLE)"""
         notes = []
         for component in self.components:
-            subfields = [Subfield(code="3", value=component[0])]
+            if len(component) > 3 and component[3] in [
+                "Large print",
+                "Playaway audiobook",
+            ]:
+                material = f"{component[0]} [{component[3]}]"
+            else:
+                material = component[0]
+            if not component[1]:
+                material = f"{material}."
+            subfields = [Subfield(code="3", value=material)]
             if component[1]:
                 subfields.append(Subfield(code="a", value=f"{component[1]}."))
-            else:
-                subfields = [Subfield(code="3", value=f"{component[0]}.")]
             notes.append(
                 Field(tag="520", indicators=Indicators(" ", " "), subfields=subfields)
             )

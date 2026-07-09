@@ -501,7 +501,12 @@ class LegacyTeacherSetData:
     def get_worldcat_data_for_parts(self) -> list[dict[str, Any]]:
         parts = []
         with WorldcatManager() as manager:
-            for part in self.set_parts:
+            for n, part in enumerate(self.set_parts):
+                if not part.id:
+                    logger.warning(f"Item {n + 1} of {len(self.set_parts)} missing ID.")
+                    part.id = input(
+                        f"Please provide ID for part {n + 1} of {self.bib_id}\n"
+                    )
                 worldcat_part = manager.get_worldcat_data_for_part(
                     id=part.id, format=part.format
                 )

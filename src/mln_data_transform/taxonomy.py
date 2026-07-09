@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class ComponentFormat(StrEnum):
-    lprint = "large print"
+    lprint = "Large print"
     dvd = "DVD"
     book = "book"
-    playaway = "Playaway Audiobook"
+    playaway = "Playaway audiobook"
 
 
 class GradeReadingLevel(StrEnum):

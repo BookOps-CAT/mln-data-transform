@@ -63,12 +63,16 @@ class FullWorldCatResponse:
     @property
     def pub_date(self) -> str | None:
         pub_date = self.record.pubyear
-        if isinstance(pub_date, str):
+        if isinstance(pub_date, str) and "-" not in pub_date:
             return pub_date.strip("[].")
+        elif isinstance(pub_date, str) and "-" in pub_date:
+            return pub_date.strip(".")
         return pub_date
 
     @property
     def title(self) -> str:
+        if self.record.uniformtitle and self.record.leader[6] != "a":
+            return self.record.uniformtitle.strip(" :/.")
         return self.record["245"]["a"].strip(" :/.")
 
     @property
@@ -166,6 +170,8 @@ class WorldcatManager:
             brief_bibs = self.dvd_brief_bib_search(query)
         elif format == "lprint":
             brief_bibs = self.large_print_brief_bib_search(query)
+        elif format == "playaway":
+            brief_bibs = self.playaway_brief_bib_search(query)
         else:
             brief_bibs = self.book_brief_bib_search(query)
         if brief_bibs:
@@ -182,15 +188,17 @@ class WorldcatManager:
         ]
         return self.parse_brief_bib(brief_records=brief_records, sort=False)
 
-    # def game_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-    #     brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
-    #     brief_bib_json = brief_bib.json()
-    #     brief_records = [
-    #         i
-    #         for i in brief_bib_json.get("briefRecords", [])
-    #         if i and i["generalFormat"] == "Game"
-    #     ]
-    #     return self.parse_brief_bib(brief_records=brief_records, sort=False)
+    def playaway_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=f"{query} AND kw:playaway", itemType="audiobook"
+        )
+        brief_bib_json = brief_bib.json()
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["generalFormat"] == "Audiobook"
+        ]
+        return self.parse_brief_bib(brief_records=brief_records, sort=False)
 
     def large_print_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
         brief_bib = self.session.brief_bibs_search(
