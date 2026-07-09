@@ -19,7 +19,7 @@ class ControlNumberGenerator:
         if not self.state_path.exists():
             return
         data = json.loads(self.state_path.read_text())
-        logger.info(f"Loading current control number data: {data}")
+        logger.debug(f"Loading current control number data: {data}")
         self.used_numbers = set(data.get("used_numbers", [0]))
         self.next_number = max(self.used_numbers) + 1
         logger.info(f"Next control number is {self.next_number}")

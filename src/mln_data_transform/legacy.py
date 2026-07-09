@@ -45,12 +45,10 @@ class LegacyBibData:
         re.IGNORECASE,
     )
     CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
-        re.IGNORECASE,
+        r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
     )
     ALT_CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( (eng)|(spa)|(fre)|(chi))?))\s*)\s+(?P<set_type>(?P<enhanced>enhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$",  # noqa: E501
-        re.IGNORECASE,
+        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( (eng)|(spa)|(fre)|(chi))?))\s*)\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
     )
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
     SUBJECT_MAPPING = {
@@ -237,13 +235,7 @@ class LegacyBibData:
     def set_type(self) -> str:
         """Parses majority of call number string to identify set type."""
         set_type = self.call_number_components["set_type"].casefold()
-        if (
-            "book club".casefold() in set_type
-            or "BC".casefold() in set_type
-            or "club".casefold() in set_type
-        ):
-            return "CLUB"
-        elif "game" in set_type or "game" in self.subject.casefold():
+        if "game" in set_type or "game" in self.subject.casefold():
             return "GAME"
         elif "storytelling" in set_type:
             return "STORY"
@@ -253,6 +245,12 @@ class LegacyBibData:
             "large".casefold() in set_type and "print".casefold() in set_type
         ):
             return "LPRINT"
+        elif (
+            "book club".casefold() in set_type
+            or "BC".casefold() in set_type
+            or "club".casefold() in set_type
+        ):
+            return "CLUB"
         else:
             return "TOPIC"
 

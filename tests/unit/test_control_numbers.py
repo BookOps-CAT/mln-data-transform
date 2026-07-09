@@ -23,14 +23,15 @@ def mock_control_number_file(monkeypatch):
 
 class TestControlNumberGenerator:
     def test_control_number_generator(self, caplog, mock_control_number_file):
-        generator = ControlNumberGenerator("foo.json")
-        assert (
-            caplog.records[0].msg
-            == "Loading current control number data: {'used_numbers': [1]}"
-        )
-        assert caplog.records[1].msg == "Next control number is 2"
-        assert list(generator.used_numbers) == [1]
-        assert generator.next_number == 2
+        with caplog.at_level("DEBUG"):
+            generator = ControlNumberGenerator("foo.json")
+            assert (
+                caplog.records[0].msg
+                == "Loading current control number data: {'used_numbers': [1]}"
+            )
+            assert caplog.records[1].msg == "Next control number is 2"
+            assert list(generator.used_numbers) == [1]
+            assert generator.next_number == 2
 
     def test_next_control_number(self, mock_control_number_file):
         generator = ControlNumberGenerator("foo.json")

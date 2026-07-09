@@ -43,7 +43,7 @@ class WorldcatSetPart:
         if self.author:
             tag = "700"
             ind1 = "1"
-            subfields.append(("a", self.author))
+            subfields.append(("a", self.author.strip(".")))
             if self.author_dates:
                 subfields.append(("d", self.author_dates))
             subfields.append(("t", self.title))

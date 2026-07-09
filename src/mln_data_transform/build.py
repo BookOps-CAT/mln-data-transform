@@ -103,7 +103,6 @@ class TeacherSetBuilder:
                 set_dict=set_data, control_number=control_number
             )
             valid = self.validate_set_copies(set_copies)
-            self.ctrl_number_gen.save_state()
             logger.info(f"({log_id}) Created {len(valid)} valid copy/copies of set.")
             return valid
         except ValidationError as e:
