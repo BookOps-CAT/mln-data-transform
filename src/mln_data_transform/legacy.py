@@ -508,7 +508,7 @@ class LegacyTeacherSetData:
                         f"Please provide ID for part {n + 1} of {self.bib_id}\n"
                     )
                 worldcat_part = manager.get_worldcat_data_for_part(
-                    id=part.id, format=part.format
+                    id=part.id, index="sn", format=part.format
                 )
                 worldcat_part.update(
                     {"id": part.id, "format": part.format, "copies": part.copies}

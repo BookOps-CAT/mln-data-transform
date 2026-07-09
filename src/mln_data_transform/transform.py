@@ -164,8 +164,10 @@ class WorldcatManager:
         record = Record(data=full_bib_response.content)  # type: ignore
         return FullWorldCatResponse(id=id, wc_response=record)
 
-    def get_oclc_number_from_id(self, id: str, format: str) -> list[dict[str, Any]]:
-        query = f"sn:{id}"
+    def get_oclc_number_from_id(
+        self, id: str, index: str, format: str
+    ) -> list[dict[str, Any]]:
+        query = f"{index}:{id}"
         if format == "dvd":
             brief_bibs = self.dvd_brief_bib_search(query)
         elif format == "lprint":
@@ -225,7 +227,7 @@ class WorldcatManager:
         return self.parse_brief_bib(brief_records=brief_records, sort=True)
 
     def get_worldcat_data_for_part(
-        self, id: str, format: str | None = "book"
+        self, id: str, index: str, format: str | None = "book"
     ) -> dict[str, Any]:
         if not id:
             return {
@@ -233,7 +235,7 @@ class WorldcatManager:
                 "description": "",
             }
         logger.debug(f"ISBN/UPC {id}: retrieving brief bib record.")
-        oclc_numbers = self.get_oclc_number_from_id(id=id, format=format)
+        oclc_numbers = self.get_oclc_number_from_id(id=id, index=index, format=format)
         first_rec = None
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)

@@ -140,7 +140,7 @@ class TestWorldcatManager:
         caplog.set_level("DEBUG")
         with WorldcatManager() as worldcat_manager:
             worldcat_response = worldcat_manager.get_worldcat_data_for_part(
-                id="9781234567897", format=format
+                id="9781234567897", index="sn", format=format
             )
         assert worldcat_response["author_name"] == "Bar, Foo"
         assert worldcat_response["author_dates"] == "1980-"
@@ -168,7 +168,7 @@ class TestWorldcatManager:
         caplog.set_level("DEBUG")
         with WorldcatManager() as worldcat_manager:
             worldcat_response = worldcat_manager.get_worldcat_data_for_part(
-                id=None, format=format
+                id=None, index="sn", format=format
             )
         assert worldcat_response["title"] == f"{format.upper()} (missing identifier)"
         assert worldcat_response["description"] == ""
@@ -179,7 +179,9 @@ class TestWorldcatManager:
     ):
         with pytest.raises(ValueError) as exc:
             with WorldcatManager() as worldcat_manager:
-                worldcat_manager.get_worldcat_data_for_part(id="9781234567897")
+                worldcat_manager.get_worldcat_data_for_part(
+                    id="9781234567897", index="sn"
+                )
         assert str(exc.value) == "No records found in WorldCat for 9781234567897."
 
     def test_get_worldcat_data_for_part_no_description(
@@ -188,7 +190,7 @@ class TestWorldcatManager:
         caplog.set_level("DEBUG")
         with WorldcatManager() as worldcat_manager:
             worldcat_response = worldcat_manager.get_worldcat_data_for_part(
-                "9781234567897"
+                id="9781234567897", index="sn"
             )
         assert worldcat_response["description"] == ""
         assert [i.msg for i in caplog.records] == [

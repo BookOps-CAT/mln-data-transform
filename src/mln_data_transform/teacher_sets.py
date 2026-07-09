@@ -71,7 +71,7 @@ class TeacherSetData:
         with WorldcatManager() as manager:
             for part in self.parts:
                 worldcat_part = manager.get_worldcat_data_for_part(
-                    id=part.id, format=part.format
+                    id=part.id, index="sn", format=part.format
                 )
                 worldcat_part.update(
                     {"id": part.id, "format": part.format, "copies": part.copies}
