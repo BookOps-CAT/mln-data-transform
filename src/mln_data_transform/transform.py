@@ -72,7 +72,9 @@ class FullWorldCatResponse:
     @property
     def title(self) -> str:
         if self.record.uniformtitle and self.record.leader[6] != "a":
-            return self.record.uniformtitle.strip(" :/.")
+            title = input(f"Use {self.record.uniformtitle} for {self.record.title}?")
+            if title == "y":
+                return self.record.uniformtitle.strip(" :/.")
         return self.record["245"]["a"].strip(" :/.")
 
     @property
@@ -198,7 +200,7 @@ class WorldcatManager:
         brief_records = [
             i
             for i in brief_bib_json.get("briefRecords", [])
-            if i and i["generalFormat"] == "Audiobook"
+            if i and i["generalFormat"] == "AudioBook"
         ]
         return self.parse_brief_bib(brief_records=brief_records, sort=False)
 

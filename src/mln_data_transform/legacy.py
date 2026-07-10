@@ -447,7 +447,6 @@ class LegacyTeacherSetData:
         cls, bib_data: LegacyBibData, item_data: list[LegacyItemData]
     ) -> "LegacyTeacherSetData":
         zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
-        print(zipped_ids)
         if not bib_data.special_formats:
             return LegacyTeacherSetData(
                 bib_id=bib_data.bib_id,
