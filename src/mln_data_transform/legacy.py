@@ -26,24 +26,17 @@ logger = logging.getLogger(__name__)
 class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
-    COPY_INFO_PATTERN = re.compile(
-        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()?(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
-    )
     GENERAL_COPY_INFO_PATTERN = re.compile(
-        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()?(((\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()? ?(((\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     PRIMARY_COPY_INFO_PATTERN = re.compile(
         r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
-        r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \()(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     TOPIC_SET_COPY_INFO_PATTERN = re.compile(
-        r"^(?:[Tt]opic( [Ss]et)? \()(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
-    )
-    SINGLE_ITEM_COPY_INFO_PATTERN = re.compile(
-        r"(?:(\d\s+)?((game)|(topic\s+set)|(book\s+club\s+set))\s+(-\s+)?)\((?:en [a-zñ]+\s+)?(?P<copy_count>[0-9]+)([A-z0-9\+\.\s]+)(?<!Board Game)\){1}|((((board)|(video)|(tabletop))(\sgame))|(game)|(dvd))(?:\s*\([A-z\s]+\))?(\s*-\s*)",  # noqa: E501
-        re.IGNORECASE,
+        r"^(?:[Tt]opic( [Ss]et)? \() ?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     CALL_NUMBER_PATTERN = re.compile(
         r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
@@ -207,17 +200,19 @@ class LegacyBibData:
                     f"{len(errors)}/{len(id_list)} are invalid: {errors}"
                 )
             return id_list
-        elif not ids and self.title_fields:
+        if self.title_fields and not ids:
             return []
         raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
 
     @property
     def title_fields(self) -> list[str]:
         title_list = []
+        if self.title_count == 1 and self.set_type == "CLUB":
+            return [self.set_title.split("by")[0]]
         for field in self.var_fields:
             if field["marcTag"] == "505":
                 subfields = [
-                    i["content"] for i in field["subfields"] if i["tag"] == "a"
+                    i["content"] for i in field["subfields"] if i["tag"] in ["a", "t"]
                 ]
                 title_list.extend(subfields)
         if len(title_list) == 1:
@@ -529,7 +524,11 @@ class LegacyTeacherSetData:
         parts = []
         with WorldcatManager() as manager:
             for n, part in enumerate(self.set_parts):
-                if part.id:
+                if part.id and part.title:
+                    worldcat_part = manager.get_worldcat_data_for_part(
+                        id=part.id, index="sn", format=part.format, title=part.title
+                    )
+                elif part.id:
                     worldcat_part = manager.get_worldcat_data_for_part(
                         id=part.id, index="sn", format=part.format
                     )
@@ -538,7 +537,9 @@ class LegacyTeacherSetData:
                         id=part.title, index="ti", format=part.format
                     )
                 else:
-                    logger.warning(f"Item {n + 1} of {len(self.set_parts)} missing ID.")
+                    logger.warning(
+                        f"Item {n + 1} of {len(self.set_parts)} missing ID ({part})."
+                    )
                     part.id = input(
                         f"Please provide ID for part {n + 1} of {self.bib_id}\n"
                     )
@@ -546,6 +547,7 @@ class LegacyTeacherSetData:
                     worldcat_part = manager.get_worldcat_data_for_part(
                         id=part.id, index=index, format=part.format
                     )
+                part.id = worldcat_part["id"]
                 worldcat_part.update(
                     {"id": part.id, "format": part.format, "copies": part.copies}
                 )

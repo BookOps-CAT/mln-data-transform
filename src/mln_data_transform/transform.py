@@ -34,6 +34,9 @@ class FullWorldCatResponse:
         self.record = wc_response
         self.subject_fields: list[Field] = wc_response.subjects
 
+        if self.id and not self.id.isnumeric():
+            self.id = self.record.isbn
+
     @property
     def author_data(self) -> Field | None:
         field = (
@@ -105,6 +108,7 @@ class FullWorldCatResponse:
             "pub_date": self.pub_date,
             "subjects": self.subjects,
             "title": self.title,
+            "id": self.id,
         }
 
 
@@ -167,7 +171,7 @@ class WorldcatManager:
         return FullWorldCatResponse(id=id, wc_response=record)
 
     def get_oclc_number_from_id(
-        self, id: str, index: str, format: str
+        self, id: str, index: str, format: str, title: str | None = None
     ) -> list[dict[str, Any]]:
         query = f"{index}:{id}"
         if format == "dvd":
@@ -175,12 +179,29 @@ class WorldcatManager:
         elif format == "lprint":
             brief_bibs = self.large_print_brief_bib_search(query)
         elif format == "playaway":
+            query = f"{query} AND kw:playaway"
             brief_bibs = self.playaway_brief_bib_search(query)
         else:
             brief_bibs = self.book_brief_bib_search(query)
         if brief_bibs:
             return brief_bibs
-        raise ValueError(f"No records found in WorldCat for {id}.")
+        elif not brief_bibs and not title:
+            raise ValueError(f"No records found in WorldCat for {query} and {format}.")
+        query = f"ti:{title}"
+        if format == "dvd":
+            brief_bibs = self.dvd_brief_bib_search(query)
+        elif format == "lprint":
+            brief_bibs = self.large_print_brief_bib_search(query)
+        elif format == "playaway":
+            query = f"{query} AND kw:playaway"
+            brief_bibs = self.playaway_brief_bib_search(query)
+        else:
+            brief_bibs = self.book_brief_bib_search(query)
+        if brief_bibs:
+            return brief_bibs
+        raise ValueError(
+            f"No records found in WorldCat for {index}:{id}, ti:{title} and {format}."
+        )
 
     def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
         brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
@@ -190,18 +211,26 @@ class WorldcatManager:
             for i in brief_bib_json.get("briefRecords", [])
             if i and i["specificFormat"] == "DVD"
         ]
+        if not brief_records:
+            logger.debug(
+                f"{len(brief_bib_json.get('briefRecords', []))} "
+                f"records found for {query}."
+            )
         return self.parse_brief_bib(brief_records=brief_records, sort=False)
 
     def playaway_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(
-            q=f"{query} AND kw:playaway", itemType="audiobook"
-        )
+        brief_bib = self.session.brief_bibs_search(q=query, itemType="audiobook")
         brief_bib_json = brief_bib.json()
         brief_records = [
             i
             for i in brief_bib_json.get("briefRecords", [])
             if i and i["generalFormat"] == "AudioBook"
         ]
+        if not brief_records:
+            logger.debug(
+                f"{len(brief_bib_json.get('briefRecords', []))} "
+                f"records found for {query}."
+            )
         return self.parse_brief_bib(brief_records=brief_records, sort=False)
 
     def large_print_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
@@ -214,6 +243,11 @@ class WorldcatManager:
             for i in brief_bib_json.get("briefRecords", [])
             if i and i["specificFormat"] == "LargePrint"
         ]
+        if not brief_records:
+            logger.debug(
+                f"{len(brief_bib_json.get('briefRecords', []))} "
+                f"records found for {query}."
+            )
         return self.parse_brief_bib(brief_records=brief_records, sort=False)
 
     def book_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
@@ -226,18 +260,20 @@ class WorldcatManager:
             for i in brief_bib_json.get("briefRecords", [])
             if i and i["specificFormat"] == "PrintBook"
         ]
+        if not brief_records:
+            logger.debug(
+                f"{len(brief_bib_json.get('briefRecords', []))} "
+                f"records found for {query}."
+            )
         return self.parse_brief_bib(brief_records=brief_records, sort=True)
 
     def get_worldcat_data_for_part(
-        self, id: str, index: str, format: str | None = "book"
+        self, id: str, index: str, format: str | None = "book", title: str | None = None
     ) -> dict[str, Any]:
-        if not id:
-            return {
-                "title": f"{format.upper()} (missing identifier)",
-                "description": "",
-            }
         logger.debug(f"ISBN/UPC {id}: retrieving brief bib record.")
-        oclc_numbers = self.get_oclc_number_from_id(id=id, index=index, format=format)
+        oclc_numbers = self.get_oclc_number_from_id(
+            id=id, index=index, format=format, title=title
+        )
         first_rec = None
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)

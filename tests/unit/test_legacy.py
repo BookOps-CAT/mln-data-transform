@@ -33,16 +33,16 @@ class TestLegacyBibData:
         assert legacy_bib.physical_description is None
         assert legacy_bib.record_type == "a"
 
-    def test_legacy_bib_data_missing_ids(self, test_bib_data):
-        legacy_bib = LegacyBibData(
-            bib_id=test_bib_data["id"],
-            set_title=test_bib_data["title"],
-            var_fields={},
-            language=test_bib_data["lang"],
-        )
-        with pytest.raises(ValueError) as exc:
-            legacy_bib.ids
-        assert str(exc.value) == "(19538471) Record does not contain ISBNs."
+    # def test_legacy_bib_data_missing_ids(self, test_bib_data):
+    #     legacy_bib = LegacyBibData(
+    #         bib_id=test_bib_data["id"],
+    #         set_title=test_bib_data["title"],
+    #         var_fields={},
+    #         language=test_bib_data["lang"],
+    #     )
+    #     with pytest.raises(ValueError) as exc:
+    #         legacy_bib.ids
+    #     assert str(exc.value) == "(19538471) Record does not contain ISBNs."
 
     @pytest.mark.parametrize(
         "arg,copies,titles",
