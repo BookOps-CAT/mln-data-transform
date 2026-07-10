@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from enum import StrEnum
+from itertools import zip_longest
 from typing import Any
 
 from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
@@ -206,7 +207,24 @@ class LegacyBibData:
                     f"{len(errors)}/{len(id_list)} are invalid: {errors}"
                 )
             return id_list
+        elif not ids and self.title_fields:
+            return []
         raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
+
+    @property
+    def title_fields(self) -> list[str]:
+        title_list = []
+        for field in self.var_fields:
+            if field["marcTag"] == "505":
+                subfields = [
+                    i["content"] for i in field["subfields"] if i["tag"] == "a"
+                ]
+                title_list.extend(subfields)
+        if len(title_list) == 1:
+            return [
+                i.strip() for i in title_list[0].split("--") if "--" in title_list[0]
+            ]
+        return []
 
     @property
     def lang(self) -> str | None:
@@ -428,6 +446,8 @@ class LegacyTeacherSetData:
     def from_bib_item_data(
         cls, bib_data: LegacyBibData, item_data: list[LegacyItemData]
     ) -> "LegacyTeacherSetData":
+        zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
+        print(zipped_ids)
         if not bib_data.special_formats:
             return LegacyTeacherSetData(
                 bib_id=bib_data.bib_id,
@@ -440,31 +460,39 @@ class LegacyTeacherSetData:
                 physical_description=bib_data.physical_description,
                 record_type=bib_data.record_type,
                 set_parts=[
-                    {"id": i, "copies": bib_data.copy_count, "format": "book"}
-                    for i in bib_data.ids
+                    {
+                        "id": i[0],
+                        "copies": bib_data.copy_count,
+                        "title": i[1],
+                        "format": "book",
+                    }
+                    for i in zipped_ids
                 ],
                 set_title=bib_data.set_title,
                 set_type=bib_data.set_type,
                 study_program_info=bib_data.subject,
                 var_fields=bib_data.var_fields,
             )
-        book_ids = bib_data.ids[: bib_data.title_count]
-        other_ids = bib_data.ids[bib_data.title_count :]
+        book_ids = zipped_ids[: bib_data.title_count]
+        other_ids = zipped_ids[bib_data.title_count :]
         parts = [
-            {"id": i, "copies": bib_data.copy_count, "format": "book"} for i in book_ids
+            {"id": i[0], "title": i[1], "copies": bib_data.copy_count, "format": "book"}
+            for i in book_ids
         ]
         if len(other_ids) < sum([i[1] for i in bib_data.special_formats]):
-            added = [None] * (
+            added = [(None, None)] * (
                 sum([i[1] for i in bib_data.special_formats]) - len(other_ids)
             )
 
             other_ids = other_ids + added
         zipped_items = [
-            (format, count, id)
-            for (format, count), id in zip(bib_data.special_formats, other_ids)
+            (format, count, id, title)
+            for (format, count), (id, title) in zip(bib_data.special_formats, other_ids)
         ]
         for item in zipped_items:
-            parts.append({"format": item[0], "copies": item[1], "id": item[2]})
+            parts.append(
+                {"format": item[0], "copies": item[1], "id": item[2], "title": item[3]}
+            )
         return LegacyTeacherSetData(
             bib_id=bib_data.bib_id,
             copies_of_set=len(item_data),
@@ -502,14 +530,23 @@ class LegacyTeacherSetData:
         parts = []
         with WorldcatManager() as manager:
             for n, part in enumerate(self.set_parts):
-                if not part.id:
+                if part.id:
+                    worldcat_part = manager.get_worldcat_data_for_part(
+                        id=part.id, index="sn", format=part.format
+                    )
+                elif not part.id and part.title:
+                    worldcat_part = manager.get_worldcat_data_for_part(
+                        id=part.title, index="ti", format=part.format
+                    )
+                else:
                     logger.warning(f"Item {n + 1} of {len(self.set_parts)} missing ID.")
                     part.id = input(
                         f"Please provide ID for part {n + 1} of {self.bib_id}\n"
                     )
-                worldcat_part = manager.get_worldcat_data_for_part(
-                    id=part.id, index="sn", format=part.format
-                )
+                    index = input("Please provide index for search\n")
+                    worldcat_part = manager.get_worldcat_data_for_part(
+                        id=part.id, index=index, format=part.format
+                    )
                 worldcat_part.update(
                     {"id": part.id, "format": part.format, "copies": part.copies}
                 )

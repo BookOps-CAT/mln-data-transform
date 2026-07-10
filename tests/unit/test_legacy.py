@@ -375,6 +375,67 @@ class TestLegacyBibData:
             == f"(19538471) Record contains 2 ISBN/UPC(s). 1/2 are invalid: {output}"
         )
 
+    @pytest.mark.parametrize(
+        "title_field,output",
+        [
+            ("Foo -- Bar -- Baz", ["Foo", "Bar", "Baz"]),
+            ("Foo", []),
+            ("1 copy of 20 titles", []),
+        ],
+    )
+    def test_legacy_bib_data_title_fields(self, test_bib_data, title_field, output):
+        bib_data_dict = copy.deepcopy(test_bib_data)
+        bib_data_dict["varFields"].append(
+            {
+                "ind1": "0",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "505",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": title_field}],
+            }
+        )
+        bib_data = LegacyBibData(
+            bib_id=bib_data_dict["id"],
+            set_title=bib_data_dict["title"],
+            var_fields=bib_data_dict["varFields"],
+            language=bib_data_dict["lang"],
+        )
+        assert bib_data.title_fields == output
+
+    @pytest.mark.parametrize(
+        "title_field", ["Foo -- Bar -- Baz", "Foo", "1 copy of 20 titles"]
+    )
+    def test_legacy_bib_data_no_title_field(self, test_bib_data, title_field):
+        bib_data_dict = copy.deepcopy(test_bib_data)
+        bib_data_dict["varFields"].extend(
+            [
+                {
+                    "ind1": "0",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "505",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": title_field}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "505",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "Teacher set"}],
+                },
+            ]
+        )
+        bib_data = LegacyBibData(
+            bib_id=bib_data_dict["id"],
+            set_title=bib_data_dict["title"],
+            var_fields=bib_data_dict["varFields"],
+            language=bib_data_dict["lang"],
+        )
+        assert bib_data.title_fields == []
+
 
 class TestLegacyItemData:
     def test_legacy_item_data(self):
@@ -987,3 +1048,83 @@ class TestLegacyTeacherSet:
         )
         assert legacy_set.call_number == call_number
         assert sorted([i.value for i in legacy_set.local_topic_term]) == sorted(output)
+
+    @pytest.mark.parametrize(
+        "worldcat_part,output",
+        [
+            (
+                {
+                    "author_name": None,
+                    "author_dates": None,
+                    "description": "A fake description of a book.",
+                    "id": "9780987654328",
+                    "pub_date": "20uu",
+                    "subjects": [],
+                    "title": "Fake book 1",
+                    "format": "lprint",
+                    "copies": 1,
+                },
+                {
+                    "ind1": "0",
+                    "ind2": "2",
+                    "tag": "730",
+                    "subfields": [
+                        ("a", "Fake book 1."),
+                        ("f", "20uu."),
+                        ("s", "Large print edition."),
+                        ("x", "9780987654328"),
+                    ],
+                },
+            ),
+            (
+                {
+                    "author_name": None,
+                    "author_dates": None,
+                    "description": "A fake description of a book.",
+                    "id": "9780987654328",
+                    "title": "Fake book!",
+                    "format": "book",
+                    "copies": 1,
+                },
+                {
+                    "ind1": "0",
+                    "ind2": "2",
+                    "tag": "730",
+                    "subfields": [("a", "Fake book!"), ("x", "9780987654328")],
+                },
+            ),
+            (
+                {
+                    "author_name": "Foo, Bar",
+                    "author_dates": "2000-",
+                    "description": "A fake description of a book.",
+                    "pub_date": "[2020]-[2021]",
+                    "id": "9780987654328",
+                    "title": "Fake book!",
+                    "format": "book",
+                    "copies": 1,
+                },
+                {
+                    "ind1": "1",
+                    "ind2": "2",
+                    "tag": "700",
+                    "subfields": [
+                        ("a", "Foo, Bar,"),
+                        ("d", "2000-"),
+                        ("t", "Fake book!"),
+                        ("f", "[2020]-[2021]"),
+                        ("x", "9780987654328"),
+                    ],
+                },
+            ),
+        ],
+    )
+    def test_legacy_set_added_entries(
+        self, legacy_set_test_data, caplog, worldcat_part, output
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        legacy_set = LegacyTeacherSet(
+            set_data=legacy_set_data, worldcat_parts=[worldcat_part]
+        )
+        assert legacy_set.parts[0].entry_dict() == output

@@ -22,6 +22,7 @@ class SetBook:
     copies: int
     id: str | None
     format: str | None = None
+    title: str | None = None
 
 
 @dataclass

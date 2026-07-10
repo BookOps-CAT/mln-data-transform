@@ -206,8 +206,60 @@ def mock_set_missing_info(monkeypatch, mock_set, mock_worldcat_parts) -> None:
         mock_worldcat_parts[0]["subjects"] = []
         return mock_worldcat_parts
 
+    def mock_bib_data(*args, **kwargs) -> LegacyBibData:
+        return LegacyBibData(
+            bib_id="12345678",
+            language="eng",
+            set_title="Foo Bar Teacher Set",
+            var_fields=[
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "091",
+                    "fieldTag": "c",
+                    "subfields": [
+                        {"tag": "a", "content": "Teacher Set SOC A Foo Bar Book Club 1"}
+                    ],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "300",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "4 v."}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "505",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "Foo -- Bar"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "520",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "2 copies of 2 titles."}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": "00000nam  2200000 a 4500",
+                    "marcTag": None,
+                    "fieldTag": "n",
+                    "subfields": None,
+                },
+            ],
+        )
+
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
     monkeypatch.setattr(TeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+    monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
 
 
 @pytest.fixture
