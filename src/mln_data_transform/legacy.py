@@ -35,7 +35,9 @@ class LegacyBibData:
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
-    MINIMAL_COPY_INFO_PATTERN = re.compile(r"^(?P<copy_count>\d{1,2})\s?v\.$")
+    MINIMAL_COPY_INFO_PATTERN = re.compile(
+        r"^(?P<copy_count>\d{1,2})\s?((v\.)|(item\(s\)))$"
+    )
     TOPIC_SET_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Tt]opic( [Ss]et)? \() ?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
@@ -43,8 +45,14 @@ class LegacyBibData:
         r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
     )
     ALT_CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-z]{3,4}( (eng)|(spa)|(fre)|(chi))?))\s*)\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
+        r"Teacher\s*Set\s*(?: Assorted )?(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Science)|(Education)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}( (eng)|(spa)|(fre)|(chi))?))\s*)\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
     )
+    OLDER_CALL_NUMBER_PATTERN = re.compile(
+        r"Teacher\s*Set\s*(?:.+)(?P<subject>((ART)|(ELA)|(CHLA)|(FRLA)|(SPLA)|(MATH)|(EDUCATION)|(SCI)|([Ss]cience)|(SOC)|([Ss]ocial [Ss]tudies)|(WorldLang)|(GAME)|([Ll]angauge [Aa]rts)|([Ee]ducation)|(Soc)))(?:.+)?(?P<lang>((ENG)|(SPA)|(FRE)|(English)|(Spanish)|(Chinese)))?"  # noqa: E501
+    )
+    MINIMAL_CALL_NUMBER_PATTERN = re.compile(
+        r"Teacher\s*Set\s*(?P<set_type>((\b\w+\b\s)+\s*(?!\d)))(?P<lang>((ENG)|(SPA)|(FRE)|(English)|(Spanish)|(Chinese)))?"
+    )  # noqa: E501
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
     SUBJECT_MAPPING = {
         "Language Arts ENG": "ELA",
@@ -101,6 +109,7 @@ class LegacyBibData:
         language: str,
         set_title: str,
         var_fields: list[dict[str, Any]],
+        input_subject: str | None = None,
     ) -> None:
         self.bib_id = bib_id
         self.language = language
@@ -110,6 +119,7 @@ class LegacyBibData:
             for i in var_fields
             if i["marcTag"] not in ["901", "904", "908", "909", "910", "949"]
         ]
+        self.input_subject = input_subject
 
     @property
     def call_number(self) -> str:
@@ -124,6 +134,11 @@ class LegacyBibData:
         if not components:
             components = self.ALT_CALL_NUMBER_PATTERN.match(self.call_number)
         if not components:
+            components = self.OLDER_CALL_NUMBER_PATTERN.match(self.call_number)
+        if not components:
+            components = self.MINIMAL_CALL_NUMBER_PATTERN.match(self.call_number)
+        if not components:
+            # return None
             raise ValueError(
                 f"Call number '{self.call_number}' does not match pattern. "
                 f"Cannot extract components."
@@ -157,8 +172,16 @@ class LegacyBibData:
             content = [
                 i["content"]
                 for i in field["subfields"]
-                if i["content"].lower().startswith("topic")
-                or i["content"].lower().startswith("book club")
+                if (
+                    (
+                        i["content"].lower() != "book club set"
+                        and i["content"].lower() != "topic set"
+                    )
+                    and (
+                        i["content"].lower().startswith("topic")
+                        or i["content"].lower().startswith("book club")
+                    )
+                )
             ]
             fields_5xx.extend(content)
         for field in fields_5xx:
@@ -170,7 +193,13 @@ class LegacyBibData:
                 matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
                 if matched:
                     return field
-        raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
+        field = self.physical_description
+        matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
+        if self.set_type == "CLUB" and matched:
+            return f"{field.split('item')[0]} copies of 1 title"
+        raise ValueError(
+            f"Copy info pattern does not match general patterns for {self.bib_id}."
+        )
 
     @property
     def copy_info_components(self) -> re.Match:
@@ -186,21 +215,27 @@ class LegacyBibData:
         minimal_match = self.MINIMAL_COPY_INFO_PATTERN.match(self.copy_info_field)
         if minimal_match:
             return minimal_match
-        raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
+        raise ValueError(
+            f"Copy info pattern does not match {self.bib_id}: {self.copy_info_field}."
+        )
 
     @property
     def copy_count(self) -> int:
         if "copy_count" not in self.copy_info_components.groupdict():
             return 1
         copy_count = self.copy_info_components["copy_count"]
-        if copy_count.isalpha():
+        if copy_count and copy_count.isalpha():
             copy_count = self.DIGITS[copy_count.casefold()]
         return int(copy_count)
 
     @property
     def enhanced(self) -> str | None:
         """Extracts 'enhanced' from legacy call number for sets with special formats."""
-        if self.call_number_components["enhanced"]:
+        if (
+            self.call_number_components
+            and "enhanced" in self.call_number_components.groupdict()
+            and self.call_number_components["enhanced"]
+        ):
             return "E"
         return None
 
@@ -218,11 +253,16 @@ class LegacyBibData:
             grade_level_string = " ".join([i["content"].strip() for i in subfields_521])
             matches = self.map_to_closest_enum(grade_level_string)
             return matches
-        grade_level = self.call_number_components["grade_level"]
-        if self.lang:
-            return self.GRADE_LEVEL_MAPPING[grade_level]
-        else:
-            return grade_level
+        if (
+            self.call_number_components
+            and "grade_level" in self.call_number_components.groupdict()
+        ):
+            grade_level = self.call_number_components["grade_level"]
+            if self.lang:
+                return self.GRADE_LEVEL_MAPPING[grade_level]
+            else:
+                return grade_level
+        return None
 
     @property
     def ids(self) -> list[str]:
@@ -262,7 +302,10 @@ class LegacyBibData:
     @property
     def lang(self) -> str | None:
         """Parses language from call number if present."""
-        if "lang" in self.call_number_components.groupdict():
+        if (
+            self.call_number_components
+            and "lang" in self.call_number_components.groupdict()
+        ):
             return self.call_number_components["lang"]
 
     @property
@@ -290,30 +333,50 @@ class LegacyBibData:
     @property
     def set_type(self) -> str:
         """Parses majority of call number string to identify set type."""
-        set_type = self.call_number_components["set_type"].casefold()
-        if "game" in set_type or "game" in self.subject.casefold():
-            return "GAME"
-        elif "storytelling" in set_type:
-            return "STORY"
-        elif "audio" in set_type or ("digital" in set_type and "devices" in set_type):
-            return "AUDIO"
-        elif "lprint".casefold() in set_type or (
-            "large".casefold() in set_type and "print".casefold() in set_type
+        if (
+            self.call_number_components
+            and "set_type" in self.call_number_components.groupdict()
         ):
-            return "LPRINT"
-        elif (
-            "book club".casefold() in set_type
-            or "BC".casefold() in set_type
-            or "club".casefold() in set_type
-        ):
+            set_type = self.call_number_components["set_type"].casefold()
+            if "game" in set_type or "game" in self.subject.casefold():
+                return "GAME"
+            elif "storytelling" in set_type or "storytelling" in self.set_title:
+                return "STORY"
+            elif "storytelling" in set_type:
+                return "STORY"
+            elif "audio" in set_type or (
+                "digital" in set_type and "devices" in set_type
+            ):
+                return "AUDIO"
+            elif "lprint".casefold() in set_type or (
+                "large".casefold() in set_type and "print".casefold() in set_type
+            ):
+                return "LPRINT"
+            elif "large print".casefold() in self.set_title:
+                return "LPRINT"
+            elif (
+                "book club".casefold() in set_type
+                or "BC".casefold() in set_type
+                or "club".casefold() in set_type
+            ):
+                return "CLUB"
+            else:
+                return "TOPIC"
+        if "Book Club" in self.call_number:
             return "CLUB"
-        else:
+        elif "Topic Set" in self.call_number:
             return "TOPIC"
+        elif "Large Print" in self.call_number:
+            return "LPRINT"
+        elif "Storytelling" in self.call_number:
+            return "STORY"
+        return "TOPIC"
 
     @property
     def special_formats(self) -> list[tuple[str, int]] | None:
         if (
-            "enhanced_item_count_1" not in self.copy_info_components.groupdict()
+            not self.call_number_components
+            or "enhanced_item_count_1" not in self.copy_info_components.groupdict()
             or not self.copy_info_components["enhanced_item_count_1"]
         ):
             return None
@@ -343,27 +406,34 @@ class LegacyBibData:
         return out
 
     @property
-    def subject(self) -> str:
+    def subject(self) -> str | None:
         """Extracts subject from call number to map to study program info."""
+        if (
+            not self.call_number_components
+            or "subject" not in self.call_number_components.groupdict()
+        ):
+            return self.input_subject
         subject = self.call_number_components["subject"]
         if subject in self.SUBJECT_MAPPING.keys():
             return self.SUBJECT_MAPPING[subject]
-        elif self.lang and subject.removesuffix(self.lang).strip() == "Language Arts":
+        if self.lang:
+            subject = subject.removesuffix(self.lang).strip()
+        if self.lang and subject == "Language Arts":
             return "WorldLang"
-        elif (
-            self.lang
-            and subject.removesuffix(self.lang).strip() in self.SUBJECT_MAPPING
-        ):
-            return self.SUBJECT_MAPPING[subject.removesuffix(self.lang).strip()]
+        elif self.lang and subject in self.SUBJECT_MAPPING:
+            return self.SUBJECT_MAPPING[subject]
         else:
             return subject.upper()
 
     @property
     def title_count(self) -> int:
-        if "title_count" not in self.copy_info_components.groupdict():
+        if (
+            not self.call_number_components
+            or "title_count" not in self.copy_info_components.groupdict()
+        ):
             return 1
         title_count = self.copy_info_components["title_count"]
-        if title_count.isalpha():
+        if title_count and title_count.isalpha():
             title_count = self.DIGITS[title_count.casefold()]
         return int(title_count)
 
@@ -411,8 +481,9 @@ class LegacyItemData:
 
 
 class LegacySetStub:
-    def __init__(self, bib_id: str) -> None:
+    def __init__(self, bib_id: str, subject: str) -> None:
         self.bib_id = bib_id
+        self.subject = subject
 
     def get_bib_data(self) -> LegacyBibData:
         manager = PlatformManager()
@@ -423,6 +494,7 @@ class LegacySetStub:
             language=bib_data["lang"]["code"],
             set_title=bib_data["title"],
             var_fields=bib_data["varFields"],
+            input_subject=self.subject,
         )
 
     def get_item_data(self) -> list[LegacyItemData]:
@@ -576,8 +648,15 @@ class LegacyTeacherSetData:
                         id=part.title, index="ti", format=part.format
                     )
                 else:
-                    raise ValueError(
+                    logger.warning(
                         f"Item {n + 1} of {len(self.set_parts)} missing ID ({part})."
+                    )
+                    part.id = input(
+                        f"Please provide ID for part {n + 1} of {self.bib_id}\n"
+                    )
+                    index = input("Please provide index for search\n")
+                    worldcat_part = manager.get_worldcat_data_for_part(
+                        id=part.id, index=index, format=part.format
                     )
                 part.id = worldcat_part["id"]
                 worldcat_part.update(

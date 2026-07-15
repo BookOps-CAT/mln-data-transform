@@ -50,8 +50,11 @@ class TeacherSetBuilder:
 
     def build_legacy_set(self, bib_id: str) -> dict[str, Any]:
         logger.info(f"({bib_id}) Building teacher set from legacy data.")
-        set_stub = LegacySetStub(bib_id=bib_id)
+        mapping = self.location_mapping(bib_id)
+        set_stub = LegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
         bib_data = set_stub.get_bib_data()
+        if "Bookpack" in bib_data.set_title:
+            raise ValueError
         item_data = set_stub.get_item_data()
         set_data = LegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
         worldcat_parts = set_data.get_worldcat_data_for_parts()

@@ -30,10 +30,10 @@ class ControlNumberGenerator:
     def next_control_number(self) -> str:
         number = self.next_number
         self.used_numbers.add(number)
-        self.next_number += 1
         return self._format(number)
 
     def save_state(self) -> None:
+        self.next_number += 1
         self.state_path.write_text(
             json.dumps({"used_numbers": sorted(self.used_numbers)})
         )
