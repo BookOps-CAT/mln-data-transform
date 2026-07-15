@@ -35,6 +35,7 @@ class LegacyBibData:
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
+    MINIMAL_COPY_INFO_PATTERN = re.compile(r"^(?P<copy_count>\d{1,2})\s?v\.$")
     TOPIC_SET_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Tt]opic( [Ss]et)? \() ?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
@@ -50,6 +51,7 @@ class LegacyBibData:
         "Language Arts SPA": "SPLA",
         "Language Arts FRE": "SPLA",
         "Language Arts CHI": "CHLA",
+        "Language Arts": "ELA",
         "Arts": "ART",
         "ARTS": "ART",
         "Math": "MAT",
@@ -65,6 +67,8 @@ class LegacyBibData:
         "SPA": "SPLA",
         "FRE": "FRLA",
         "CHI": "CHLA",
+        "Education": "PDE",
+        "EDU": "PDE",
     }
     DIGITS = {
         "zero": 0,
@@ -78,8 +82,17 @@ class LegacyBibData:
         "eight": 8,
         "nine": 9,
         "ten": 10,
+        "eleven": 11,
+        "twelve": 12,
+        "thirteen": 13,
+        "fourteen": 14,
         "fifteen": 15,
+        "sixteen": 16,
+        "seventeen": 17,
+        "eighteen": 18,
+        "nineteen": 19,
         "twenty": 20,
+        "thirty": 30,
     }
 
     def __init__(
@@ -125,9 +138,7 @@ class LegacyBibData:
             content = [
                 i["content"]
                 for i in field["subfields"]
-                if i["content"].lower().startswith("topic")
-                or i["content"].lower().startswith("book club")
-                or i["content"][0].isnumeric()
+                if i["content"][0].isnumeric()
                 or i["content"].split()[0].lower() in self.DIGITS.keys()
             ]
             fields_5xx.extend(content)
@@ -135,6 +146,30 @@ class LegacyBibData:
             matched = self.GENERAL_COPY_INFO_PATTERN.match(field)
             if matched:
                 return field
+        if self.set_type == "CLUB":
+            for field in fields_5xx:
+                matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
+                if matched:
+                    return field
+        fields = [i for i in self.var_fields if i["marcTag"] in ["500", "505", "520"]]
+        fields_5xx = []
+        for field in fields:
+            content = [
+                i["content"]
+                for i in field["subfields"]
+                if i["content"].lower().startswith("topic")
+                or i["content"].lower().startswith("book club")
+            ]
+            fields_5xx.extend(content)
+        for field in fields_5xx:
+            matched = self.GENERAL_COPY_INFO_PATTERN.match(field)
+            if matched:
+                return field
+        if self.set_type == "CLUB":
+            for field in fields_5xx:
+                matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
+                if matched:
+                    return field
         raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
 
     @property
@@ -148,6 +183,9 @@ class LegacyBibData:
         topic_match = self.TOPIC_SET_COPY_INFO_PATTERN.match(self.copy_info_field)
         if topic_match:
             return topic_match
+        minimal_match = self.MINIMAL_COPY_INFO_PATTERN.match(self.copy_info_field)
+        if minimal_match:
+            return minimal_match
         raise ValueError(f"Copy info pattern does not match for {self.bib_id}.")
 
     @property
@@ -232,9 +270,14 @@ class LegacyBibData:
         field_300 = [i for i in self.var_fields if i["marcTag"] == "300"]
         if field_300:
             subfields_300 = field_300[0]["subfields"]
-            return " ".join([i["content"] for i in subfields_300]).replace(
-                "v.", "item(s)"
+            phys_desc = (
+                " ".join([i["content"] for i in subfields_300])
+                .replace("v.", " item(s)")
+                .replace("  ", " ")
             )
+            if phys_desc.isnumeric():
+                return f"{phys_desc} item(s)"
+            return phys_desc
         return None
 
     @property
@@ -327,7 +370,7 @@ class LegacyBibData:
     def map_to_closest_enum(self, grade_str: str) -> str:
         """Applies explicit overrides, then falls back to Euclidean distance."""
         clean_str = grade_str.strip(".")
-        if clean_str == "1-12":
+        if clean_str in ["1-12", "k-12", "K-12"]:
             return "E"
         if clean_str.startswith(("0", "Pre")):
             return "A"
@@ -390,7 +433,7 @@ class LegacySetStub:
             f"({self.bib_id}) Retrieved bib and "
             f"{len(item_data)} item record(s) from platform."
         )
-        for item in item_data:
+        for n, item in enumerate(item_data):
             if item["status"]["code"] not in ["-", "k"]:
                 continue
             legacy_item = LegacyItemData(
@@ -524,28 +567,17 @@ class LegacyTeacherSetData:
         parts = []
         with WorldcatManager() as manager:
             for n, part in enumerate(self.set_parts):
-                if part.id and part.title:
+                if part.id:
                     worldcat_part = manager.get_worldcat_data_for_part(
                         id=part.id, index="sn", format=part.format, title=part.title
-                    )
-                elif part.id:
-                    worldcat_part = manager.get_worldcat_data_for_part(
-                        id=part.id, index="sn", format=part.format
                     )
                 elif not part.id and part.title:
                     worldcat_part = manager.get_worldcat_data_for_part(
                         id=part.title, index="ti", format=part.format
                     )
                 else:
-                    logger.warning(
+                    raise ValueError(
                         f"Item {n + 1} of {len(self.set_parts)} missing ID ({part})."
-                    )
-                    part.id = input(
-                        f"Please provide ID for part {n + 1} of {self.bib_id}\n"
-                    )
-                    index = input("Please provide index for search\n")
-                    worldcat_part = manager.get_worldcat_data_for_part(
-                        id=part.id, index=index, format=part.format
                     )
                 part.id = worldcat_part["id"]
                 worldcat_part.update(

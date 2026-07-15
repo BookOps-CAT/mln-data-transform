@@ -42,7 +42,7 @@ class WorldcatSetPart:
     def entry_dict(self) -> dict[str, Any]:
         subfields = []
         if self.title[-1] not in ["!", "?", ")", "]"]:
-            self.title = f"{self.title.strip('.')}."
+            self.title = f"{self.title.strip('.,=').strip()}."
         if self.author:
             tag = "700"
             ind1 = "1"

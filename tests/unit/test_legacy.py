@@ -63,31 +63,38 @@ class TestLegacyBibData:
     )
     def test_legacy_bib_data_pattern_matching(self, test_bib_data, arg, copies, titles):
         test_bib_data["varFields"] = [
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "500",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Teacher set"}],
-            },
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "505",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "1 Bookpack"}],
-            },
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "520",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": f"{arg} Baz - Qux. "}],
-            },
+            i
+            for i in test_bib_data["varFields"]
+            if i["marcTag"] not in ["500", "505", "520"]
         ]
+        test_bib_data["varFields"].extend(
+            [
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "500",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "Teacher set"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "505",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "1 Bookpack"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "520",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": f"{arg} Baz - Qux. "}],
+                },
+            ]
+        )
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
@@ -114,15 +121,22 @@ class TestLegacyBibData:
         self, test_bib_data, arg, tag
     ):
         test_bib_data["varFields"] = [
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": tag,
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": f"{arg}"}],
-            }
+            i
+            for i in test_bib_data["varFields"]
+            if i["marcTag"] not in ["500", "505", "520"]
         ]
+        test_bib_data["varFields"].extend(
+            [
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": tag,
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": f"{arg}"}],
+                }
+            ]
+        )
         with pytest.raises(ValueError) as exc:
             legacy_bib = LegacyBibData(
                 bib_id=test_bib_data["id"],
@@ -159,23 +173,30 @@ class TestLegacyBibData:
         self, test_bib_data, arg, copies, titles, special_formats
     ):
         test_bib_data["varFields"] = [
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "500",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": "Teacher set"}],
-            },
-            {
-                "ind1": " ",
-                "ind2": " ",
-                "content": None,
-                "marcTag": "520",
-                "fieldTag": "n",
-                "subfields": [{"tag": "a", "content": arg}],
-            },
+            i
+            for i in test_bib_data["varFields"]
+            if i["marcTag"] not in ["500", "505", "520"]
         ]
+        test_bib_data["varFields"].extend(
+            [
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "500",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": "Teacher set"}],
+                },
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "content": None,
+                    "marcTag": "520",
+                    "fieldTag": "n",
+                    "subfields": [{"tag": "a", "content": arg}],
+                },
+            ]
+        )
         legacy_bib = LegacyBibData(
             bib_id=test_bib_data["id"],
             set_title=test_bib_data["title"],
