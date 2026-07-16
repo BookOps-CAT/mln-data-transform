@@ -13,6 +13,11 @@ from mln_data_transform.legacy import (
     LegacyTeacherSet,
     LegacyTeacherSetData,
 )
+from mln_data_transform.minimal import (
+    MinimalLegacySetStub,
+    MinimalLegacyTeacherSet,
+    MinimalLegacyTeacherSetData,
+)
 from mln_data_transform.model import TeacherSetCopy
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
@@ -59,6 +64,21 @@ class TeacherSetBuilder:
         set_data = LegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
         worldcat_parts = set_data.get_worldcat_data_for_parts()
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
+        logger.info(legacy_set.__dict__)
+        validated_set = self.validate_set(legacy_set)
+        return validated_set
+
+    def build_minimal_legacy_set(self, bib_id: str) -> dict[str, Any]:
+        logger.info(f"({bib_id}) Building teacher set from legacy data.")
+        mapping = self.location_mapping(bib_id)
+        set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
+        bib_data = set_stub.get_minimal_bib_data()
+        item_data = set_stub.get_item_data()
+        set_data = MinimalLegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
+        worldcat_parts = set_data.get_worldcat_data_for_parts()
+        legacy_set = MinimalLegacyTeacherSet(
+            set_data=set_data, worldcat_parts=worldcat_parts
+        )
         validated_set = self.validate_set(legacy_set)
         return validated_set
 
@@ -160,4 +180,13 @@ class TeacherSetBuilder:
         with open(out_file, "ab") as fh:
             for set_bib in set_bibs:
                 bib = set_bib.to_bib()
+                fh.write(bib.as_marc())
+
+    def write_minimal_bib_marc_to_file(
+        self, out_file: str, set_bibs: list[TeacherSetBib]
+    ) -> None:
+        logger.info(f"({set_bibs[0].control_number}) Writing records to file for set.")
+        with open(out_file, "ab") as fh:
+            for set_bib in set_bibs:
+                bib = set_bib.to_minimal_bib()
                 fh.write(bib.as_marc())

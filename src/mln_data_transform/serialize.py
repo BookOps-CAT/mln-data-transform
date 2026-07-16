@@ -366,6 +366,12 @@ class TeacherSetBib:
             if field.tag == "901":
                 bib.add_ordered_field(field)
 
+    def add_all_var_fields(self, bib: Bib, tags: list[str]) -> None:
+        for field in self.var_fields:
+            if field.tag not in tags:
+                field.subfields.append(Subfield(code="9", value="legacy-mlnyc"))
+                bib.add_ordered_field(field)
+
     def to_bib(self) -> Bib:
         bib = Bib()
         bib.library = "nypl"
@@ -397,4 +403,37 @@ class TeacherSetBib:
         for field in self.item_fields:
             bib.add_ordered_field(field)
         self.add_var_fields(bib)
+        return bib
+
+    def to_minimal_bib(self) -> Bib:
+        bib = Bib()
+        bib.library = "nypl"
+        bib.leader = f"00000n{self.record_type}c a2200000 a 4500"
+        bib.add_ordered_field(self.field_001)
+        bib.add_ordered_field(self.field_003)
+        bib.add_ordered_field(self.field_008)
+        bib.add_ordered_field(self.field_091)
+        bib.add_ordered_field(self.field_245)
+        bib.add_ordered_field(self.field_300)
+        bib.add_ordered_field(self.field_500)
+        for field in self.field_520:
+            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_521)
+        bib.add_ordered_field(self.field_526)
+        # for field in self.field_6xx:
+        #     bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_690)
+        for field in self.field_691:
+            bib.add_ordered_field(field)
+        for field in self.field_695:
+            bib.add_ordered_field(field)
+        for field in self.field_7xx:
+            bib.add_ordered_field(field)
+        bib.add_ordered_field(self.field_901)
+        bib.add_ordered_field(self.field_909)
+        bib.add_ordered_field(self.field_910)
+        bib.add_ordered_field(self.command_line_field)
+        for field in self.item_fields:
+            bib.add_ordered_field(field)
+        self.add_all_var_fields(bib=bib, tags=[i.tag for i in bib.fields])
         return bib

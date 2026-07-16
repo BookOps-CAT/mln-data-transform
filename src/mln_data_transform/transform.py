@@ -179,7 +179,6 @@ class WorldcatManager:
             brief_bibs = self.book_brief_bib_search(query)
         if brief_bibs:
             return brief_bibs
-        raise ValueError(f"No records found in WorldCat for {query} and {format}.")
 
     def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
         brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
@@ -244,6 +243,8 @@ class WorldcatManager:
             id=id, index=index, format=format, title=title
         )
         first_rec = None
+        if not oclc_numbers:
+            return {"description": "", "subjects": [], "title": title, "id": id}
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)
             if not full_rec.description:
