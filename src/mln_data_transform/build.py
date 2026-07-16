@@ -19,6 +19,7 @@ from mln_data_transform.minimal import (
     MinimalLegacyTeacherSetData,
 )
 from mln_data_transform.model import TeacherSetCopy
+from mln_data_transform.platform_stub import StubMinimalFromPlatform
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
 from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
@@ -27,9 +28,11 @@ logger = logging.getLogger(__name__)
 
 
 class TeacherSetBuilder:
-    def __init__(self, file: str) -> None:
+    def __init__(
+        self, file: str, ctrl_number_file: str | None = "data/control_number_state.json"
+    ) -> None:
         self.file = file
-        self.ctrl_number_gen = ControlNumberGenerator("data/control_number_state.json")
+        self.ctrl_number_gen = ControlNumberGenerator(ctrl_number_file)
 
     @cached_property
     def mapping_data(self) -> pd.DataFrame:
@@ -64,11 +67,12 @@ class TeacherSetBuilder:
         set_data = LegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
         worldcat_parts = set_data.get_worldcat_data_for_parts()
         legacy_set = LegacyTeacherSet(set_data=set_data, worldcat_parts=worldcat_parts)
-        logger.info(legacy_set.__dict__)
         validated_set = self.validate_set(legacy_set)
         return validated_set
 
-    def build_minimal_legacy_set(self, bib_id: str) -> dict[str, Any]:
+    def build_minimal_legacy_set(
+        self, bib_id: str
+    ) -> tuple[dict[str, Any], StubMinimalFromPlatform]:
         logger.info(f"({bib_id}) Building teacher set from legacy data.")
         mapping = self.location_mapping(bib_id)
         set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
@@ -80,7 +84,41 @@ class TeacherSetBuilder:
             set_data=set_data, worldcat_parts=worldcat_parts
         )
         validated_set = self.validate_set(legacy_set)
-        return validated_set
+        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        return validated_set, stub
+
+    def build_stub_legacy_sets(self, bib_id: str) -> list:
+        logger.info(f"({bib_id}) Building teacher set from legacy data.")
+        mapping = self.location_mapping(bib_id)
+        set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
+        bib_data = set_stub.get_minimal_bib_data()
+        item_data = set_stub.get_item_data()
+        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        copies_of_set = len(item_data)
+        legacy_barcodes = {i.barcode: i.call_number for i in item_data}
+        copies = []
+        for copy_num in range(0, copies_of_set):
+            barcode = mapping[copy_num]["BARCODE"]
+            call_num = legacy_barcodes.get(barcode, "")
+            shelf_number = mapping[copy_num].get("LOCATION", "[SHELF-NUMBER]")
+            stub_copy = stub.create_marc_from_platform(
+                copy_number=copy_num,
+                total=copies_of_set,
+                call_number=call_num,
+                barcode=barcode,
+                shelf_number=shelf_number,
+                subject=set_stub.subject,
+            )
+            copies.append(stub_copy)
+        return copies
+
+    def build_stub_legacy_set(self, bib_id: str) -> StubMinimalFromPlatform:
+        logger.info(f"({bib_id}) Building teacher set from legacy data.")
+        mapping = self.location_mapping(bib_id)
+        set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
+        bib_data = set_stub.get_minimal_bib_data()
+        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        return stub.create_marc_from_platform()
 
     def build_teacher_set(
         self,
@@ -189,4 +227,10 @@ class TeacherSetBuilder:
         with open(out_file, "ab") as fh:
             for set_bib in set_bibs:
                 bib = set_bib.to_minimal_bib()
+                fh.write(bib.as_marc())
+
+    def write_stub_marc_to_file(self, out_file: str, set_bibs: list) -> None:
+        logger.info("Writing records to file for set.")
+        with open(out_file, "ab") as fh:
+            for bib in set_bibs:
                 fh.write(bib.as_marc())

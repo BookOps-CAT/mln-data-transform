@@ -175,6 +175,8 @@ class WorldcatManager:
         elif format == "playaway":
             query = f"{query} AND kw:playaway"
             brief_bibs = self.playaway_brief_bib_search(query)
+        elif format == "game":
+            brief_bibs = self.game_brief_bib_search(query)
         else:
             brief_bibs = self.book_brief_bib_search(query)
         if brief_bibs:
@@ -199,6 +201,18 @@ class WorldcatManager:
             i
             for i in brief_bib_json.get("briefRecords", [])
             if i and i["generalFormat"] == "AudioBook"
+        ]
+        if brief_records:
+            return self.parse_brief_bib(brief_records=brief_records, sort=False)
+        return []
+
+    def game_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
+        brief_bib_json = brief_bib.json()
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["generalFormat"] == "Game"
         ]
         if brief_records:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
@@ -238,7 +252,7 @@ class WorldcatManager:
     def get_worldcat_data_for_part(
         self, id: str, index: str, format: str | None = "book", title: str | None = None
     ) -> dict[str, Any]:
-        logger.debug(f"ISBN/UPC {id}: retrieving brief bib record.")
+        logger.debug(f"ISBN/UPC {id} ({format}): retrieving brief bib record.")
         oclc_numbers = self.get_oclc_number_from_id(
             id=id, index=index, format=format, title=title
         )

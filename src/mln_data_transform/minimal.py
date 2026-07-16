@@ -87,6 +87,8 @@ class MinimalLegacyBibData:
         title_list = []
         if self.set_type == "CLUB":
             return [self.set_title.split("by")[0]]
+        if self.set_type == "GAME":
+            return [self.set_title.split("[game]")[0].strip()]
         for field in self.var_fields:
             if field["marcTag"] == "505":
                 subfields = [
@@ -122,8 +124,22 @@ class MinimalLegacyBibData:
         return "a"
 
     @property
+    def description(self) -> str | None:
+        if self.subject == "GAME":
+            field_520 = [i for i in self.var_fields if i["marcTag"] == "520"]
+            subfields_520 = field_520[0]["subfields"]
+            desc = (
+                " ".join([i["content"] for i in subfields_520])
+                .replace("v.", " item(s)")
+                .replace("  ", " ")
+            )
+            return desc
+
+    @property
     def set_type(self) -> str:
         """Parses majority of call number string to identify set type."""
+        if self.subject == "GAME":
+            return "GAME"
         set_types = {
             "GAME": re.compile(r"game", re.IGNORECASE),
             "CLUB": re.compile(r"book\s*club( set)?", re.IGNORECASE),
@@ -208,6 +224,7 @@ class MinimalLegacyTeacherSetData:
         self,
         bib_id: MinimalLegacyBibData,
         copies_of_set: int,
+        description: str | None,
         enhanced: str | None,
         grade_level: str,
         language: str,
@@ -223,6 +240,7 @@ class MinimalLegacyTeacherSetData:
     ) -> None:
         self.bib_id = bib_id
         self.copies_of_set = copies_of_set
+        self.description = description
         self.enhanced = enhanced
         self.grade_level = grade_level
         self.language = language
@@ -241,6 +259,27 @@ class MinimalLegacyTeacherSetData:
         cls, bib_data: MinimalLegacyBibData, item_data: list[LegacyItemData]
     ) -> "MinimalLegacyTeacherSetData":
         zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
+        if bib_data.subject == "GAME":
+            return MinimalLegacyTeacherSetData(
+                bib_id=bib_data.bib_id,
+                copies_of_set=len(item_data),
+                description=bib_data.description,
+                enhanced=bib_data.enhanced,
+                grade_level=bib_data.grade_level,
+                language=bib_data.language,
+                legacy_barcodes={i.barcode: i.call_number for i in item_data},
+                call_number=bib_data.call_number.strip(),
+                physical_description=bib_data.physical_description,
+                record_type=bib_data.record_type,
+                set_parts=[
+                    {"id": i[0], "copies": 1, "title": i[1], "format": "game"}
+                    for i in zipped_ids
+                ],
+                set_title=bib_data.set_title,
+                set_type=bib_data.set_type,
+                study_program_info=bib_data.subject,
+                var_fields=bib_data.var_fields,
+            )
         return MinimalLegacyTeacherSetData(
             bib_id=bib_data.bib_id,
             copies_of_set=len(item_data),
@@ -303,6 +342,8 @@ class MinimalLegacyTeacherSetData:
                 )
                 if "title" not in worldcat_part:
                     worldcat_part["title"] = part.title
+                if not worldcat_part["description"] and self.description:
+                    worldcat_part["description"] = self.description
                 parts.append(worldcat_part)
         return parts
 
@@ -316,7 +357,6 @@ class MinimalLegacyTeacherSet:
         self.bib_id = set_data.bib_id
         self.call_number = set_data.call_number
         self.legacy_barcodes = set_data.legacy_barcodes
-        self.contents_note = None
         self.copies_of_set = set_data.copies_of_set
         self.enhanced = set_data.enhanced
         self.grade_level = GradeReadingLevel[set_data.grade_level]
@@ -350,6 +390,20 @@ class MinimalLegacyTeacherSet:
         for genre in call_num_matches + title_matches:
             genre_terms.append(genre)
         return list(set(genre_terms))
+
+    @property
+    def contents_note(self) -> str:
+        part_list = []
+        for part in self.parts:
+            if part.copies > 1:
+                copy_part = " copies of "
+            else:
+                copy_part = " copy of "
+            title = part.title.strip(".")
+            if part.format != "book":
+                title = f"{title} [{part.format}]"
+            part_list.append("".join([str(part.copies), copy_part, '"', title, '", ']))
+        return f"Set consists of {''.join(part_list).rstrip(', ')}."
 
     @property
     def local_topic_term(self) -> list[TaxonomyTopic]:

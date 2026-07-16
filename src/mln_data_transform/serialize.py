@@ -367,8 +367,9 @@ class TeacherSetBib:
                 bib.add_ordered_field(field)
 
     def add_all_var_fields(self, bib: Bib, tags: list[str]) -> None:
+        tags_to_skip = [i for i in tags if not i.startswith("5")]
         for field in self.var_fields:
-            if field.tag not in tags:
+            if field.tag not in tags_to_skip:
                 field.subfields.append(Subfield(code="9", value="legacy-mlnyc"))
                 bib.add_ordered_field(field)
 

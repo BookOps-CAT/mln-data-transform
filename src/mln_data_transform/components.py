@@ -41,8 +41,8 @@ class WorldcatSetPart:
 
     def entry_dict(self) -> dict[str, Any]:
         subfields = []
-        if self.title and self.title[-1] not in ["!", "?", ")", "]"]:
-            self.title = f"{self.title.strip('.,=').strip()}."
+        if self.title[-1] not in ["!", "?", ")", "]"]:
+            self.title = f"{self.title.strip('.')}."
         if self.author:
             tag = "700"
             ind1 = "1"
@@ -56,7 +56,6 @@ class WorldcatSetPart:
         else:
             tag = "730"
             ind1 = "0"
-        if self.author and not self.title:
             subfields.append(("a", self.title))
         if self.pub_date:
             self.pub_date = self.pub_date.strip(".")
@@ -70,15 +69,12 @@ class WorldcatSetPart:
         return {"tag": tag, "ind1": ind1, "ind2": "2", "subfields": subfields}
 
     def summary_component(self) -> tuple[str, str]:
-        if self.title:
-            title = self.title.strip(".")
-        else:
-            title = None
-        if self.description:
-            description = self.description.strip(".")
-        else:
-            description = None
-        return (title, description, self.copies, self.format)
+        return (
+            self.title.strip("."),
+            self.description.strip("."),
+            self.copies,
+            self.format,
+        )
 
 
 @dataclass(frozen=True)

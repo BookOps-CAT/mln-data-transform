@@ -18,7 +18,12 @@ from mln_data_transform.taxonomy import (
     TaxonomyTopic,
 )
 from mln_data_transform.transform import PlatformManager, WorldcatManager
-from mln_data_transform.utils import is_valid_isbn, is_valid_upc, normalize_isbn
+from mln_data_transform.utils import (
+    is_valid_isbn,
+    is_valid_upc,
+    map_to_closest_grade_enum,
+    normalize_isbn,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +56,7 @@ class LegacyBibData:
         r"Teacher\s*Set\s*(?:.+)(?P<subject>((ART)|(ELA)|(CHLA)|(FRLA)|(SPLA)|(MATH)|(EDUCATION)|(SCI)|([Ss]cience)|(SOC)|([Ss]ocial [Ss]tudies)|(WorldLang)|(GAME)|([Ll]angauge [Aa]rts)|([Ee]ducation)|(Soc)))(?:.+)?(?P<lang>((ENG)|(SPA)|(FRE)|(English)|(Spanish)|(Chinese)))?"  # noqa: E501
     )
     MINIMAL_CALL_NUMBER_PATTERN = re.compile(
-        r"Teacher\s*Set\s*(?P<set_type>((\b\w+\b\s)+\s*(?!\d)))(?P<lang>((ENG)|(SPA)|(FRE)|(English)|(Spanish)|(Chinese)))?"
+        r"(Teacher\s*Set\s*)?(?P<set_type>((\b\w+\b\s)+\s*(?!\d)))(?P<lang>((ENG)|(SPA)|(FRE)|(English)|(Spanish)|(Chinese)))?"
     )  # noqa: E501
     GRADE_LEVEL_MAPPING = {"E": "B", "J": "C", "MG": "D", "YA": "E"}
     SUBJECT_MAPPING = {
@@ -251,8 +256,9 @@ class LegacyBibData:
         if grade_level:
             subfields_521 = grade_level[0]["subfields"]
             grade_level_string = " ".join([i["content"].strip() for i in subfields_521])
-            matches = self.map_to_closest_enum(grade_level_string)
-            return matches
+            matches = map_to_closest_grade_enum(grade_level_string)
+            if matches:
+                return matches
         if (
             self.call_number_components
             and "grade_level" in self.call_number_components.groupdict()
@@ -437,31 +443,6 @@ class LegacyBibData:
             title_count = self.DIGITS[title_count.casefold()]
         return int(title_count)
 
-    def map_to_closest_enum(self, grade_str: str) -> str:
-        """Applies explicit overrides, then falls back to Euclidean distance."""
-        clean_str = grade_str.strip(".")
-        if clean_str in ["1-12", "k-12", "K-12"]:
-            return "E"
-        if clean_str.startswith(("0", "Pre")):
-            return "A"
-        if clean_str.startswith("K") or clean_str.endswith(("-2", "-3")):
-            return "B"
-        match = re.match(r"^(\d{1,2})\-(\d{1,2})$", clean_str)
-        start, end = match.groups()
-        start = int(start)
-        end = int(end)
-        best_match = None
-        min_distance = float("inf")
-        bounds = {"C": (3, 5), "D": (6, 8), "E": (9, 12)}
-        for enum_val, (enum_start, enum_end) in bounds.items():
-            distance = (start - enum_start) ** 2 + (end - enum_end) ** 2
-
-            if distance < min_distance:
-                min_distance = distance
-                best_match = enum_val
-
-        return best_match
-
 
 class LegacyItemData:
     """Useful data from a legacy item record for a MyLibraryNYC Teacher Set."""
@@ -558,6 +539,15 @@ class LegacyTeacherSetData:
     ) -> "LegacyTeacherSetData":
         zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
         if not bib_data.special_formats:
+            if (
+                bib_data.set_type == "CLUB"
+                and "large print" in bib_data.set_title.lower()
+            ):
+                format = "lprint"
+            elif bib_data.set_type == "LPRINT":
+                format = "lprint"
+            else:
+                format = "book"
             return LegacyTeacherSetData(
                 bib_id=bib_data.bib_id,
                 copies_of_set=len(item_data),
@@ -573,7 +563,7 @@ class LegacyTeacherSetData:
                         "id": i[0],
                         "copies": bib_data.copy_count,
                         "title": i[1],
-                        "format": "book",
+                        "format": format,
                     }
                     for i in zipped_ids
                 ],
@@ -745,7 +735,7 @@ class LegacyTeacherSet:
             parts.append(
                 WorldcatSetPart(
                     id=worldcat_part["id"],
-                    title=worldcat_part["title"],
+                    title=worldcat_part.get("title"),
                     author=worldcat_part.get("author_name"),
                     author_dates=worldcat_part.get("author_dates"),
                     pub_date=worldcat_part.get("pub_date"),
