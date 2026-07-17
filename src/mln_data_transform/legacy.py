@@ -32,10 +32,10 @@ class LegacyBibData:
     """Useful data from a legacy bib record for a MyLibraryNYC Teacher Set."""
 
     GENERAL_COPY_INFO_PATTERN = re.compile(
-        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()? ?(((\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()? ?(((\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     PRIMARY_COPY_INFO_PATTERN = re.compile(
-        r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:copy|copies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
@@ -193,14 +193,22 @@ class LegacyBibData:
             matched = self.GENERAL_COPY_INFO_PATTERN.match(field)
             if matched:
                 return field
-        if self.set_type == "CLUB":
+        if (
+            self.set_type == "CLUB"
+            or "book club" in self.set_title.lower()
+            or "by" in self.set_title.lower()
+        ):
             for field in fields_5xx:
                 matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
                 if matched:
                     return field
         field = self.physical_description
         matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
-        if self.set_type == "CLUB" and matched:
+        if (
+            self.set_type == "CLUB"
+            or "book club" in self.set_title.lower()
+            or "by" in self.set_title.lower()
+        ) and matched:
             return f"{field.split('item')[0]} copies of 1 title"
         raise ValueError(
             f"Copy info pattern does not match general patterns for {self.bib_id}."
@@ -284,8 +292,8 @@ class LegacyBibData:
                     f"{len(errors)}/{len(id_list)} are invalid: {errors}"
                 )
             return id_list
-        if self.title_fields and not ids:
-            return []
+        # if self.title_fields and not ids:
+        #     return []
         raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
 
     @property
@@ -417,8 +425,22 @@ class LegacyBibData:
         if (
             not self.call_number_components
             or "subject" not in self.call_number_components.groupdict()
-        ):
+        ) and self.input_subject in SubjectStudyProgram:
             return self.input_subject
+        elif (
+            not self.call_number_components
+            or "subject" not in self.call_number_components.groupdict()
+        ) and self.input_subject not in SubjectStudyProgram:
+            subjects = [
+                i
+                for i in self.var_fields
+                if i["marcTag"] and i["marcTag"].startswith("6")
+            ]
+            for sub in subjects:
+                sub_str = " ".join([i["content"] for i in sub["subfields"]])
+                for study_program_info in SubjectStudyProgram:
+                    if study_program_info in sub_str:
+                        return study_program_info.name
         subject = self.call_number_components["subject"]
         if subject in self.SUBJECT_MAPPING.keys():
             return self.SUBJECT_MAPPING[subject]

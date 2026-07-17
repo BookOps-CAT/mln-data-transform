@@ -177,10 +177,39 @@ class WorldcatManager:
             brief_bibs = self.playaway_brief_bib_search(query)
         elif format == "game":
             brief_bibs = self.game_brief_bib_search(query)
+        elif format == "book":
+            brief_bibs = self.book_brief_bib_search(query)
         else:
+            brief_bibs = self.general_brief_bib_search(query=query, format=format)
+        if brief_bibs:
+            return brief_bibs
+        elif not brief_bibs and format == "lprint":
             brief_bibs = self.book_brief_bib_search(query)
         if brief_bibs:
             return brief_bibs
+        if not brief_bibs:
+            brief_bibs = self.general_brief_bib_search(query=query, format=format)
+        if brief_bibs:
+            return brief_bibs
+
+    def general_brief_bib_search(self, query: str, format: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(q=query)
+        brief_bib_json = brief_bib.json()
+        brief_records = [i for i in brief_bib_json.get("briefRecords", [])]
+        if brief_records:
+            logger.debug(
+                f"ISBN/UPC {query.split(':')[1]} ({format}): {len(brief_records)} "
+                f"retrieved for records of general search for {format}"
+            )
+            for rec in brief_records:
+                logger.debug(rec)
+            to_get = input("Full records to retrieve:\n")
+            if to_get == "all":
+                return self.parse_brief_bib(brief_records=brief_records, sort=False)
+            else:
+                retrieve = [brief_records[int(i.strip())] for i in to_get.split(",")]
+                return self.parse_brief_bib(brief_records=retrieve, sort=False)
+        return []
 
     def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
         brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
@@ -270,4 +299,18 @@ class WorldcatManager:
                 continue
             else:
                 return full_rec.to_dict()
+        if not first_rec.description:
+            query = f"{index}:{id}"
+            oclc_numbers = self.general_brief_bib_search(query=query, format=format)
+            for oclc in oclc_numbers:
+                full_rec = self.get_full_record(oclc_number=oclc, id=id)
+                if full_rec.description:
+                    keep = input(
+                        f"Add description for {first_rec.title} from new rec: "
+                        f"{full_rec.title}: {full_rec.description}\n"
+                    )
+                    if keep == "y":
+                        rec = first_rec.to_dict()
+                        rec["description"] = full_rec.description
+                        return rec
         return first_rec.to_dict()
