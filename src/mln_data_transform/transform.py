@@ -72,7 +72,7 @@ class FullWorldCatResponse:
 
     @property
     def title(self) -> str:
-        return self.record["245"]["a"].strip(" :/.")
+        return self.record["245"]["a"].strip(" :/.=")
 
     @property
     def subjects(self) -> list[dict[str, Any]]:
@@ -123,7 +123,7 @@ class PlatformManager:
     def get_platform_bib_items(self, bib_id: str) -> list[dict[str, Any]]:
         logger.debug(f"({bib_id}) Getting item records from platform.")
         with PlatformSession(authorization=self.platform_token) as session:
-            response = session.get_bib_items(id=bib_id)
+            response = session.get_item_list(bibId=bib_id, limit=50)
             data = response.json()["data"]
             return data
 
@@ -203,12 +203,7 @@ class WorldcatManager:
             )
             for rec in brief_records:
                 logger.debug(rec)
-            to_get = input("Full records to retrieve:\n")
-            if to_get == "all":
-                return self.parse_brief_bib(brief_records=brief_records, sort=False)
-            else:
-                retrieve = [brief_records[int(i.strip())] for i in to_get.split(",")]
-                return self.parse_brief_bib(brief_records=retrieve, sort=False)
+            return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
     def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
@@ -285,32 +280,24 @@ class WorldcatManager:
         oclc_numbers = self.get_oclc_number_from_id(
             id=id, index=index, format=format, title=title
         )
-        first_rec = None
         if not oclc_numbers:
             return {"description": "", "subjects": [], "title": title, "id": id}
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)
-            if not full_rec.description:
-                logger.debug(
-                    f"ISBN/UPC {id}: full bib record for "
-                    f"{oclc} missing description. Checking next record if present."
-                )
-                first_rec = full_rec
-                continue
-            else:
+            if full_rec.description and full_rec.title != "<>":
                 return full_rec.to_dict()
-        if not first_rec.description:
-            query = f"{index}:{id}"
-            oclc_numbers = self.general_brief_bib_search(query=query, format=format)
-            for oclc in oclc_numbers:
-                full_rec = self.get_full_record(oclc_number=oclc, id=id)
-                if full_rec.description:
-                    keep = input(
-                        f"Add description for {first_rec.title} from new rec: "
-                        f"{full_rec.title}: {full_rec.description}\n"
-                    )
-                    if keep == "y":
-                        rec = first_rec.to_dict()
-                        rec["description"] = full_rec.description
-                        return rec
+        first_rec = self.get_full_record(oclc_number=oclc_numbers[0], id=id)
+        query = f"{index}:{id}"
+        oclc_numbers = self.general_brief_bib_search(query=query, format=format)
+        for oclc in oclc_numbers:
+            full_rec = self.get_full_record(oclc_number=oclc, id=id)
+            if full_rec.description:
+                keep = input(
+                    f"Add description for {first_rec.title} from new rec: "
+                    f"{full_rec.title}: {full_rec.description}\n"
+                )
+                if keep == "y":
+                    rec = first_rec.to_dict()
+                    rec["description"] = full_rec.description
+                    return rec
         return first_rec.to_dict()

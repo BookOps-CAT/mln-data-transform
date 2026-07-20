@@ -35,7 +35,7 @@ class LegacyBibData:
         r"^((([Tt]opic)|([Bb]ook [Cc]lub))( [Ss]et)? \()? ?(((\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s+of\s+))?(\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )((\d+)|(\b\w+\b)) (\d+|(\b\w+\b\s?)+)((?:\+ )((\d+)|([A-z]+)) (\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     PRIMARY_COPY_INFO_PATTERN = re.compile(
-        r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s*each\s*)?(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
         r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
@@ -44,7 +44,7 @@ class LegacyBibData:
         r"^(?P<copy_count>\d{1,2})\s?((v\.)|(item\(s\)))$"
     )
     TOPIC_SET_COPY_INFO_PATTERN = re.compile(
-        r"^(?:[Tt]opic( [Ss]et)? \() ?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?:[Tt]opic( [Ss]et)? \() ?(?:en\s*español\s*)?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     CALL_NUMBER_PATTERN = re.compile(
         r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
@@ -100,6 +100,7 @@ class LegacyBibData:
         "thirteen": 13,
         "fourteen": 14,
         "fifteen": 15,
+        "fifthteen": 15,
         "sixteen": 16,
         "seventeen": 17,
         "eighteen": 18,
@@ -143,11 +144,11 @@ class LegacyBibData:
         if not components:
             components = self.MINIMAL_CALL_NUMBER_PATTERN.match(self.call_number)
         if not components:
-            # return None
-            raise ValueError(
-                f"Call number '{self.call_number}' does not match pattern. "
-                f"Cannot extract components."
-            )
+            return None
+            # ValueError(
+            #     f"Call number '{self.call_number}' does not match pattern. "
+            #     f"Cannot extract components."
+            # )
         return components
 
     @property
@@ -158,11 +159,17 @@ class LegacyBibData:
             content = [
                 i["content"]
                 for i in field["subfields"]
-                if i["content"][0].isnumeric()
-                or i["content"].split()[0].lower() in self.DIGITS.keys()
+                if (
+                    i["content"][0].isnumeric()
+                    or i["content"].split()[0].lower() in self.DIGITS.keys()
+                )
+                and i["tag"] == "a"
+                and ("copy" in i["content"] or "copies" in i["content"])
             ]
             fields_5xx.extend(content)
         for field in fields_5xx:
+            if field.startswith("Ten five"):
+                continue
             matched = self.GENERAL_COPY_INFO_PATTERN.match(field)
             if matched:
                 return field
@@ -186,6 +193,7 @@ class LegacyBibData:
                         i["content"].lower().startswith("topic")
                         or i["content"].lower().startswith("book club")
                     )
+                    and i["tag"] == "a"
                 )
             ]
             fields_5xx.extend(content)
@@ -570,6 +578,8 @@ class LegacyTeacherSetData:
                 format = "lprint"
             else:
                 format = "book"
+            if len(bib_data.ids) == bib_data.title_count:
+                zipped_ids = zipped_ids[: bib_data.title_count]
             return LegacyTeacherSetData(
                 bib_id=bib_data.bib_id,
                 copies_of_set=len(item_data),

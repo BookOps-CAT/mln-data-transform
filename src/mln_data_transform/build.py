@@ -17,9 +17,9 @@ from mln_data_transform.minimal import (
     MinimalLegacySetStub,
     MinimalLegacyTeacherSet,
     MinimalLegacyTeacherSetData,
+    StubMinimalFromPlatform,
 )
 from mln_data_transform.model import TeacherSetCopy
-from mln_data_transform.platform_stub import StubMinimalFromPlatform
 from mln_data_transform.serialize import TeacherSetBib
 from mln_data_transform.teacher_sets import TeacherSet, TeacherSetData
 from mln_data_transform.validate import TeacherSetCopyModel, TeacherSetModel
@@ -39,7 +39,7 @@ class TeacherSetBuilder:
         df = pd.read_csv(
             self.file,
             sep="|",
-            usecols=["SUBJECT", "BARCODE", "LOCATION", "BIB_ID"],
+            usecols=["SUBJECT", "BARCODE", "LOCATION", "BIB_ID", "CONTROL_NUMBER"],
             header=0,
             dtype=str,
         )
@@ -61,8 +61,6 @@ class TeacherSetBuilder:
         mapping = self.location_mapping(bib_id)
         set_stub = LegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
         bib_data = set_stub.get_bib_data()
-        if "Bookpack" in bib_data.set_title:
-            raise ValueError
         item_data = set_stub.get_item_data()
         set_data = LegacyTeacherSetData.from_bib_item_data(bib_data, item_data)
         worldcat_parts = set_data.get_worldcat_data_for_parts()
@@ -84,7 +82,7 @@ class TeacherSetBuilder:
             set_data=set_data, worldcat_parts=worldcat_parts
         )
         validated_set = self.validate_set(legacy_set)
-        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        stub = StubMinimalFromPlatform(bib_data=bib_data)
         return validated_set, stub
 
     def build_stub_legacy_sets(self, bib_id: str) -> list:
@@ -93,22 +91,26 @@ class TeacherSetBuilder:
         set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
         bib_data = set_stub.get_minimal_bib_data()
         item_data = set_stub.get_item_data()
-        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        stub = StubMinimalFromPlatform(bib_data=bib_data)
         copies_of_set = len(item_data)
         legacy_barcodes = {i.barcode: i.call_number for i in item_data}
         copies = []
+        control_number = self.ctrl_number_gen.next_control_number()
+        logger.debug(f"({control_number}) Creating {copies_of_set} copy/copies of set.")
         for copy_num in range(0, copies_of_set):
             barcode = mapping[copy_num]["BARCODE"]
             call_num = legacy_barcodes.get(barcode, "")
             shelf_number = mapping[copy_num].get("LOCATION", "[SHELF-NUMBER]")
-            stub_copy = stub.create_marc_from_platform(
-                copy_number=copy_num,
+            stub.update_var_fields(
+                copy_number=copy_num + 1,
                 total=copies_of_set,
                 call_number=call_num,
                 barcode=barcode,
                 shelf_number=shelf_number,
                 subject=set_stub.subject,
+                control_number=control_number,
             )
+            stub_copy = stub.create_marc_from_platform()
             copies.append(stub_copy)
         return copies
 
@@ -117,7 +119,7 @@ class TeacherSetBuilder:
         mapping = self.location_mapping(bib_id)
         set_stub = MinimalLegacySetStub(bib_id=bib_id, subject=mapping[0]["SUBJECT"])
         bib_data = set_stub.get_minimal_bib_data()
-        stub = StubMinimalFromPlatform(var_fields=bib_data.var_fields)
+        stub = StubMinimalFromPlatform(bib_data=bib_data)
         return stub.create_marc_from_platform()
 
     def build_teacher_set(
@@ -151,8 +153,9 @@ class TeacherSetBuilder:
         validated_set = self.validate_set(teacher_set)
         return validated_set
 
-    def build_set_copies(self, set_data: dict[str, Any]) -> list[TeacherSetBib]:
-        control_number = self.ctrl_number_gen.next_control_number()
+    def build_set_copies(
+        self, set_data: dict[str, Any], control_number: str
+    ) -> list[TeacherSetBib]:
         log_id = (
             set_data["bib_id"] if set_data["bib_id"] is not None else control_number
         )

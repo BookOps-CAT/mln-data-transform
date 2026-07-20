@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import datetime
 import logging
 import re
 from enum import StrEnum
 from itertools import zip_longest
 from typing import Any
+
+from bookops_marc import Bib
+from pymarc import Field, Indicators, Subfield
 
 from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
 from mln_data_transform.legacy import LegacyItemData
@@ -18,7 +22,7 @@ from mln_data_transform.taxonomy import (
     TaxonomyTopic,
 )
 from mln_data_transform.transform import PlatformManager, WorldcatManager
-from mln_data_transform.utils import normalize_isbn
+from mln_data_transform.utils import map_to_closest_grade_enum, normalize_isbn
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +72,7 @@ class MinimalLegacyBibData:
         if grade_level:
             subfields_521 = grade_level[0]["subfields"]
             grade_level_string = " ".join([i["content"].strip() for i in subfields_521])
-            matches = self.map_to_closest_enum(grade_level_string)
+            matches = map_to_closest_grade_enum(grade_level_string)
             return matches
         return None
 
@@ -78,9 +82,7 @@ class MinimalLegacyBibData:
         if ids:
             id_string = " ".join([i["content"] for i in ids[0]["subfields"]])
             return [normalize_isbn(i) for i in id_string.split()]
-        if self.title_fields and not ids:
-            return []
-        raise ValueError(f"({self.bib_id}) Record does not contain ISBNs.")
+        return []
 
     @property
     def title_fields(self) -> list[str]:
@@ -153,31 +155,6 @@ class MinimalLegacyBibData:
             if match:
                 return item_type
         return "TOPIC"
-
-    def map_to_closest_enum(self, grade_str: str) -> str:
-        """Applies explicit overrides, then falls back to Euclidean distance."""
-        clean_str = grade_str.strip(".")
-        if clean_str in ["1-12", "k-12", "K-12"]:
-            return "E"
-        if clean_str.startswith(("0", "Pre")):
-            return "A"
-        if clean_str.startswith("K") or clean_str.endswith(("-2", "-3")):
-            return "B"
-        match = re.match(r"^(\d{1,2})\-(\d{1,2})$", clean_str)
-        start, end = match.groups()
-        start = int(start)
-        end = int(end)
-        best_match = None
-        min_distance = float("inf")
-        bounds = {"C": (3, 5), "D": (6, 8), "E": (9, 12)}
-        for enum_val, (enum_start, enum_end) in bounds.items():
-            distance = (start - enum_start) ** 2 + (end - enum_end) ** 2
-
-            if distance < min_distance:
-                min_distance = distance
-                best_match = enum_val
-
-        return best_match
 
 
 class MinimalLegacySetStub:
@@ -460,3 +437,115 @@ class MinimalLegacyTeacherSet:
                 matched_terms.append(taxonomy_item)
 
         return matched_terms
+
+
+class StubMinimalFromPlatform:
+    def __init__(self, bib_data: MinimalLegacyBibData) -> None:
+        self.bib_data = bib_data
+        self.ids = bib_data.ids
+        self.title = bib_data.set_title
+        self.title_fields = bib_data.title_fields
+        self.var_fields = bib_data.var_fields
+
+    def update_var_fields(
+        self,
+        copy_number: int,
+        total: int,
+        call_number: str,
+        barcode: str,
+        subject: str,
+        control_number: str,
+        shelf_number: str | None,
+    ) -> None:
+        new_fields = []
+        new_fields.append({"marcTag": "001", "content": control_number})
+        new_fields.append(
+            {
+                "marcTag": "901",
+                "ind1": " ",
+                "ind2": " ",
+                "subfields": [
+                    {"tag": "n", "content": barcode},
+                    {"tag": "o", "content": call_number},
+                ],
+            }
+        )
+        call_number_subfields = [{"tag": "a", "content": f"MLNYC {subject}"}]
+        if self.bib_data.set_type:
+            call_number_subfields.append(
+                {"tag": "f", "content": self.bib_data.set_type}
+            )
+        if self.bib_data.grade_level:
+            call_number_subfields.append(
+                {"tag": "p", "content": self.bib_data.grade_level}
+            )
+        call_number_subfields.append({"tag": "c", "content": shelf_number})
+        new_fields.append(
+            {
+                "marcTag": "091",
+                "ind1": " ",
+                "ind2": " ",
+                "subfields": call_number_subfields,
+            }
+        )
+        zipped_ids = list(zip_longest(self.ids, self.title_fields))
+        for zipped_set in zipped_ids:
+            id_field = {"marcTag": "730", "ind1": "0", "ind2": "2", "subfields": []}
+            if zipped_set[1]:
+                id_field["subfields"].append({"tag": "a", "content": zipped_set[1]})
+            if zipped_set[0]:
+                id_field["subfields"].append({"tag": "a", "content": zipped_set[0]})
+            new_fields.append(id_field)
+        for field in self.var_fields:
+            if field["marcTag"] == "008":
+                today = datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
+                field_008 = f"{today}nuuuuuuuu{field['content'][15:40]}"
+                field["content"] = field_008
+                new_fields.append(field)
+            elif field["marcTag"] in ["091", "246", "490", "856", "944"]:
+                continue
+            elif field["marcTag"] == "300":
+                for subfield in field["subfields"]:
+                    if subfield["tag"] == "a":
+                        subfield["content"].replace("v.", "item(s)")
+                new_fields.append(field)
+            elif field["marcTag"] == "245":
+                field["subfields"].append(
+                    {"tag": "p", "content": f"Copy {copy_number} of {total}"}
+                )
+                new_fields.append(field)
+            elif field["marcTag"] == "505" and (self.title_fields or self.ids):
+                subfields = " ".join([i["content"] for i in field["subfields"]])
+                if "--" in subfields:
+                    continue
+                else:
+                    new_fields.append(field)
+            else:
+                new_fields.append(field)
+        self.var_fields = new_fields
+
+    def create_marc_from_platform(self) -> Bib:
+        record_type = "a"
+        for field in self.var_fields:
+            if field["marcTag"] is None:
+                record_type = field["content"][6]
+        bib = Bib()
+        bib.library = "nypl"
+        bib.leader = f"00000n{record_type}c a2200000za 4500"
+        for field in self.var_fields:
+            if field.get("content") and field.get("marcTag"):
+                bib.add_ordered_field(
+                    Field(tag=field["marcTag"], data=field["content"])
+                )
+            elif field.get("marcTag") and not field.get("content"):
+                bib.add_ordered_field(
+                    Field(
+                        tag=field["marcTag"],
+                        indicators=Indicators(field["ind1"], field["ind2"]),
+                        subfields=[
+                            Subfield(code=i["tag"], value=i["content"])
+                            for i in field["subfields"]
+                        ],
+                    )
+                )
+        return bib
