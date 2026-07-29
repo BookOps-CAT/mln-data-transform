@@ -165,13 +165,15 @@ class TeacherSetBib:
                 "Large print",
                 "Playaway audiobook",
             ]:
-                material = f"{component[0]} [{component[3]}]"
+                title = f"{component[0]} [{component[3]}]"
             else:
-                material = component[0]
+                title = component[0]
             if not component[1]:
-                material = f"{material}."
-            subfields = [Subfield(code="3", value=material)]
-            if component[1]:
+                title = f"{title}."
+            subfields = [Subfield(code="3", value=title)]
+            if component[1] and component[1][-1] in ["!", "?", "."]:
+                subfields.append(Subfield(code="a", value=component[1]))
+            elif component[1] and component[1][-1] not in ["!", "?", "."]:
                 subfields.append(Subfield(code="a", value=f"{component[1]}."))
             notes.append(
                 Field(tag="520", indicators=Indicators(" ", " "), subfields=subfields)
@@ -363,7 +365,7 @@ class TeacherSetBib:
 
     def add_var_fields(self, bib: Bib) -> None:
         for field in self.var_fields:
-            if field.tag == "901":
+            if field.tag in ["536", "901"]:
                 bib.add_ordered_field(field)
 
     def add_all_var_fields(self, bib: Bib, tags: list[str]) -> None:

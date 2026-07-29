@@ -73,6 +73,7 @@ class TeacherSetCopy:
             if isinstance(date, str) and date.isdigit():
                 all_pub_dates.append(date)
             elif isinstance(date, str) and date.isalnum():
+                date = date.replace("©", "")
                 fuzzy_dates.append(date)
         if all_pub_dates:
             return sorted([str(i) for i in all_pub_dates])

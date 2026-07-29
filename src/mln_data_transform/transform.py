@@ -46,7 +46,7 @@ class FullWorldCatResponse:
 
     @property
     def author_name(self) -> str | None:
-        if not self.author_data:
+        if not self.author_data or not self.author_data.get("a"):
             return None
         return self.author_data["a"].rstrip(" ,")
 
@@ -72,7 +72,7 @@ class FullWorldCatResponse:
 
     @property
     def title(self) -> str:
-        return self.record["245"]["a"].strip(" :/.=")
+        return self.record["245"]["a"].strip(" :/.=;")
 
     @property
     def subjects(self) -> list[dict[str, Any]]:
@@ -165,22 +165,26 @@ class WorldcatManager:
         return FullWorldCatResponse(id=id, wc_response=record)
 
     def get_oclc_number_from_id(
-        self, id: str, index: str, format: str, title: str | None = None
+        self, id: str, index: str, format: str, language: str
     ) -> list[dict[str, Any]]:
         query = f"{index}:{id}"
         if format == "dvd":
-            brief_bibs = self.dvd_brief_bib_search(query)
+            brief_bibs = self.dvd_brief_bib_search(query, language=language)
         elif format == "lprint":
-            brief_bibs = self.large_print_brief_bib_search(query)
+            brief_bibs = self.large_print_brief_bib_search(query, language=language)
         elif format == "playaway":
             query = f"{query} AND kw:playaway"
-            brief_bibs = self.playaway_brief_bib_search(query)
+            brief_bibs = self.playaway_brief_bib_search(query, language=language)
         elif format == "game":
-            brief_bibs = self.game_brief_bib_search(query)
+            brief_bibs = self.game_brief_bib_search(query, language=language)
+        elif format == "kit":
+            brief_bibs = self.kit_brief_bib_search(query, language=language)
         elif format == "book":
-            brief_bibs = self.book_brief_bib_search(query)
+            brief_bibs = self.book_brief_bib_search(query, language=language)
         else:
-            brief_bibs = self.general_brief_bib_search(query=query, format=format)
+            brief_bibs = self.general_brief_bib_search(
+                query=query, format=format, language=language
+            )
         if brief_bibs:
             return brief_bibs
         elif not brief_bibs and format == "lprint":
@@ -188,12 +192,30 @@ class WorldcatManager:
         if brief_bibs:
             return brief_bibs
         if not brief_bibs:
-            brief_bibs = self.general_brief_bib_search(query=query, format=format)
+            brief_bibs = self.general_brief_bib_search(
+                query=query, format=format, language=language
+            )
         if brief_bibs:
             return brief_bibs
 
-    def general_brief_bib_search(self, query: str, format: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query)
+    def kit_brief_bib_search(self, query: str, language: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, inLanguage=language, itemType="kit"
+        )
+        brief_bib_json = brief_bib.json()
+        brief_records = [
+            i
+            for i in brief_bib_json.get("briefRecords", [])
+            if i and i["generalFormat"] == "Kit"
+        ]
+        if brief_records:
+            return self.parse_brief_bib(brief_records=brief_records, sort=False)
+        return []
+
+    def general_brief_bib_search(
+        self, query: str, format: str, language: str
+    ) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(q=query, inLanguage=language)
         brief_bib_json = brief_bib.json()
         brief_records = [i for i in brief_bib_json.get("briefRecords", [])]
         if brief_records:
@@ -206,8 +228,10 @@ class WorldcatManager:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
-    def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
+    def dvd_brief_bib_search(self, query: str, language: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, inLanguage=language, itemSubType="video-dvd"
+        )
         brief_bib_json = brief_bib.json()
         brief_records = [
             i
@@ -218,8 +242,12 @@ class WorldcatManager:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
-    def playaway_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query, itemType="audiobook")
+    def playaway_brief_bib_search(
+        self, query: str, language: str
+    ) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, inLanguage=language, itemType="audiobook"
+        )
         brief_bib_json = brief_bib.json()
         brief_records = [
             i
@@ -230,8 +258,10 @@ class WorldcatManager:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
-    def game_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query, itemType="game")
+    def game_brief_bib_search(self, query: str, language: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(
+            q=query, inLanguage=language, itemType="game"
+        )
         brief_bib_json = brief_bib.json()
         brief_records = [
             i
@@ -242,9 +272,11 @@ class WorldcatManager:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
-    def large_print_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
+    def large_print_brief_bib_search(
+        self, query: str, language: str
+    ) -> list[dict[str, Any]]:
         brief_bib = self.session.brief_bibs_search(
-            q=query, itemSubType="book-largeprint"
+            q=query, inLanguage=language, itemSubType="book-largeprint"
         )
         brief_bib_json = brief_bib.json()
         brief_records = [
@@ -256,10 +288,15 @@ class WorldcatManager:
             return self.parse_brief_bib(brief_records=brief_records, sort=False)
         return []
 
-    def book_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(
-            q=query, itemSubType="book-printbook"
-        )
+    def book_brief_bib_search(self, query: str, language: str) -> list[dict[str, Any]]:
+        if language:
+            brief_bib = self.session.brief_bibs_search(
+                q=query, inLanguage=language, itemSubType="book-printbook"
+            )
+        else:
+            brief_bib = self.session.brief_bibs_search(
+                q=query, inLanguage=language, itemSubType="book-printbook"
+            )
         brief_bib_json = brief_bib.json()
         brief_records = [
             i
@@ -274,11 +311,18 @@ class WorldcatManager:
         return self.parse_brief_bib(brief_records=brief_records, sort=True)
 
     def get_worldcat_data_for_part(
-        self, id: str, index: str, format: str | None = "book", title: str | None = None
+        self,
+        id: str,
+        index: str,
+        format: str | None = "book",
+        language: str | None = "eng",
+        title: str | None = None,
     ) -> dict[str, Any]:
         logger.debug(f"ISBN/UPC {id} ({format}): retrieving brief bib record.")
+        if language is None:
+            language = "eng"
         oclc_numbers = self.get_oclc_number_from_id(
-            id=id, index=index, format=format, title=title
+            id=id, index=index, format=format, language=language
         )
         if not oclc_numbers:
             return {"description": "", "subjects": [], "title": title, "id": id}
@@ -288,7 +332,9 @@ class WorldcatManager:
                 return full_rec.to_dict()
         first_rec = self.get_full_record(oclc_number=oclc_numbers[0], id=id)
         query = f"{index}:{id}"
-        oclc_numbers = self.general_brief_bib_search(query=query, format=format)
+        oclc_numbers = self.general_brief_bib_search(
+            query=query, format=format, language=language
+        )
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)
             if full_rec.description:

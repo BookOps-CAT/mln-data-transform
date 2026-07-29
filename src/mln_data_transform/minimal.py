@@ -494,8 +494,31 @@ class StubMinimalFromPlatform:
             if zipped_set[1]:
                 id_field["subfields"].append({"tag": "a", "content": zipped_set[1]})
             if zipped_set[0]:
-                id_field["subfields"].append({"tag": "a", "content": zipped_set[0]})
-            new_fields.append(id_field)
+                id_field["subfields"].append({"tag": "x", "content": zipped_set[0]})
+            if zipped_set[1]:
+                id = zipped_set[1]
+            elif zipped_set[0] and not zipped_set[1]:
+                id = zipped_set[1]
+            if zipped_set[0] or zipped_set[1]:
+                item_field = {
+                    "marcTag": "949",
+                    "ind1": " ",
+                    "ind2": " ",
+                    "subfields": [
+                        {"tag": "h", "content": "10"},
+                        {"tag": "i", "content": f"[BARCODE]-{id}"},
+                        {"tag": "n", "content": id},
+                        {"tag": "l", "content": "eduls"},
+                        {"tag": "o", "content": "m"},
+                        {"tag": "q", "content": "30010"},
+                        {"tag": "t", "content": "252"},
+                        {"tag": "u", "content": "-"},
+                        {"tag": "v", "content": "LOGDOE/mlnyc-bot"},
+                    ],
+                }
+                new_fields.append(id_field)
+                new_fields.append(item_field)
+
         for field in self.var_fields:
             if field["marcTag"] == "008":
                 today = datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
