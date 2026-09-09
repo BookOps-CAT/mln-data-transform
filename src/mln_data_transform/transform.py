@@ -34,7 +34,7 @@ class FullWorldCatResponse:
         self.record = wc_response
         self.subject_fields: list[Field] = wc_response.subjects
 
-        if self.id and not self.id.isnumeric():
+        if not self.id or (self.id and not self.id.isnumeric()):
             self.id = self.record.isbn
 
     @property
@@ -188,7 +188,7 @@ class WorldcatManager:
         if brief_bibs:
             return brief_bibs
         elif not brief_bibs and format == "lprint":
-            brief_bibs = self.book_brief_bib_search(query)
+            brief_bibs = self.book_brief_bib_search(query, language=language)
         if brief_bibs:
             return brief_bibs
         if not brief_bibs:
@@ -318,14 +318,29 @@ class WorldcatManager:
         language: str | None = "eng",
         title: str | None = None,
     ) -> dict[str, Any]:
-        logger.debug(f"ISBN/UPC {id} ({format}): retrieving brief bib record.")
+        logger.debug(
+            f"ISBN/UPC {id} ({format}, {language}): retrieving brief bib record."
+        )
         if language is None:
             language = "eng"
+        format_confirm = input(f"Query WorldCat for {format}?\n")
+        if format_confirm != "y":
+            format = format_confirm
+        id_confirm = input(f"Query WorldCat for {id} ({title})?\n")
+        if id_confirm != "y":
+            id = id_confirm
+        index_confirm = input(f"Query WorldCat with index {index}?\n")
+        if index_confirm != "y":
+            index = index_confirm
+        # lang_confirm = input(f"Query WorldCat for language {language}?\n")
+        # if lang_confirm != "y":
+        #     language = lang_confirm
         oclc_numbers = self.get_oclc_number_from_id(
             id=id, index=index, format=format, language=language
         )
+        print(oclc_numbers)
         if not oclc_numbers:
-            return {"description": "", "subjects": [], "title": title, "id": id}
+            return {"description": "", "subjects": [], "title": str(title), "id": id}
         for oclc in oclc_numbers:
             full_rec = self.get_full_record(oclc_number=oclc, id=id)
             if full_rec.description and full_rec.title != "<>":

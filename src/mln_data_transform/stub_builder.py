@@ -1,3 +1,4 @@
+import copy
 import logging
 from functools import cached_property
 
@@ -51,10 +52,11 @@ class StubTeacherSetBuilder:
         control_number = self.ctrl_number_gen.next_control_number()
         logger.debug(f"({control_number}) Creating {copies_of_set} copy/copies of set.")
         for copy_num in range(0, copies_of_set):
+            stub_copy = copy.deepcopy(stub)
             barcode = mapping[copy_num]["BARCODE"]
             call_num = legacy_barcodes.get(barcode, "")
             shelf_number = mapping[copy_num].get("LOCATION", "[SHELF-NUMBER]")
-            stub.update_var_fields(
+            stub_copy.update_var_fields(
                 copy_number=copy_num + 1,
                 total=copies_of_set,
                 call_number=call_num,
@@ -63,8 +65,8 @@ class StubTeacherSetBuilder:
                 subject=set_stub.subject,
                 control_number=control_number,
             )
-            stub_copy = stub.create_marc_from_platform()
-            copies.append(stub_copy)
+            stub_marc_copy = stub_copy.create_marc_from_platform()
+            copies.append(stub_marc_copy)
         return copies
 
     def write_stub_marc_to_file(self, out_file: str, set_bibs: list) -> None:

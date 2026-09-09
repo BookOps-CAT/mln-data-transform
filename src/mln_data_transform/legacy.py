@@ -38,13 +38,16 @@ class LegacyBibData:
         r"^(?![Tt]opic)(?![Bb]ook [Cc]lub)(((?P<copy_count>\d+|\b\w+\b)(?:\s+(?:[Cc]opy|[Cc]opies))(\s*each\s*)?(\s+of\s+))?(?P<title_count>\d+|\b\w+\b))(?:\s+\b(?![Bb]ookpack\b)\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     BOOK_CLUB_COPY_INFO_PATTERN = re.compile(
-        r"^(?:[Bb]ook [Cc]lub( [Ss]et)? \() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?:[Bb]ook [Cc]lub( [Ss]et)? *(?:\-\s*)?\() ?(?P<copy_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     MINIMAL_COPY_INFO_PATTERN = re.compile(
-        r"^(?P<copy_count>\d{1,2})\s?((v\.?)|(item\(s\)))$"
+        r"^(?P<copy_count>\d{1,2})(\s?((v\.?)|(item\(s\))$)|(\s?computer\s?disc))"
+    )
+    NO_MATCH_COPY_INFO_PATTERN = re.compile(
+        r"^(?P<title_count>\d{1,2})(\s?((v\.?)|(item\(s\))$)|(\s?computer\s?disc))"
     )
     TOPIC_SET_COPY_INFO_PATTERN = re.compile(
-        r"^(?:[Tt]opic( [Ss]et)? \() ?(?:en\s*español\s*)?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
+        r"^(?:[Tt]opic( [Ss]et)? *(?:\-\s*)?\() ?(?:en\s*español\s*)?(?P<title_count>(\d+)|\b\w+\b)(?:\s+\b\w+\b)((?: \+ )(?P<enhanced_item_count_1>(\d+)|(\b\w+\b)) (?P<enhanced_item_type_1>\d+|(\b\w+\b\s?)+)((?:\+ )(?P<enhanced_item_count_2>(\d+)|([A-z]+)) (?P<enhanced_item_type_2>\d+|(\b\w+\b\s?)+))?)?"  # noqa: E501
     )
     CALL_NUMBER_PATTERN = re.compile(
         r"Teacher\s*Set\s*(?P<subject>((Art[s]*)|(Math)|(Game[s]*)|(Education)|(Science)|(Language\s*Arts)|(Social\s*Studies)|([A-Z]{3,4}))\s*(?P<lang>([A-Z]{3}))?)\s+(?P<grade_level>[A-Z]{1,2})\s*\s+(?P<set_type>(?P<enhanced>[Ee]nhanced)?([^\d].+?)?)\s*(\d+)(?:-)?(\d+)?$"  # noqa: E501
@@ -164,7 +167,7 @@ class LegacyBibData:
                     or i["content"].split()[0].lower() in self.DIGITS.keys()
                 )
                 and i["tag"] == "a"
-                and ("copy" in i["content"] or "copies" in i["content"])
+                and ("copy" in i["content"].lower() or "copies" in i["content"].lower())
             ]
             fields_5xx.extend(content)
         for field in fields_5xx:
@@ -213,14 +216,21 @@ class LegacyBibData:
         field = self.physical_description
         matched = self.MINIMAL_COPY_INFO_PATTERN.match(field)
         if (
-            self.set_type == "CLUB" or "book club" in self.set_title.lower()
-            # or "by" in self.set_title.lower()
+            self.set_type == "CLUB"
+            or "book club" in self.set_title.lower()
+            or "by" in self.set_title.lower()
         ) and matched:
             return f"{field.split('item')[0]} copies of 1 title"
-        raise ValueError(
-            f"Copy info pattern does not match general patterns for {self.bib_id}: "
-            f"Physical Description: {field}, Other Fields: {fields}"
-        )
+        elif self.set_type == "GAME" and matched:
+            return field
+        elif self.set_type == "TOPIC" and matched:
+            return field
+        else:
+            return field
+        # raise ValueError(
+        #     f"Copy info pattern does not match general patterns for {self.bib_id}: "
+        #     f"Physical Description: {field}, Other Fields: {fields}"
+        # )
 
     @property
     def copy_info_components(self) -> re.Match:
@@ -249,6 +259,8 @@ class LegacyBibData:
             copy_count = self.copy_info_components["title_count"]
         if copy_count and copy_count.isalpha():
             copy_count = self.DIGITS[copy_count.casefold()]
+        if copy_count is None:
+            return 1
         return int(copy_count)
 
     @property
@@ -270,6 +282,8 @@ class LegacyBibData:
         If language is present in call number converts legacy grade level (eg. 'YA')
         to current grade level formatting formatting.
         """
+        if "board book" in self.set_title.lower():
+            return "A"
         grade_level = [i for i in self.var_fields if i["marcTag"] == "521"]
         if grade_level:
             subfields_521 = grade_level[0]["subfields"]
@@ -294,6 +308,8 @@ class LegacyBibData:
         if ids:
             id_string = " ".join([i["content"] for i in ids[0]["subfields"]])
             id_list = [normalize_isbn(i) for i in id_string.split()]
+            if self.input_subject == "AUDIO":
+                id_list = [i for i in id_list if not i.startswith("M")]
             validated_ids = [i for i in id_list if is_valid_isbn(i) or is_valid_upc(i)]
             if len(validated_ids) < len(id_list):
                 errors = [i for i in id_list if i not in validated_ids]
@@ -321,8 +337,13 @@ class LegacyBibData:
                 title_list.extend(subfields)
         if len(title_list) == 1:
             titles = [
-                i.strip() for i in title_list[0].split("--") if "--" in title_list[0]
+                i.strip()
+                for i in title_list[0].split("--")
+                # if "--" in title_list[0]
             ]
+            return [i.removesuffix(" (Playaway)") for i in titles]
+        elif len(title_list) > 1:
+            titles = [i.strip(" -") for i in title_list]
             return [i.removesuffix(" (Playaway)") for i in titles]
         return []
 
@@ -368,15 +389,13 @@ class LegacyBibData:
             and "set_type" in self.call_number_components.groupdict()
         ):
             set_type = self.call_number_components["set_type"].lower()
-            if "book club".lower() in set_type:
+            if "book club" in set_type.lower():
                 return "CLUB"
             elif (
                 "storytelling" in set_type.lower()
                 or "storytelling" in self.set_title.lower()
             ):
                 return "STORY"
-            elif "game" in self.subject.lower() and "story" in self.set_title.lower():
-                return "GAME"
             elif "game" in set_type or "game" in self.subject.lower():
                 return "GAME"
             elif "audio" in set_type or (
@@ -389,10 +408,8 @@ class LegacyBibData:
                 return "LPRINT"
             elif "large print".lower() in self.set_title:
                 return "LPRINT"
-            if "BC" in set_type or "club".lower() in set_type:
+            elif "BC" in set_type or "club".lower() in set_type:
                 return "CLUB"
-            else:
-                return "TOPIC"
         if "book club" in self.call_number.lower():
             return "CLUB"
         elif (
@@ -404,7 +421,10 @@ class LegacyBibData:
             return "LPRINT"
         elif "storytelling" in self.call_number.lower():
             return "STORY"
-        return "TOPIC"
+        if "by" in self.set_title:
+            return "CLUB"
+        else:
+            return "TOPIC"
 
     @property
     def special_formats(self) -> list[tuple[str, int]] | None:
@@ -459,7 +479,10 @@ class LegacyBibData:
             for sub in subjects:
                 sub_str = " ".join([i["content"] for i in sub["subfields"]])
                 for study_program_info in SubjectStudyProgram:
-                    if study_program_info in sub_str:
+                    if (
+                        study_program_info in sub_str
+                        or study_program_info.name == sub_str
+                    ):
                         return study_program_info.name
         subject = self.call_number_components["subject"]
         if subject in self.SUBJECT_MAPPING.keys():
@@ -482,9 +505,13 @@ class LegacyBibData:
             return 1
         elif self.set_type == "CLUB" and "books +" in self.copy_info_field:
             return 1
+        # elif self.ids:
+        #     return len(self.ids)
         title_count = self.copy_info_components["title_count"]
         if title_count and title_count.isalpha():
             title_count = self.DIGITS[title_count.casefold()]
+        # if title_count and int(title_count) != len(self.ids):
+        #     return len(self.ids)
         return int(title_count)
 
 
@@ -531,7 +558,7 @@ class LegacySetStub:
             f"{len(item_data)} item record(s) from platform."
         )
         for n, item in enumerate(item_data):
-            if item["status"]["code"] not in ["-", "k"]:
+            if item["status"]["code"] not in ["-", "k"] and len(item_data) > 1:
                 continue
             legacy_item = LegacyItemData(
                 call_number=item["callNumber"],
@@ -581,33 +608,33 @@ class LegacyTeacherSetData:
     def from_bib_item_data(
         cls, bib_data: LegacyBibData, item_data: list[LegacyItemData]
     ) -> "LegacyTeacherSetData":
-        if (
-            "puppet" in bib_data.copy_info_field
-            and bib_data.physical_description == "1 item(s)"
-        ):
-            return LegacyTeacherSetData(
-                bib_id=bib_data.bib_id,
-                copies_of_set=len(item_data),
-                enhanced=bib_data.enhanced,
-                grade_level=bib_data.grade_level,
-                language=bib_data.language,
-                legacy_barcodes={i.barcode: i.call_number for i in item_data},
-                call_number=bib_data.call_number.strip(),
-                physical_description=bib_data.physical_description,
-                record_type=bib_data.record_type,
-                set_parts=[
-                    {
-                        "id": bib_data.ids[0],
-                        "copies": 1,
-                        "title": bib_data.set_title,
-                        "format": "kit",
-                    }
-                ],
-                set_title=bib_data.set_title,
-                set_type=bib_data.set_type,
-                study_program_info=bib_data.subject,
-                var_fields=bib_data.var_fields,
-            )
+        # if (
+        #     "puppet" in bib_data.copy_info_field
+        #     and bib_data.physical_description == "1 item(s)"
+        # ):
+        #     return LegacyTeacherSetData(
+        #         bib_id=bib_data.bib_id,
+        #         copies_of_set=len(item_data),
+        #         enhanced=bib_data.enhanced,
+        #         grade_level=bib_data.grade_level,
+        #         language=bib_data.language,
+        #         legacy_barcodes={i.barcode: i.call_number for i in item_data},
+        #         call_number=bib_data.call_number.strip(),
+        #         physical_description=bib_data.physical_description,
+        #         record_type=bib_data.record_type,
+        #         set_parts=[
+        #             {
+        #                 "id": bib_data.ids[0],
+        #                 "copies": 1,
+        #                 "title": bib_data.set_title,
+        #                 "format": "kit",
+        #             }
+        #         ],
+        #         set_title=bib_data.set_title,
+        #         set_type=bib_data.set_type,
+        #         study_program_info=bib_data.subject,
+        #         var_fields=bib_data.var_fields,
+        #     )
         zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
         if not bib_data.special_formats:
             if (
@@ -729,6 +756,8 @@ class LegacyTeacherSetData:
                     )
                 elif not part.id and part.title:
                     title = part.title.removesuffix(" (Playaway)")
+                    title = part.title.removesuffix(" [game]")
+                    title = part.title.removesuffix(" [video game]")
                     title = part.title.split("(Read-Along)")[0].strip()
                     worldcat_part = manager.get_worldcat_data_for_part(
                         id=title, index="ti", format=part.format, language=self.language
@@ -791,7 +820,10 @@ class LegacyTeacherSet:
             if part.format != "book":
                 title = f"{title} [{part.format}]"
             part_list.append("".join([str(part.copies), copy_part, '"', title, '", ']))
-        return f"Set consists of {''.join(part_list).rstrip(', ')}."
+        if part_list:
+            return f"Set consists of {''.join(part_list).rstrip(', ')}."
+        else:
+            return self.physical_description
 
     @property
     def local_genre_term(self) -> list[TaxonomyGenre]:

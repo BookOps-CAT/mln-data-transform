@@ -127,7 +127,7 @@ class MinimalLegacyBibData:
 
     @property
     def description(self) -> str | None:
-        if self.subject == "GAME":
+        if self.subject in ["GAME", "SCI", "MAT"]:
             field_520 = [i for i in self.var_fields if i["marcTag"] == "520"]
             subfields_520 = field_520[0]["subfields"]
             desc = (
@@ -136,6 +136,8 @@ class MinimalLegacyBibData:
                 .replace("  ", " ")
             )
             return desc
+        # elif self.subject == "MAT" and "calculator" in self.physical_description:
+        #     return self.physical_description
 
     @property
     def set_type(self) -> str:
@@ -165,6 +167,8 @@ class MinimalLegacySetStub:
     def get_minimal_bib_data(self) -> MinimalLegacyBibData:
         manager = PlatformManager()
         bib_data = manager.get_platform_bib(self.bib_id)
+        if self.subject == "MATH":
+            self.subject = "MAT"
         logger.debug(f"({self.bib_id}) Bib record retrieved from platform.")
         return MinimalLegacyBibData(
             bib_id=self.bib_id,
@@ -236,7 +240,11 @@ class MinimalLegacyTeacherSetData:
         cls, bib_data: MinimalLegacyBibData, item_data: list[LegacyItemData]
     ) -> "MinimalLegacyTeacherSetData":
         zipped_ids = list(zip_longest(bib_data.ids, bib_data.title_fields))
-        if bib_data.subject == "GAME":
+        if (
+            bib_data.subject == "GAME"
+            or bib_data.subject == "MAT"
+            or bib_data.subject == "SCI"
+        ):
             return MinimalLegacyTeacherSetData(
                 bib_id=bib_data.bib_id,
                 copies_of_set=len(item_data),
@@ -518,8 +526,8 @@ class StubMinimalFromPlatform:
                 }
                 new_fields.append(id_field)
                 new_fields.append(item_field)
-
-        for field in self.var_fields:
+        var_fields = self.var_fields
+        for field in var_fields:
             if field["marcTag"] == "008":
                 today = datetime.datetime.strftime(datetime.datetime.today(), "%y%m%d")
                 field_008 = f"{today}nuuuuuuuu{field['content'][15:40]}"
@@ -548,6 +556,7 @@ class StubMinimalFromPlatform:
         self.var_fields = new_fields
 
     def create_marc_from_platform(self) -> Bib:
+        fields_to_skip = ["336", "337", "338", "490", "753"]
         record_type = "a"
         for field in self.var_fields:
             if field["marcTag"] is None:
@@ -561,14 +570,18 @@ class StubMinimalFromPlatform:
                     Field(tag=field["marcTag"], data=field["content"])
                 )
             elif field.get("marcTag") and not field.get("content"):
-                bib.add_ordered_field(
-                    Field(
-                        tag=field["marcTag"],
-                        indicators=Indicators(field["ind1"], field["ind2"]),
-                        subfields=[
-                            Subfield(code=i["tag"], value=i["content"])
-                            for i in field["subfields"]
-                        ],
+                tag = field["marcTag"]
+                if tag.startswith("3") or tag.startswith("4"):
+                    continue
+                else:
+                    bib.add_ordered_field(
+                        Field(
+                            tag=tag,
+                            indicators=Indicators(field["ind1"], field["ind2"]),
+                            subfields=[
+                                Subfield(code=i["tag"], value=i["content"])
+                                for i in field["subfields"]
+                            ],
+                        )
                     )
-                )
         return bib
