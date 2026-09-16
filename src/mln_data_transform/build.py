@@ -95,9 +95,8 @@ class TeacherSetBuilder:
         log_id = (
             set_data["bib_id"] if set_data["bib_id"] is not None else control_number
         )
-        logger.debug(
-            f"({log_id}) Creating {set_data['copies_of_set']} copy/copies of set."
-        )
+        copies = set_data["copies_of_set"]
+        logger.debug(f"({log_id}) Creating {copies} copy/copies of set.")
         try:
             set_copies = self.create_set_copies(
                 set_dict=set_data, control_number=control_number

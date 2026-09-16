@@ -7,6 +7,7 @@ from itertools import zip_longest
 from typing import Any
 
 from mln_data_transform.components import SetBook, VarFieldData, WorldcatSetPart
+from mln_data_transform.platform import PlatformManager
 from mln_data_transform.taxonomy import (
     GENRE_REGEX_MAP,
     TOPIC_REGEX_MAP,
@@ -17,7 +18,7 @@ from mln_data_transform.taxonomy import (
     TaxonomyGenre,
     TaxonomyTopic,
 )
-from mln_data_transform.transform import PlatformManager, WorldcatManager
+from mln_data_transform.transform import WorldcatManager
 from mln_data_transform.utils import is_valid_isbn, is_valid_upc, normalize_isbn
 
 logger = logging.getLogger(__name__)
