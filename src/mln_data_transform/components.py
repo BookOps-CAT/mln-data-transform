@@ -78,7 +78,7 @@ class WorldcatSetPart:
 
 
 @dataclass(frozen=True)
-class TeacherSetSpecialFormat:
+class SpecialFormatSetPart:
     """A special format item included within a Teacher Set."""
 
     copies: int

@@ -73,11 +73,12 @@ class FullWorldCatResponse:
 
     @property
     def title(self) -> str:
-        if self.record.uniformtitle and self.record.leader[6] != "a":
-            title = input(f"Use {self.record.uniformtitle} for {self.record.title}?")
-            if title == "y":
-                return self.record.uniformtitle.strip(" :/.")
-        return self.record["245"]["a"].strip(" :/.")
+        title_field = self.record["245"]
+        title = self.record.title
+        title_part = title_field.get("p")
+        if title_part:
+            title += f" {title_part}"
+        return title.strip(" :/.")
 
     @property
     def subjects(self) -> list[dict[str, Any]]:
@@ -112,6 +113,13 @@ class FullWorldCatResponse:
 
 
 class WorldcatManager:
+    FORMAT_MAPPING = {
+        "dvd": "x4:DVD",
+        "playaway": "x0:AudioBook AND kw:playaway",
+        "lprint": "x4:LargePrint",
+        "book": "x4:PrintBook",
+    }
+
     def __init__(self) -> None:
         self.worldcat_token = WorldcatAccessToken(
             key=os.environ["WORLDCAT_KEY"],
@@ -129,12 +137,9 @@ class WorldcatManager:
     def __exit__(self, *args, **kwargs) -> None:
         self.session.close()
 
-    def parse_brief_bib(
-        self, brief_records: list[dict[str, Any]], sort: bool = True
-    ) -> list[str]:
+    def parse_brief_bib(self, brief_records: list[dict[str, Any]]) -> list[str]:
         parsed_responses = [BriefBibResponse(i) for i in brief_records]
-        if sort:
-            parsed_responses = sorted(parsed_responses, key=BriefBibResponse.sort_key)
+        parsed_responses = sorted(parsed_responses, key=BriefBibResponse.sort_key)
         return [i.oclc_number for i in parsed_responses]
 
     def get_full_record(self, id: str, oclc_number: str) -> FullWorldCatResponse:
@@ -150,99 +155,32 @@ class WorldcatManager:
     def get_oclc_number_from_id(
         self, id: str, index: str, format: str, title: str | None = None
     ) -> list[dict[str, Any]]:
-        query = f"{index}:{id}"
-        if format == "dvd":
-            brief_bibs = self.dvd_brief_bib_search(query)
-        elif format == "lprint":
-            brief_bibs = self.large_print_brief_bib_search(query)
-        elif format == "playaway":
-            query = f"{query} AND kw:playaway"
-            brief_bibs = self.playaway_brief_bib_search(query)
+        format_attrs = self.FORMAT_MAPPING.get(format)
+        if format_attrs:
+            brief_bibs = self.search_brief_bibs(
+                query=f"{index}:{id} AND {format_attrs}"
+            )
         else:
-            brief_bibs = self.book_brief_bib_search(query)
+            brief_bibs = self.search_brief_bibs(query=f"{index}:{id}")
         if brief_bibs:
             return brief_bibs
-        elif not brief_bibs and not title:
-            raise ValueError(f"No records found in WorldCat for {query} and {format}.")
-        query = f"ti:{title}"
-        if format == "dvd":
-            brief_bibs = self.dvd_brief_bib_search(query)
-        elif format == "lprint":
-            brief_bibs = self.large_print_brief_bib_search(query)
-        elif format == "playaway":
-            query = f"{query} AND kw:playaway"
-            brief_bibs = self.playaway_brief_bib_search(query)
-        else:
-            brief_bibs = self.book_brief_bib_search(query)
+        if title and format_attrs:
+            brief_bibs = self.search_brief_bibs(query=f"ti:{title} AND {format_attrs}")
+        elif title and not format_attrs:
+            brief_bibs = self.search_brief_bibs(query=f"ti:{title}")
         if brief_bibs:
             return brief_bibs
         raise ValueError(
-            f"No records found in WorldCat for {index}:{id}, ti:{title} and {format}."
+            f"No records found in WorldCat for {index}:{id}, ti:{title} and `{format}`."
         )
 
-    def dvd_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query, itemSubType="video-dvd")
+    def search_brief_bibs(self, query: str) -> list[dict[str, Any]]:
+        brief_bib = self.session.brief_bibs_search(q=query)
         brief_bib_json = brief_bib.json()
-        brief_records = [
-            i
-            for i in brief_bib_json.get("briefRecords", [])
-            if i and i["specificFormat"] == "DVD"
-        ]
+        brief_records = brief_bib_json.get("briefRecords", [])
         if not brief_records:
-            logger.debug(
-                f"{len(brief_bib_json.get('briefRecords', []))} "
-                f"records found for {query}."
-            )
-        return self.parse_brief_bib(brief_records=brief_records, sort=False)
-
-    def playaway_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(q=query, itemType="audiobook")
-        brief_bib_json = brief_bib.json()
-        brief_records = [
-            i
-            for i in brief_bib_json.get("briefRecords", [])
-            if i and i["generalFormat"] == "AudioBook"
-        ]
-        if not brief_records:
-            logger.debug(
-                f"{len(brief_bib_json.get('briefRecords', []))} "
-                f"records found for {query}."
-            )
-        return self.parse_brief_bib(brief_records=brief_records, sort=False)
-
-    def large_print_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(
-            q=query, itemSubType="book-largeprint"
-        )
-        brief_bib_json = brief_bib.json()
-        brief_records = [
-            i
-            for i in brief_bib_json.get("briefRecords", [])
-            if i and i["specificFormat"] == "LargePrint"
-        ]
-        if not brief_records:
-            logger.debug(
-                f"{len(brief_bib_json.get('briefRecords', []))} "
-                f"records found for {query}."
-            )
-        return self.parse_brief_bib(brief_records=brief_records, sort=False)
-
-    def book_brief_bib_search(self, query: str) -> list[dict[str, Any]]:
-        brief_bib = self.session.brief_bibs_search(
-            q=query, itemSubType="book-printbook"
-        )
-        brief_bib_json = brief_bib.json()
-        brief_records = [
-            i
-            for i in brief_bib_json.get("briefRecords", [])
-            if i and i["specificFormat"] == "PrintBook"
-        ]
-        if not brief_records:
-            logger.debug(
-                f"{len(brief_bib_json.get('briefRecords', []))} "
-                f"records found for {query}."
-            )
-        return self.parse_brief_bib(brief_records=brief_records, sort=True)
+            logger.debug(f"{len(brief_records)} records found for {query}.")
+        return self.parse_brief_bib(brief_records=brief_records)
 
     def get_worldcat_data_for_part(
         self, id: str, index: str, format: str | None = "book", title: str | None = None

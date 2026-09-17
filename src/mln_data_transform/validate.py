@@ -4,18 +4,11 @@ from typing import Any, Sequence
 from pydantic import BaseModel, ConfigDict, model_serializer
 
 from mln_data_transform.components import (
-    TeacherSetSpecialFormat,
+    SpecialFormatSetPart,
     VarFieldData,
     WorldcatSetPart,
 )
 from mln_data_transform.serialize import TeacherSetBib
-from mln_data_transform.taxonomy import (
-    GradeReadingLevel,
-    SetTypeFormat,
-    SubjectStudyProgram,
-    TaxonomyGenre,
-    TaxonomyTopic,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +19,16 @@ class TeacherSetModel(BaseModel):
     contents_note: str
     copies_of_set: int
     enhanced: str | None
-    grade_level: GradeReadingLevel
+    grade_level: str
     language: str
-    local_genre_term: list[TaxonomyGenre]
-    local_topic_term: list[TaxonomyTopic]
-    parts: Sequence[WorldcatSetPart | TeacherSetSpecialFormat]
+    local_genre_term: list[str]
+    local_topic_term: list[str]
+    parts: Sequence[WorldcatSetPart | SpecialFormatSetPart]
     physical_description: str
     record_type: str
     set_title: str
-    set_type: SetTypeFormat
-    study_program_info: SubjectStudyProgram
+    set_type: str
+    study_program_info: str
 
     bib_id: str | None = None
     legacy_barcodes: dict[str, str] | None = None
@@ -58,6 +51,7 @@ class TeacherSetCopyModel(TeacherSetModel):
             ],
             "contents_note": self.contents_note,
             "control_number": self.control_number,
+            "copies_of_set": self.copies_of_set,
             "copy_number": self.copy_number,
             "grade_level": self.grade_level,
             "enhanced": self.enhanced,
@@ -72,18 +66,11 @@ class TeacherSetCopyModel(TeacherSetModel):
             "shelf_number": self.shelf_number,
             "study_program_info": self.study_program_info,
             "subjects": self.subjects,
-            "copies_of_set": self.copies_of_set,
             "var_field_data": self.var_field_data,
         }
 
     def to_set_bib(self) -> TeacherSetBib:
         data = self.model_dump()
-        # data["subjects"] = [
-        #     VarFieldData(
-        #         tag=i["tag"], ind1=i["ind1"], ind2=i["ind2"], subfields=i["subfields"]
-        #     )
-        #     for i in data["subjects"]
-        # ]
         if data.get("var_field_data"):
             data["var_field_data"] = [
                 VarFieldData(

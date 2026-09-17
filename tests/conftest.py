@@ -236,22 +236,6 @@ def mock_worldcat_response() -> list[dict[str, Any]]:
     ]
 
 
-@pytest.fixture
-def mock_worldcat_response_no_pub_dates() -> None:
-    return [
-        {
-            "author_name": "Sasek, M.",
-            "author_dates": "1916-1980",
-            "description": "Fake description of book.",
-            "id": "9781234567897",
-            "pub_date": None,
-            "subjects": [],
-            "title": "This is New York",
-            "format": "book",
-        }
-    ]
-
-
 class MockJsonResponse:
     def __init__(self, data: dict[str, Any]) -> None:
         self.data = data
@@ -283,19 +267,12 @@ def mock_session_managers(
         return MockMarcResponse(stub_bib.as_marc())
 
     def get_worldcat_brief_bib(*args, **kwargs):
-        format_dict = {
-            "video-dvd": "DVD",
-            "book-printbook": "PrintBook",
-            "book-largeprint": "LargePrint",
-        }
-        format = kwargs.get("itemSubType")
         return MockJsonResponse(
             {
                 "briefRecords": [
                     {
                         "oclcNumber": "ocn123456789",
                         "catalogingInfo": {"levelOfCataloging": " "},
-                        "specificFormat": format_dict[format],
                     }
                 ]
             }
@@ -338,19 +315,47 @@ def mock_session_managers_missing_data(
 @pytest.fixture
 def mock_session_managers_no_wc_records(monkeypatch, mock_session_managers) -> None:
     def get_worldcat_brief_bib(*args, **kwargs):
-        return MockJsonResponse(
-            {
-                "briefRecords": [
-                    {
-                        "oclcNumber": "ocn123456789",
-                        "catalogingInfo": {"levelOfCataloging": " "},
-                        "specificFormat": "Digital",
-                    }
-                ]
-            }
-        )
+        return MockJsonResponse({"briefRecords": []})
 
     monkeypatch.setattr(MetadataSession, "brief_bibs_search", get_worldcat_brief_bib)
+
+
+@pytest.fixture
+def mock_session_managers_search_by_ti(
+    monkeypatch, mock_session_managers, stub_bib
+) -> None:
+    def get_worldcat_brief_bib(*args, **kwargs):
+        query = kwargs.get("query")
+        if "ti:" not in query:
+            return []
+        return ["ocn123456789"]
+
+    def get_worldcat_bib(*args, **kwargs):
+        stub_bib.remove_fields("245", "264")
+        stub_bib.add_field(
+            Field(
+                tag="245",
+                indicators=Indicators("0", "0"),
+                subfields=[
+                    Subfield(code="a", value="Fake series."),
+                    Subfield(code="p", value="Book 1."),
+                ],
+            )
+        )
+        stub_bib.add_field(
+            Field(
+                tag="264",
+                indicators=Indicators(" ", "1"),
+                subfields=[Subfield(code="c", value="2000-2002")],
+            )
+        )
+        return MockMarcResponse(stub_bib.as_marc())
+
+    monkeypatch.setattr(
+        "mln_data_transform.transform.WorldcatManager.search_brief_bibs",
+        get_worldcat_brief_bib,
+    )
+    monkeypatch.setattr(MetadataSession, "bib_get", get_worldcat_bib)
 
 
 @pytest.fixture

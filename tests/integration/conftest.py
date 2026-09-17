@@ -42,7 +42,7 @@ def mock_location_mapping(monkeypatch, mock_control_number_file) -> None:
             ]
         )
 
-    monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
+    monkeypatch.setattr("mln_data_transform.legacy_build.pd.read_csv", mock_read_csv)
 
 
 @pytest.fixture
@@ -190,7 +190,7 @@ def mock_set(
 
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
     monkeypatch.setattr(TeacherSetData, "get_worldcat_data_for_parts", mock_parts)
-    monkeypatch.setattr("mln_data_transform.build.pd.read_csv", mock_read_csv)
+    monkeypatch.setattr("mln_data_transform.legacy_build.pd.read_csv", mock_read_csv)
     monkeypatch.setattr(PlatformToken, "_get_token", fake_token)
     monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
     monkeypatch.setattr(LegacySetStub, "get_item_data", mock_item_data)
@@ -461,3 +461,32 @@ def mock_set_enhanced_missing_identifier(monkeypatch, mock_set) -> None:
 
     monkeypatch.setattr(LegacySetStub, "get_bib_data", mock_bib_data)
     monkeypatch.setattr(LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_parts)
+
+
+@pytest.fixture
+def mock_invalid_set(monkeypatch, mock_set, mock_worldcat_parts) -> None:
+    def mock_worldcat_data(*args, **kwargs) -> dict[str, Any]:
+        parts = copy.deepcopy(mock_worldcat_parts)
+        parts[0]["format"] = 1
+        return parts
+
+    monkeypatch.setattr(
+        LegacyTeacherSetData, "get_worldcat_data_for_parts", mock_worldcat_data
+    )
+    monkeypatch.setattr(
+        TeacherSetData, "get_worldcat_data_for_parts", mock_worldcat_data
+    )
+
+
+@pytest.fixture
+def mock_invalid_set_copies(monkeypatch, mock_set) -> None:
+    def mock_barcode_data(*args, **kwargs) -> dict[str, Any]:
+        data = kwargs.get("data")
+        data["var_field_data"] = {}
+        data["shelf_number"] = "[SHELF-NUMBER]"
+        return data
+
+    monkeypatch.setattr(
+        "mln_data_transform.legacy_build.LegacyTeacherSetBuilder.add_barcode_data",
+        mock_barcode_data,
+    )

@@ -138,19 +138,6 @@ class TestWorldcatManager:
             "ISBN/UPC 9781234567897: retrieving full bib record (OCLC number: ocn123456789).",
         ]
 
-    # @pytest.mark.parametrize("format", ["book", "dvd", "lprint"])
-    # def test_get_worldcat_data_for_part_no_id(
-    #     self, mock_session_managers, caplog, format
-    # ):
-    #     caplog.set_level("DEBUG")
-    #     with WorldcatManager() as worldcat_manager:
-    #         worldcat_response = worldcat_manager.get_worldcat_data_for_part(
-    #             id=None, index="sn", format=format
-    #         )
-    #     assert worldcat_response["title"] == f"{format.upper()} (missing identifier)"
-    #     assert worldcat_response["description"] == ""
-    #     assert caplog.records == []
-
     def test_get_worldcat_data_for_part_no_records(
         self, mock_session_managers_no_wc_records
     ):
@@ -161,8 +148,32 @@ class TestWorldcatManager:
                 )
         assert (
             str(exc.value)
-            == "No records found in WorldCat for sn:9781234567897 and book."
+            == "No records found in WorldCat for sn:9781234567897, ti:None and `book`."
         )
+
+    @pytest.mark.parametrize("format", ["book", "audiobook"])
+    def test_get_worldcat_data_for_part_title_search(
+        self, mock_session_managers_search_by_ti, format
+    ):
+        with WorldcatManager() as worldcat_manager:
+            worldcat_response = worldcat_manager.get_worldcat_data_for_part(
+                id="ocn123456", index="no", title="Foo", format=format
+            )
+        assert worldcat_response["author_name"] == "Bar, Foo"
+        assert worldcat_response["author_dates"] == "1980-"
+        assert worldcat_response["description"] == "Fake description of book."
+        assert worldcat_response["pub_date"] == "2000-2002"
+        assert len(worldcat_response["subjects"]) == 2
+        assert worldcat_response["title"] == "Fake series. Book 1"
+        assert list(worldcat_response.keys()) == [
+            "author_name",
+            "author_dates",
+            "description",
+            "pub_date",
+            "subjects",
+            "title",
+            "id",
+        ]
 
     def test_get_worldcat_data_for_part_no_description(
         self, mock_session_managers_missing_data, caplog

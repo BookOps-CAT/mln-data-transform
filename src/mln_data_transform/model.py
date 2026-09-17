@@ -2,14 +2,9 @@ import logging
 from typing import Sequence
 
 from mln_data_transform.components import (
-    TeacherSetSpecialFormat,
+    SpecialFormatSetPart,
     VarFieldData,
     WorldcatSetPart,
-)
-from mln_data_transform.taxonomy import (
-    GradeReadingLevel,
-    SetTypeFormat,
-    SubjectStudyProgram,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,15 +19,15 @@ class TeacherSetCopy:
         control_number: str,
         copies_of_set: int,
         copy_number: int,
-        grade_level: GradeReadingLevel,
+        grade_level: str,
         language: str,
-        parts: Sequence[WorldcatSetPart | TeacherSetSpecialFormat],
+        parts: Sequence[WorldcatSetPart | SpecialFormatSetPart],
         physical_description: str,
         record_type: str,
         set_title: str,
-        set_type: SetTypeFormat,
+        set_type: str,
         shelf_number: str,
-        study_program_info: SubjectStudyProgram,
+        study_program_info: str,
         bib_id: str | None = None,
         enhanced: str | None = None,
         legacy_barcodes: list[tuple[str, str]] = None,
@@ -54,7 +49,7 @@ class TeacherSetCopy:
         self.local_genre_term = local_genre_term
         self.local_topic_term = local_topic_term
         self.parts = [WorldcatSetPart(**i) for i in parts if "id" in i] + [
-            TeacherSetSpecialFormat(**i) for i in parts if "id" not in i
+            SpecialFormatSetPart(**i) for i in parts if "id" not in i
         ]
         self.physical_description = physical_description
         self.record_type = record_type

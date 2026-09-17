@@ -168,3 +168,4 @@ run.py
 temp.py
 check.py
 processing/*
+*.svg

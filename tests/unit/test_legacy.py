@@ -375,6 +375,27 @@ class TestLegacyBibData:
             == f"(19538471) Record contains 2 ISBN/UPC(s). 1/2 are invalid: {output}"
         )
 
+    def test_legacy_bib_data_no_isbns(self, test_bib_data):
+        test_bib_data["varFields"] = [
+            {
+                "ind1": " ",
+                "ind2": " ",
+                "content": None,
+                "marcTag": "500",
+                "fieldTag": "n",
+                "subfields": [{"tag": "a", "content": "2 copies of two titles."}],
+            }
+        ]
+        with pytest.raises(ValueError) as exc:
+            legacy_bib = LegacyBibData(
+                bib_id=test_bib_data["id"],
+                set_title=test_bib_data["title"],
+                var_fields=test_bib_data["varFields"],
+                language=test_bib_data["lang"],
+            )
+            legacy_bib.ids
+        assert str(exc.value) == "(19538471) Record does not contain ISBNs."
+
     @pytest.mark.parametrize(
         "title_field,output",
         [
@@ -1120,7 +1141,7 @@ class TestLegacyTeacherSet:
         ],
     )
     def test_legacy_set_added_entries(
-        self, legacy_set_test_data, caplog, worldcat_part, output
+        self, legacy_set_test_data, worldcat_part, output
     ):
         test_data = copy.deepcopy(legacy_set_test_data)
         legacy_set_data = LegacyTeacherSetData(**test_data)
@@ -1128,3 +1149,12 @@ class TestLegacyTeacherSet:
             set_data=legacy_set_data, worldcat_parts=[worldcat_part]
         )
         assert legacy_set.parts[0].entry_dict() == output
+
+    def test_legacy_set_data_get_parts(
+        self, legacy_set_test_data, mock_session_managers
+    ):
+        test_data = copy.deepcopy(legacy_set_test_data)
+        legacy_set_data = LegacyTeacherSetData(**test_data)
+        parts = legacy_set_data.get_worldcat_data_for_parts()
+        assert len(parts) == 2
+        assert parts[0]["id"] == "9781234567897"

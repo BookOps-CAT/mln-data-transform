@@ -39,7 +39,7 @@ class TeacherSetBib:
         local_genre_term: list[str] | None = None,
         local_topic_term: list[str] | None = None,
         subjects: list[VarFieldData] | None = None,
-        var_field_data: list[VarFieldData] | None = None,
+        var_field_data: list[VarFieldData] | list[dict[str, Any]] | None = None,
     ) -> None:
         self.added_entries = added_entries
         self.components = components
@@ -47,7 +47,7 @@ class TeacherSetBib:
         self.copy_number = copy_number
         self.control_number = control_number
         self.enhanced = enhanced
-        self.grade_level = grade_level
+        self.grade_level = GradeReadingLevel(grade_level)
         self.language = language
         self.local_genre_term = local_genre_term
         self.local_topic_term = local_topic_term
@@ -55,12 +55,19 @@ class TeacherSetBib:
         self.pub_dates = pub_dates
         self.record_type = record_type
         self.set_title = set_title
-        self.set_type = set_type
+        self.set_type = SetTypeFormat(set_type)
         self.shelf_number = shelf_number
-        self.study_program_info = study_program_info
+        self.study_program_info = SubjectStudyProgram(study_program_info)
         self.subjects = subjects
         self.copies_of_set = copies_of_set
-        self.var_field_data = var_field_data
+        self.var_field_data = (
+            [
+                i if isinstance(i, VarFieldData) else VarFieldData(**i)
+                for i in var_field_data
+            ]
+            if var_field_data
+            else None
+        )
 
     @property
     def field_001(self) -> Field:
@@ -195,25 +202,6 @@ class TeacherSetBib:
             indicators=Indicators("8", " "),
             subfields=[Subfield(code="a", value=self.study_program_info.value)],
         )
-
-    # @property
-    # def field_6xx(self) -> list[Field]:
-    #     """Subject fields (REPEATBLE)"""
-    #     subject_list = []
-    #     subject_set = set()
-    #     if not self.subjects:
-    #         return []
-    #     for subject in self.subjects:
-    #         subject_field = Field(
-    #             tag=subject.tag,
-    #             indicators=Indicators(subject.ind1, subject.ind2),
-    #             subfields=[Subfield(code=i[0], value=i[1]) for i in subject.subfields]
-    #         )
-    #         subject_str = subject_field.format_field()
-    #         if subject_str not in subject_set:
-    #             subject_set.add(subject_str)
-    #             subject_list.append(subject_field)
-    #     return subject_list
 
     @property
     def field_690(self) -> Field:
@@ -381,8 +369,6 @@ class TeacherSetBib:
             bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_521)
         bib.add_ordered_field(self.field_526)
-        # for field in self.field_6xx:
-        #     bib.add_ordered_field(field)
         bib.add_ordered_field(self.field_690)
         for field in self.field_691:
             bib.add_ordered_field(field)

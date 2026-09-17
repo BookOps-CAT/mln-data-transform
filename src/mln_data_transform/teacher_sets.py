@@ -1,11 +1,7 @@
 import logging
 from typing import Any
 
-from mln_data_transform.components import (
-    SetBook,
-    TeacherSetSpecialFormat,
-    WorldcatSetPart,
-)
+from mln_data_transform.components import SetBook, SpecialFormatSetPart, WorldcatSetPart
 from mln_data_transform.taxonomy import (
     ComponentFormat,
     GradeReadingLevel,
@@ -49,7 +45,7 @@ class TeacherSetData:
         self.set_type = SetTypeFormat(set_type)
         self.study_program_info = SubjectStudyProgram(study_program_info)
         self.special_formats = (
-            [TeacherSetSpecialFormat(**i) for i in special_formats]
+            [SpecialFormatSetPart(**i) for i in special_formats]
             if special_formats
             else None
         )
@@ -105,7 +101,7 @@ class TeacherSet:
         for part in self.parts:
             copies = str(part.copies)
             title = part.title.strip(".")
-            if isinstance(part, TeacherSetSpecialFormat):
+            if isinstance(part, SpecialFormatSetPart):
                 special_formats.append("".join([copies, f" {title}(s), "]))
             elif part.copies > 1:
                 part_list.append("".join([copies, ' copies of "', title, '", ']))
