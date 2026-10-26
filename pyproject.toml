@@ -9,7 +9,6 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "bookops-nypl-platform",
-    "bookops-sierra",
     "bookops-marc",
     "dotenv>=0.9.9",
     "pandas>=3.0.2",
@@ -26,7 +25,6 @@ mln-data-transform = "mln_data_transform:main"
 
 [tool.uv.sources]
 bookops-nypl-platform = { git = "https://github.com/BookOps-CAT/bookops-nypl-platform" }
-bookops-sierra = { git = "https://github.com/BookOps-CAT/bookops-sierra.git" }
 bookops-marc = { git = "https://github.com/BookOps-CAT/bookops-marc.git" }
 
 [build-system]
